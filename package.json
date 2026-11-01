@@ -1,19 +1,9 @@
 {
-  "name": "minimum-viable-language",
-  "version": "1.1.0",
-  "private": true,
-  "type": "module",
-  "engines": {
-    "node": ">=20.11"
-  },
-  "scripts": {
-    "build": "node scripts/build.mjs",
-    "validate": "node scripts/validate.mjs",
-    "test": "node scripts/validate.mjs && node --check dist/assets/app.js",
-    "check": "npm run test",
-    "dev": "node scripts/serve.mjs",
-    "pages": "npm run check && node scripts/publish.mjs"
-  },
-  "license": "MIT",
-  "description": "Documentation-style German reference with multilingual intent blocks"
+  "name":"minimum-viable-language",
+  "version":"0.1.0",
+  "private":true,
+  "type":"module",
+  "engines":{"node":">=20"},
+  "scripts":{"build":"node scripts/build.mjs","test":"node --test tests/*.test.mjs","check":"npm run test && npm run build","dev":"npm run build && node scripts/serve.mjs","pages":"npm run check"},
+  "license":"MIT"
 }

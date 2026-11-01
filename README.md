@@ -1,59 +1,60 @@
 # Minimum Viable Language (MVL)
 
-**Documentation-style language learning.** Start with the smallest practical subset of standard German, then use shared communication goals to expand the approach to more languages.
+**A meta-framework for constructing minimal, compositional subsets of natural languages.** Rather than storing example phrases, MVL defines language-independent semantic primitives and typed composition operators. Independent grammar adapters realize the resulting trees as ordinary German, French, or Spanish.
 
-The site preserves the complete **Minimum Viable German** interactive manual, including **20 sentence recipes, 10 core grammar rules, 12 real-life dialogues, 86 phrases, an interactive builder, quizzes and writing practice, notes, bookmarks, dark mode and printing**. An experimental **Language blocks** screen demonstrates the same **19 communication intents** in German and Spanish, each with individually curated grammar and vocabulary.
+**Live reference:** https://alainux.github.io/mvl/
 
-## Live site
+## Architecture
 
-After you enable Pages: **https://alainux.github.io/mvl/**
-
-> The repository was initially private. GitHub Pages on private repos requires an eligible plan; for GitHub Free, make the repository public if you want to publish it. Pages itself can still be public even when source is private. You must enable Pages in repository settings; source code cannot automatically toggle that setting.
-
-## Deploy without custom CI
-
-This repo deliberately has **no GitHub Actions workflow**. The compiled site is committed to **`docs/`**, which GitHub Pages can serve using branch deployment. In GitHub: **Settings → Pages → Build and deployment → Deploy from a branch → main → /docs → Save**.
-
-To build locally, you need **Node.js 20.11+**; there are no npm dependencies:
-
-```bash
-git clone https://github.com/alainux/mvl.git
-cd mvl
-npm run dev      # open http://127.0.0.1:4173
-npm run check    # validate build and JavaScript
-npm run pages    # check and regenerate docs/ for Pages
-git add . && git commit -m "Update the manual" && git push
+```text
+src/algebra.mjs               # language-neutral types, predicates and AST operators
+src/languages/de.mjs          # German: finite verb order, case, nicht/kein, inflection
+src/languages/fr.mjs          # French: ne…pas, contractions, clitics, est-ce que
+src/languages/es.mjs          # Spanish: pro-drop, verb forms, pronouns, ¿…?
+src/app.mjs                   # interactive semantic tree composer
+src/index.html, src/style.css # developer-reference UI
+tests/spec.test.mjs           # golden fixtures + Cartesian cross-language matrix
+scripts/build.mjs            # offline, dependency-free build into docs/
+docs/                        # GitHub Pages output (generated and committed)
 ```
 
-When contributing, **edit source**, not `docs/`. Commit generated `docs/` alongside your source files to publish changes without consuming custom CI minutes.
+## Design
 
-## Edit the source
+A meaning tree is built once:
 
-| Directory | Contents |
-| --- | --- |
-| `content/recipes/*.json` | Individual German sentence recipes |
-| `content/grammar/*.json` | Grammar rule explanations |
-| `content/scenarios/*.json` | Short dialogues |
-| `content/phrases.json` | Phrase library |
-| `content/builders/*.json` | German sentence builder |
-| `content/quiz.json`, `content/writing.json` | Practice questions |
-| `framework/intents.json` | Shared goals independent of any language |
-| `framework/languages/*.json` | Language-specific constructions and safe substitutions |
-| `src/js/`, `src/styles.css` | UI code and styling |
-| `site/index.template.html` | HTML shell |
-| `scripts/build.mjs` | Dependency-free compiler to dist/ |
-| `docs/` | Versioned GitHub Pages output; don't edit by hand |
+```js
+import {makeTree} from './src/algebra.mjs';
+import {linearize} from './src/languages/index.mjs';
 
-See [FRAMEWORK.md](FRAMEWORK.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for principles and collaboration instructions.
+const tree=makeTree({
+  predicate:'help',agent:'addressee',argument:'speaker',
+  modal:'can',question:true,polite:true
+});
+linearize(tree,'de'); // Können Sie mir bitte helfen?
+linearize(tree,'fr'); // Est-ce que vous pouvez m’aider, s’il vous plaît ?
+linearize(tree,'es'); // ¿Usted puede ayudarme, por favor?
+```
 
-## Philosophy
+The displayed sentences are **generated compositionally**, not read from a translated phrase catalog. The first deliberately small profile has two participant roles, six predicates, six argument concepts, and seven typed operators. That is a **prototype fragment**, not A1 coverage or a claim of universal semantic primes.
 
-- **Intent first:** what does a learner need to accomplish?
-- **Small, reusable constructions:** teach patterns rather than isolated grammar trivia.
-- **Standard, natural sentences:** preserve communicative success without inventing a dialect.
-- **Curated substitutions:** case, register, and agreement depend on the language and phrase.
-- **Progressive disclosure:** minimal recipe first, exceptions when needed.
+## Develop and publish
 
-It is a learning experiment, **not** an official language standard or a replacement for conversational listening practice. Browser progress and notes stay local; no external API, account, audio lesson or tracking is needed.
+Requires **Node.js 20+**, no `npm install` and no network dependencies:
 
-Code and original educational content: MIT licensed.
+```bash
+npm run check  # golden fixtures, exhaustive supported combinations, build docs/
+npm run dev    # local http://127.0.0.1:4174
+npm run pages  # regenerate static output for GitHub Pages
+```
+
+GitHub Pages serves **main /docs**. Generated `docs/` files are committed with source changes; the repository uses **no custom GitHub Actions CI workflows**. This keeps project Actions usage minimal. Each collaborator can validate locally before pushing.
+
+## Adding languages and operators
+
+Read [FRAMEWORK.md](FRAMEWORK.md) for semantic contracts, typing, extension guidelines, scope boundaries and research references; [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution checklist. Every adapter must implement `profile` and `realize(tree)` and pass the same cross-language fixtures. Realizers may diverge in morphology, syntax, register, and idiomatic strategies; they must not silently change the meaning tree.
+
+## Scientific grounding
+
+MVL synthesizes ideas from Grammatical Framework (abstract/concrete syntax), Frame Semantics (semantic roles), Natural Semantic Metalanguage/Minimal Language (small meaning vocabularies), Universal Dependencies (language-comparable categories), and CEFR (communicative performance). MVL is **not endorsed by or compatible with these standards by default**. Its engineering primitives are not claimed to be universal or empirically optimal; those are future research questions.
+
+Code and original documentation licensed MIT.

@@ -1,0 +1,38 @@
+{
+  "id": "doctor",
+  "title": "At a doctor’s office or pharmacy",
+  "goal": "Give simple information and ask for clarification.",
+  "dialog": [
+    [
+      "Staff",
+      "Was ist das Problem?",
+      "What is the problem?"
+    ],
+    [
+      "You",
+      "Ich habe Kopfschmerzen.",
+      "I have a headache."
+    ],
+    [
+      "You",
+      "Seit gestern.",
+      "Since yesterday."
+    ],
+    [
+      "Staff",
+      "Nehmen Sie Medikamente?",
+      "Are you taking medication?"
+    ],
+    [
+      "You",
+      "Ja. Ich habe eine Liste.",
+      "Yes. I have a list."
+    ],
+    [
+      "You",
+      "Können Sie das bitte aufschreiben?",
+      "Could you write that down, please?"
+    ]
+  ],
+  "tip": "For medical information, make sure you really understand instructions. Ask for written instructions or an interpreter if needed."
+}

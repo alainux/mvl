@@ -1,0 +1,35 @@
+{
+  "id": "price",
+  "name": "How much does… cost?",
+  "instruction": "Use a nominative noun phrase because it is the subject of kosten.",
+  "start": "Wie viel kostet ",
+  "end": "?",
+  "eng": "How much does {} cost?",
+  "options": [
+    [
+      "das",
+      "that"
+    ],
+    [
+      "die Fahrkarte",
+      "the ticket"
+    ],
+    [
+      "der Kaffee",
+      "the coffee"
+    ],
+    [
+      "das Zimmer",
+      "the room"
+    ],
+    [
+      "die Reparatur",
+      "the repair"
+    ],
+    [
+      "der Eintritt",
+      "admission"
+    ]
+  ],
+  "recipe": "howmuch"
+}

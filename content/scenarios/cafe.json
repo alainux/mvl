@@ -1,0 +1,38 @@
+{
+  "id": "cafe",
+  "title": "At a café or restaurant",
+  "goal": "Order, request water, and pay.",
+  "dialog": [
+    [
+      "Staff",
+      "Was möchten Sie?",
+      "What would you like?"
+    ],
+    [
+      "You",
+      "Ich möchte einen Kaffee und ein Wasser, bitte.",
+      "I would like a coffee and a water, please."
+    ],
+    [
+      "Staff",
+      "Sonst noch etwas?",
+      "Anything else?"
+    ],
+    [
+      "You",
+      "Nein, danke.",
+      "No, thank you."
+    ],
+    [
+      "You",
+      "Ich möchte bezahlen.",
+      "I would like to pay."
+    ],
+    [
+      "You",
+      "Kann ich mit Karte bezahlen?",
+      "Can I pay by card?"
+    ]
+  ],
+  "tip": "“Ein Wasser” is a common shorthand for a serving of water."
+}

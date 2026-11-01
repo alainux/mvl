@@ -1,0 +1,33 @@
+{
+  "id": "booking",
+  "title": "Making an appointment",
+  "goal": "Request, schedule, and change an appointment.",
+  "dialog": [
+    [
+      "You",
+      "Guten Tag. Ich brauche einen Termin.",
+      "Hello. I need an appointment."
+    ],
+    [
+      "Staff",
+      "Haben Sie am Montag Zeit?",
+      "Are you available on Monday?"
+    ],
+    [
+      "You",
+      "Am Montag kann ich nicht. Ich habe am Dienstag Zeit.",
+      "I cannot on Monday. I am free on Tuesday."
+    ],
+    [
+      "Staff",
+      "Um 10 Uhr?",
+      "At 10 a.m.?"
+    ],
+    [
+      "You",
+      "Ja, das passt. Vielen Dank.",
+      "Yes, that works. Thank you very much."
+    ]
+  ],
+  "tip": "For rebooking: Ich möchte den Termin ändern. = I want to change the appointment."
+}

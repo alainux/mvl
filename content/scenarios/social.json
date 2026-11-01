@@ -1,0 +1,38 @@
+{
+  "id": "social",
+  "title": "A simple social invitation",
+  "goal": "Make a plan without needing complex conditionals.",
+  "dialog": [
+    [
+      "Person",
+      "Haben Sie am Samstag Zeit?",
+      "Are you free on Saturday?"
+    ],
+    [
+      "You",
+      "Ja, ich habe Zeit.",
+      "Yes, I am free."
+    ],
+    [
+      "Person",
+      "Möchten Sie einen Kaffee trinken?",
+      "Would you like to have a coffee?"
+    ],
+    [
+      "You",
+      "Ja, gern!",
+      "Yes, gladly!"
+    ],
+    [
+      "You",
+      "Wo treffen wir uns?",
+      "Where shall we meet?"
+    ],
+    [
+      "Person",
+      "Um 15 Uhr am Bahnhof.",
+      "At 3 p.m. at the station."
+    ]
+  ],
+  "tip": "Ja, gern! = Yes, gladly. Das passt. = That works. Leider nicht. = Unfortunately not."
+}

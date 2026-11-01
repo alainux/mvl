@@ -1,0 +1,35 @@
+{
+  "id": "couldyou",
+  "name": "Can you…? (polite)",
+  "instruction": "Sie is polite “you”; the action goes at the end.",
+  "start": "Können Sie ",
+  "end": "?",
+  "eng": "Can you {}?",
+  "options": [
+    [
+      "mir helfen",
+      "help me"
+    ],
+    [
+      "das bitte wiederholen",
+      "repeat that, please"
+    ],
+    [
+      "bitte langsamer sprechen",
+      "speak more slowly, please"
+    ],
+    [
+      "das aufschreiben",
+      "write that down"
+    ],
+    [
+      "mir den Weg zeigen",
+      "show me the way"
+    ],
+    [
+      "mir das erklären",
+      "explain that to me"
+    ]
+  ],
+  "recipe": "help"
+}

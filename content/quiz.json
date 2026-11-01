@@ -1,0 +1,266 @@
+[
+  {
+    "prompt": "I need help.",
+    "options": [
+      "Ich brauche Hilfe.",
+      "Ich brauchen Hilfe.",
+      "Ich bin Hilfe.",
+      "Ich Hilfe brauche."
+    ],
+    "correct": 0,
+    "explanation": "With ich use brauche; a normal statement puts the verb in position two."
+  },
+  {
+    "prompt": "Where is the station?",
+    "options": [
+      "Wo den Bahnhof ist?",
+      "Wo ist der Bahnhof?",
+      "Wo der Bahnhof?",
+      "Was ist Bahnhof?"
+    ],
+    "correct": 1,
+    "explanation": "In a direct question: Wo + ist + noun phrase. Der Bahnhof is nominative."
+  },
+  {
+    "prompt": "Can you help me? (formal)",
+    "options": [
+      "Kannst Sie mir helfen?",
+      "Sie können mir helfen?",
+      "Können Sie mir helfen?",
+      "Können Sie helfen mir?"
+    ],
+    "correct": 2,
+    "explanation": "The yes/no question starts with Können; formal Sie follows, then the main verb goes at the end."
+  },
+  {
+    "prompt": "I have an appointment.",
+    "options": [
+      "Ich habe ein Termin.",
+      "Ich habe einen Termin.",
+      "Ich bin einen Termin.",
+      "Ich habe der Termin."
+    ],
+    "correct": 1,
+    "explanation": "Termin is masculine; a direct object needs einen."
+  },
+  {
+    "prompt": "Can I pay by card?",
+    "options": [
+      "Kann ich mit Karte bezahlen?",
+      "Ich bezahlen kann mit Karte?",
+      "Kann mit Karte ich bezahlen?",
+      "Ich kann mit Karte bezahlen."
+    ],
+    "correct": 0,
+    "explanation": "Kann ich is the question opening; bezahlen is the infinitive at the end."
+  },
+  {
+    "prompt": "I would like to pay.",
+    "options": [
+      "Ich möchte bezahle.",
+      "Ich möchten bezahlen.",
+      "Ich möchte bezahlen.",
+      "Ich bin bezahlen."
+    ],
+    "correct": 2,
+    "explanation": "With möchte, use an infinitive: bezahlen."
+  },
+  {
+    "prompt": "Do you have time? (formal)",
+    "options": [
+      "Sie haben Zeit?",
+      "Haben Sie Zeit?",
+      "Hat Sie Zeit?",
+      "Hast Sie Zeit?"
+    ],
+    "correct": 1,
+    "explanation": "A standard yes/no question starts with the conjugated verb: Haben Sie …?"
+  },
+  {
+    "prompt": "I have no time.",
+    "options": [
+      "Ich habe nicht Zeit.",
+      "Ich habe keinen Zeit.",
+      "Ich habe keine Zeit.",
+      "Ich nicht habe Zeit."
+    ],
+    "correct": 2,
+    "explanation": "Zeit is feminine; the common phrase is keine Zeit."
+  },
+  {
+    "prompt": "I cannot come tomorrow.",
+    "options": [
+      "Ich kann morgen nicht kommen.",
+      "Ich kann nicht morgen kommen nicht.",
+      "Ich nicht kann morgen kommen.",
+      "Ich kann morgen kommen nicht."
+    ],
+    "correct": 0,
+    "explanation": "With a modal verb, the main infinitive stays at the end."
+  },
+  {
+    "prompt": "How much does that cost?",
+    "options": [
+      "Wie viele kostet das?",
+      "Wie viel kosten das?",
+      "Wie viel kostet das?",
+      "Wo viel kostet das?"
+    ],
+    "correct": 2,
+    "explanation": "Wie viel asks “how much”, and singular das takes kostet."
+  },
+  {
+    "prompt": "I am looking for the station.",
+    "options": [
+      "Ich suche der Bahnhof.",
+      "Ich suche den Bahnhof.",
+      "Ich suche dem Bahnhof.",
+      "Ich bin suche Bahnhof."
+    ],
+    "correct": 1,
+    "explanation": "Suchen takes an accusative object; masculine der becomes den."
+  },
+  {
+    "prompt": "Could you repeat that, please?",
+    "options": [
+      "Können Sie das bitte wiederholen?",
+      "Können Sie das bitte wiederholt?",
+      "Sie können wiederholen das bitte?",
+      "Kann Sie das bitte wiederholen?"
+    ],
+    "correct": 0,
+    "explanation": "Können Sie ... wiederholen? is the polite modal-question pattern."
+  },
+  {
+    "prompt": "Today I need help.",
+    "options": [
+      "Heute ich brauche Hilfe.",
+      "Heute brauchen ich Hilfe.",
+      "Heute brauche ich Hilfe.",
+      "Heute bin brauche Hilfe."
+    ],
+    "correct": 2,
+    "explanation": "When heute is the first constituent, the conjugated verb immediately follows."
+  },
+  {
+    "prompt": "Is there a toilet here?",
+    "options": [
+      "Gibt es hier eine Toilette?",
+      "Ist es hier eine Toilette?",
+      "Gibt hier es die Toilette?",
+      "Gibt es hier einen Toilette?"
+    ],
+    "correct": 0,
+    "explanation": "Gibt es is “is there”, and Toilette is feminine: eine Toilette."
+  },
+  {
+    "prompt": "I am tired.",
+    "options": [
+      "Ich habe müde.",
+      "Ich bist müde.",
+      "Ich bin müde.",
+      "Ich müde bin."
+    ],
+    "correct": 2,
+    "explanation": "Use ich bin with an adjective."
+  },
+  {
+    "prompt": "I must work tomorrow.",
+    "options": [
+      "Ich muss morgen arbeiten.",
+      "Ich muss arbeiten morgen.",
+      "Ich müssen morgen arbeiten.",
+      "Ich morgen muss arbeiten."
+    ],
+    "correct": 0,
+    "explanation": "Muss is conjugated; arbeiten goes at the end."
+  },
+  {
+    "prompt": "I worked yesterday.",
+    "options": [
+      "Ich bin gestern gearbeitet.",
+      "Ich habe gestern gearbeitet.",
+      "Ich habe gestern arbeiten.",
+      "Ich gestern habe gearbeitet."
+    ],
+    "correct": 1,
+    "explanation": "Arbeiten normally forms Perfekt with haben: habe gearbeitet."
+  },
+  {
+    "prompt": "I went home yesterday.",
+    "options": [
+      "Ich habe gestern nach Hause gegangen.",
+      "Ich bin gestern zu Hause gegangen.",
+      "Ich bin gestern nach Hause gegangen.",
+      "Ich bin gestern gegangen nach Hause."
+    ],
+    "correct": 2,
+    "explanation": "Gehen takes sein in the perfect, and nach Hause means “homeward”."
+  },
+  {
+    "prompt": "When is the appointment?",
+    "options": [
+      "Wann ist der Termin?",
+      "Wann der Termin ist?",
+      "Wann hat der Termin?",
+      "Was ist der Termin wann?"
+    ],
+    "correct": 0,
+    "explanation": "Wann + conjugated verb + subject is a direct question."
+  },
+  {
+    "prompt": "I have a question.",
+    "options": [
+      "Ich habe eine Frage.",
+      "Ich habe ein Frage.",
+      "Ich bin eine Frage.",
+      "Ich haben eine Frage."
+    ],
+    "correct": 0,
+    "explanation": "Frage is feminine; as an object, it remains eine Frage."
+  },
+  {
+    "prompt": "Please speak slowly. (formal)",
+    "options": [
+      "Bitte sprich Sie langsam.",
+      "Bitte sprechen Sie langsam.",
+      "Bitte spricht Sie langsam.",
+      "Bitte Sie sprechen langsam."
+    ],
+    "correct": 1,
+    "explanation": "Polite requests use sprechen Sie (the Sie verb form)."
+  },
+  {
+    "prompt": "Where can I buy a ticket?",
+    "options": [
+      "Wo kann ich eine Fahrkarte kaufen?",
+      "Wo ich kann eine Fahrkarte kaufen?",
+      "Wo kann ich kaufen eine Fahrkarte?",
+      "Wo möchte kaufen Fahrkarte?"
+    ],
+    "correct": 0,
+    "explanation": "Question word + modal + subject; the infinitive kaufen remains at the end."
+  },
+  {
+    "prompt": "I do not understand that.",
+    "options": [
+      "Ich verstehe das kein.",
+      "Ich verstehen nicht das.",
+      "Ich das nicht verstehe.",
+      "Ich verstehe das nicht."
+    ],
+    "correct": 3,
+    "explanation": "The straightforward phrase is Ich verstehe das nicht."
+  },
+  {
+    "prompt": "The heating is not working.",
+    "options": [
+      "Die Heizung funktioniert nicht.",
+      "Die Heizung nicht funktioniert.",
+      "Der Heizung funktioniert nicht.",
+      "Die Heizung funktioniert kein."
+    ],
+    "correct": 0,
+    "explanation": "Die Heizung is feminine; nicht negates the verb."
+  }
+]

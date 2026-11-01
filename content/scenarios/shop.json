@@ -1,0 +1,38 @@
+{
+  "id": "shop",
+  "title": "Shopping and returns",
+  "goal": "Ask for an item, its price, and a receipt.",
+  "dialog": [
+    [
+      "You",
+      "Guten Tag. Ich suche eine Jacke.",
+      "Hello. I am looking for a jacket."
+    ],
+    [
+      "Staff",
+      "Welche Größe brauchen Sie?",
+      "What size do you need?"
+    ],
+    [
+      "You",
+      "Größe M, bitte.",
+      "Size M, please."
+    ],
+    [
+      "You",
+      "Wie viel kostet das?",
+      "How much is that?"
+    ],
+    [
+      "You",
+      "Kann ich mit Karte bezahlen?",
+      "Can I pay by card?"
+    ],
+    [
+      "You",
+      "Ich brauche eine Quittung, bitte.",
+      "I need a receipt, please."
+    ]
+  ],
+  "tip": "Größe means size; learn common answers S, M, L, XL and your shoe size."
+}

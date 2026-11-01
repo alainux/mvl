@@ -1,0 +1,22 @@
+{
+  "id": "sie",
+  "title": "Rule 04 — Polite “you”: Sie",
+  "short": "Use Sie with people you do not know; its verb generally matches the infinitive form.",
+  "syntax": "Können Sie mir helfen?\nHaben Sie Zeit?",
+  "body": "For everyday errands, defaulting to formal Sie is safe. You can learn informal du later. Capitalization distinguishes polite Sie from sie (“she/they”).",
+  "examples": [
+    [
+      "Sprechen Sie Englisch?",
+      "Do you speak English?"
+    ],
+    [
+      "Haben Sie einen Termin?",
+      "Do you have an appointment?"
+    ],
+    [
+      "Können Sie mir das zeigen?",
+      "Can you show me that?"
+    ]
+  ],
+  "pitfall": "With formal Sie: Sie haben, Sie können, Sie sind — not Sie hast, Sie kannst, Sie bist."
+}

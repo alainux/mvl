@@ -1,0 +1,25 @@
+{
+  "id": "time",
+  "group": "Daily life",
+  "title": "Say when you are available",
+  "name": "Time and dates",
+  "syntax": "Ich komme am Montag um 14 Uhr.",
+  "summary": "Arrange ordinary plans without complex grammar.",
+  "rule": "Memorize these time chunks: heute, morgen, am Montag, um 14 Uhr, nächste Woche.",
+  "examples": [
+    [
+      "Ich komme morgen.",
+      "I am coming tomorrow."
+    ],
+    [
+      "Ich habe am Montag Zeit.",
+      "I have time on Monday."
+    ],
+    [
+      "Ich habe um 15 Uhr einen Termin.",
+      "I have an appointment at 3 p.m."
+    ]
+  ],
+  "avoid": "Within a sentence, Morgen (capitalized) means morning; morgen (lowercase) means tomorrow. At the start of a sentence, both begin with a capital M.",
+  "note": "am + weekday; um + clock time; im + month: im November."
+}

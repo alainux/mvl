@@ -1,0 +1,33 @@
+{
+  "id": "work",
+  "title": "Simple workplace communication",
+  "goal": "Say what you can do and ask for instructions.",
+  "dialog": [
+    [
+      "Colleague",
+      "Haben Sie heute Zeit?",
+      "Do you have time today?"
+    ],
+    [
+      "You",
+      "Heute nicht. Ich habe morgen Zeit.",
+      "Not today. I am available tomorrow."
+    ],
+    [
+      "You",
+      "Ich habe eine Frage.",
+      "I have a question."
+    ],
+    [
+      "You",
+      "Können Sie mir das bitte zeigen?",
+      "Could you show me that, please?"
+    ],
+    [
+      "You",
+      "Danke. Jetzt verstehe ich das.",
+      "Thanks. Now I understand it."
+    ]
+  ],
+  "tip": "For informal colleagues who use du, the matching question is “Kannst du mir helfen?”"
+}

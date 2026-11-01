@@ -1,0 +1,518 @@
+[
+  {
+    "category": "Basics",
+    "de": "Guten Tag.",
+    "en": "Hello / good day.",
+    "id": "ph0"
+  },
+  {
+    "category": "Basics",
+    "de": "Guten Morgen.",
+    "en": "Good morning.",
+    "id": "ph1"
+  },
+  {
+    "category": "Basics",
+    "de": "Hallo.",
+    "en": "Hello.",
+    "id": "ph2"
+  },
+  {
+    "category": "Basics",
+    "de": "Auf Wiedersehen.",
+    "en": "Goodbye.",
+    "id": "ph3"
+  },
+  {
+    "category": "Basics",
+    "de": "Tschüss!",
+    "en": "Bye! (informal)",
+    "id": "ph4"
+  },
+  {
+    "category": "Basics",
+    "de": "Bitte.",
+    "en": "Please / you are welcome.",
+    "id": "ph5"
+  },
+  {
+    "category": "Basics",
+    "de": "Danke schön.",
+    "en": "Thank you very much.",
+    "id": "ph6"
+  },
+  {
+    "category": "Basics",
+    "de": "Entschuldigung.",
+    "en": "Excuse me / sorry.",
+    "id": "ph7"
+  },
+  {
+    "category": "Basics",
+    "de": "Ja.",
+    "en": "Yes.",
+    "id": "ph8"
+  },
+  {
+    "category": "Basics",
+    "de": "Nein.",
+    "en": "No.",
+    "id": "ph9"
+  },
+  {
+    "category": "Basics",
+    "de": "Vielleicht.",
+    "en": "Maybe.",
+    "id": "ph10"
+  },
+  {
+    "category": "Basics",
+    "de": "Natürlich.",
+    "en": "Of course.",
+    "id": "ph11"
+  },
+  {
+    "category": "About you",
+    "de": "Ich heiße Alex.",
+    "en": "My name is Alex.",
+    "id": "ph12"
+  },
+  {
+    "category": "About you",
+    "de": "Ich komme aus Kanada.",
+    "en": "I come from Canada.",
+    "id": "ph13"
+  },
+  {
+    "category": "About you",
+    "de": "Ich wohne hier.",
+    "en": "I live here.",
+    "id": "ph14"
+  },
+  {
+    "category": "About you",
+    "de": "Ich lerne Deutsch.",
+    "en": "I am learning German.",
+    "id": "ph15"
+  },
+  {
+    "category": "About you",
+    "de": "Ich bin neu hier.",
+    "en": "I am new here.",
+    "id": "ph16"
+  },
+  {
+    "category": "About you",
+    "de": "Ich bin müde.",
+    "en": "I am tired.",
+    "id": "ph17"
+  },
+  {
+    "category": "About you",
+    "de": "Ich habe eine Frage.",
+    "en": "I have a question.",
+    "id": "ph18"
+  },
+  {
+    "category": "About you",
+    "de": "Ich habe heute Zeit.",
+    "en": "I am free today.",
+    "id": "ph19"
+  },
+  {
+    "category": "Understanding",
+    "de": "Ich verstehe das nicht.",
+    "en": "I do not understand that.",
+    "id": "ph20"
+  },
+  {
+    "category": "Understanding",
+    "de": "Ich spreche nur ein bisschen Deutsch.",
+    "en": "I only speak a little German.",
+    "id": "ph21"
+  },
+  {
+    "category": "Understanding",
+    "de": "Sprechen Sie Englisch?",
+    "en": "Do you speak English?",
+    "id": "ph22"
+  },
+  {
+    "category": "Understanding",
+    "de": "Bitte sprechen Sie langsam.",
+    "en": "Please speak slowly.",
+    "id": "ph23"
+  },
+  {
+    "category": "Understanding",
+    "de": "Können Sie das bitte wiederholen?",
+    "en": "Could you repeat that, please?",
+    "id": "ph24"
+  },
+  {
+    "category": "Understanding",
+    "de": "Können Sie das aufschreiben?",
+    "en": "Could you write that down?",
+    "id": "ph25"
+  },
+  {
+    "category": "Understanding",
+    "de": "Was bedeutet das?",
+    "en": "What does that mean?",
+    "id": "ph26"
+  },
+  {
+    "category": "Understanding",
+    "de": "Ist das richtig?",
+    "en": "Is that correct?",
+    "id": "ph27"
+  },
+  {
+    "category": "Understanding",
+    "de": "Einen Moment, bitte.",
+    "en": "One moment, please.",
+    "id": "ph28"
+  },
+  {
+    "category": "Help",
+    "de": "Können Sie mir helfen?",
+    "en": "Can you help me?",
+    "id": "ph29"
+  },
+  {
+    "category": "Help",
+    "de": "Ich brauche Hilfe.",
+    "en": "I need help.",
+    "id": "ph30"
+  },
+  {
+    "category": "Help",
+    "de": "Es gibt ein Problem.",
+    "en": "There is a problem.",
+    "id": "ph31"
+  },
+  {
+    "category": "Help",
+    "de": "Das funktioniert nicht.",
+    "en": "That does not work.",
+    "id": "ph32"
+  },
+  {
+    "category": "Help",
+    "de": "Ich weiß es nicht.",
+    "en": "I do not know.",
+    "id": "ph33"
+  },
+  {
+    "category": "Help",
+    "de": "Ich kann heute nicht kommen.",
+    "en": "I cannot come today.",
+    "id": "ph34"
+  },
+  {
+    "category": "Help",
+    "de": "Ich habe keine Zeit.",
+    "en": "I do not have time.",
+    "id": "ph35"
+  },
+  {
+    "category": "Help",
+    "de": "Ich bin krank.",
+    "en": "I am sick.",
+    "id": "ph36"
+  },
+  {
+    "category": "Food & shopping",
+    "de": "Ich möchte einen Kaffee.",
+    "en": "I would like a coffee.",
+    "id": "ph37"
+  },
+  {
+    "category": "Food & shopping",
+    "de": "Ich möchte Wasser.",
+    "en": "I would like water.",
+    "id": "ph38"
+  },
+  {
+    "category": "Food & shopping",
+    "de": "Ich möchte bezahlen.",
+    "en": "I would like to pay.",
+    "id": "ph39"
+  },
+  {
+    "category": "Food & shopping",
+    "de": "Kann ich mit Karte bezahlen?",
+    "en": "Can I pay by card?",
+    "id": "ph40"
+  },
+  {
+    "category": "Food & shopping",
+    "de": "Wie viel kostet das?",
+    "en": "How much does that cost?",
+    "id": "ph41"
+  },
+  {
+    "category": "Food & shopping",
+    "de": "Ich brauche eine Quittung.",
+    "en": "I need a receipt.",
+    "id": "ph42"
+  },
+  {
+    "category": "Food & shopping",
+    "de": "Ich suche eine Jacke.",
+    "en": "I am looking for a jacket.",
+    "id": "ph43"
+  },
+  {
+    "category": "Food & shopping",
+    "de": "Kann ich das umtauschen?",
+    "en": "Can I exchange that?",
+    "id": "ph44"
+  },
+  {
+    "category": "Food & shopping",
+    "de": "Haben Sie das in Größe M?",
+    "en": "Do you have that in size M?",
+    "id": "ph45"
+  },
+  {
+    "category": "Directions & travel",
+    "de": "Wo ist der Bahnhof?",
+    "en": "Where is the station?",
+    "id": "ph46"
+  },
+  {
+    "category": "Directions & travel",
+    "de": "Wo ist die Toilette?",
+    "en": "Where is the toilet?",
+    "id": "ph47"
+  },
+  {
+    "category": "Directions & travel",
+    "de": "Wo ist die Haltestelle?",
+    "en": "Where is the stop?",
+    "id": "ph48"
+  },
+  {
+    "category": "Directions & travel",
+    "de": "Ich suche die Apotheke.",
+    "en": "I am looking for the pharmacy.",
+    "id": "ph49"
+  },
+  {
+    "category": "Directions & travel",
+    "de": "Gibt es hier einen Geldautomaten?",
+    "en": "Is there an ATM here?",
+    "id": "ph50"
+  },
+  {
+    "category": "Directions & travel",
+    "de": "Wo kann ich eine Fahrkarte kaufen?",
+    "en": "Where can I buy a ticket?",
+    "id": "ph51"
+  },
+  {
+    "category": "Directions & travel",
+    "de": "Wann fährt der Zug?",
+    "en": "When does the train depart?",
+    "id": "ph52"
+  },
+  {
+    "category": "Directions & travel",
+    "de": "Fährt dieser Zug nach Berlin?",
+    "en": "Does this train go to Berlin?",
+    "id": "ph53"
+  },
+  {
+    "category": "Directions & travel",
+    "de": "Ist das der richtige Zug?",
+    "en": "Is this the right train?",
+    "id": "ph54"
+  },
+  {
+    "category": "Time & appointments",
+    "de": "Ich brauche einen Termin.",
+    "en": "I need an appointment.",
+    "id": "ph55"
+  },
+  {
+    "category": "Time & appointments",
+    "de": "Ich habe einen Termin.",
+    "en": "I have an appointment.",
+    "id": "ph56"
+  },
+  {
+    "category": "Time & appointments",
+    "de": "Ich möchte den Termin ändern.",
+    "en": "I would like to change the appointment.",
+    "id": "ph57"
+  },
+  {
+    "category": "Time & appointments",
+    "de": "Haben Sie morgen Zeit?",
+    "en": "Are you available tomorrow?",
+    "id": "ph58"
+  },
+  {
+    "category": "Time & appointments",
+    "de": "Ich komme am Montag.",
+    "en": "I am coming on Monday.",
+    "id": "ph59"
+  },
+  {
+    "category": "Time & appointments",
+    "de": "Um wie viel Uhr?",
+    "en": "At what time?",
+    "id": "ph60"
+  },
+  {
+    "category": "Time & appointments",
+    "de": "Das passt.",
+    "en": "That works.",
+    "id": "ph61"
+  },
+  {
+    "category": "Time & appointments",
+    "de": "Leider nicht.",
+    "en": "Unfortunately not.",
+    "id": "ph62"
+  },
+  {
+    "category": "Time & appointments",
+    "de": "Können wir das verschieben?",
+    "en": "Can we postpone that?",
+    "id": "ph63"
+  },
+  {
+    "category": "Home & work",
+    "de": "Die Heizung funktioniert nicht.",
+    "en": "The heating is not working.",
+    "id": "ph64"
+  },
+  {
+    "category": "Home & work",
+    "de": "Das Internet funktioniert nicht.",
+    "en": "The internet is not working.",
+    "id": "ph65"
+  },
+  {
+    "category": "Home & work",
+    "de": "Wann kann jemand kommen?",
+    "en": "When can someone come?",
+    "id": "ph66"
+  },
+  {
+    "category": "Home & work",
+    "de": "Ich muss arbeiten.",
+    "en": "I have to work.",
+    "id": "ph67"
+  },
+  {
+    "category": "Home & work",
+    "de": "Ich kann morgen kommen.",
+    "en": "I can come tomorrow.",
+    "id": "ph68"
+  },
+  {
+    "category": "Home & work",
+    "de": "Können Sie mir das zeigen?",
+    "en": "Can you show me that?",
+    "id": "ph69"
+  },
+  {
+    "category": "Home & work",
+    "de": "Ich habe eine Frage zu diesem Formular.",
+    "en": "I have a question about this form.",
+    "id": "ph70"
+  },
+  {
+    "category": "Home & work",
+    "de": "Wo soll ich unterschreiben?",
+    "en": "Where should I sign?",
+    "id": "ph71"
+  },
+  {
+    "category": "Health",
+    "de": "Ich habe Schmerzen.",
+    "en": "I am in pain.",
+    "id": "ph72"
+  },
+  {
+    "category": "Health",
+    "de": "Ich habe Kopfschmerzen.",
+    "en": "I have a headache.",
+    "id": "ph73"
+  },
+  {
+    "category": "Health",
+    "de": "Ich bin seit gestern krank.",
+    "en": "I have been sick since yesterday.",
+    "id": "ph74"
+  },
+  {
+    "category": "Health",
+    "de": "Ich brauche einen Arzt.",
+    "en": "I need a doctor.",
+    "id": "ph75"
+  },
+  {
+    "category": "Health",
+    "de": "Ich brauche eine Apotheke.",
+    "en": "I need a pharmacy.",
+    "id": "ph76"
+  },
+  {
+    "category": "Health",
+    "de": "Bitte schreiben Sie das auf.",
+    "en": "Please write that down.",
+    "id": "ph77"
+  },
+  {
+    "category": "Health",
+    "de": "Ich habe eine Liste meiner Medikamente.",
+    "en": "I have a list of my medications.",
+    "id": "ph78"
+  },
+  {
+    "category": "Social",
+    "de": "Wie geht es Ihnen?",
+    "en": "How are you? (formal)",
+    "id": "ph79"
+  },
+  {
+    "category": "Social",
+    "de": "Gut, danke. Und Ihnen?",
+    "en": "Good, thank you. And you?",
+    "id": "ph80"
+  },
+  {
+    "category": "Social",
+    "de": "Möchten Sie einen Kaffee trinken?",
+    "en": "Would you like to have a coffee?",
+    "id": "ph81"
+  },
+  {
+    "category": "Social",
+    "de": "Ja, gern.",
+    "en": "Yes, gladly.",
+    "id": "ph82"
+  },
+  {
+    "category": "Social",
+    "de": "Wo treffen wir uns?",
+    "en": "Where shall we meet?",
+    "id": "ph83"
+  },
+  {
+    "category": "Social",
+    "de": "Bis morgen!",
+    "en": "See you tomorrow!",
+    "id": "ph84"
+  },
+  {
+    "category": "Social",
+    "de": "Schönen Tag noch!",
+    "en": "Have a nice rest of your day!",
+    "id": "ph85"
+  }
+]

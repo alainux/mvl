@@ -1,0 +1,72 @@
+[
+  {
+    "prompt": "You need an appointment.",
+    "model": "Ich brauche einen Termin.",
+    "tip": "Need + accusative object: einen Termin."
+  },
+  {
+    "prompt": "Ask someone politely to help you.",
+    "model": "Können Sie mir helfen?",
+    "tip": "Können Sie + infinitive is the polite request pattern."
+  },
+  {
+    "prompt": "Say you cannot come tomorrow.",
+    "model": "Ich kann morgen nicht kommen.",
+    "tip": "kann + ... + infinitive; nicht negates coming."
+  },
+  {
+    "prompt": "Ask where the bathroom is.",
+    "model": "Wo ist die Toilette?",
+    "tip": "Wo ist + nominative noun phrase."
+  },
+  {
+    "prompt": "Ask whether you can pay by card.",
+    "model": "Kann ich mit Karte bezahlen?",
+    "tip": "Start a question with Kann ich; bezahlen goes last."
+  },
+  {
+    "prompt": "Say you do not understand.",
+    "model": "Ich verstehe das nicht.",
+    "tip": "A reliable communication-repair phrase."
+  },
+  {
+    "prompt": "Ask someone to speak more slowly.",
+    "model": "Können Sie bitte langsamer sprechen?",
+    "tip": "Polite request with a comparative: langsamer."
+  },
+  {
+    "prompt": "Say you have a question.",
+    "model": "Ich habe eine Frage.",
+    "tip": "Complete noun phrase with eine."
+  },
+  {
+    "prompt": "Ask when the train departs.",
+    "model": "Wann fährt der Zug?",
+    "tip": "Question word + conjugated verb + subject."
+  },
+  {
+    "prompt": "Say you would like to buy a ticket.",
+    "model": "Ich möchte eine Fahrkarte kaufen.",
+    "tip": "Put the infinitive kaufen at the end."
+  },
+  {
+    "prompt": "Say the device does not work.",
+    "model": "Das Gerät funktioniert nicht.",
+    "tip": "Subject + verb + nicht."
+  },
+  {
+    "prompt": "Say you are free on Monday.",
+    "model": "Ich habe am Montag Zeit.",
+    "tip": "am + weekday."
+  },
+  {
+    "prompt": "Say you worked yesterday.",
+    "model": "Ich habe gestern gearbeitet.",
+    "tip": "Common perfect form: habe gearbeitet."
+  },
+  {
+    "prompt": "Say you are learning German.",
+    "model": "Ich lerne Deutsch.",
+    "tip": "One short complete sentence."
+  }
+]

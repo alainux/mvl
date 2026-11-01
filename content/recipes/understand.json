@@ -1,0 +1,25 @@
+{
+  "id": "understand",
+  "group": "Daily life",
+  "title": "Ask people to adjust their speech",
+  "name": "I don’t understand",
+  "syntax": "Ich lerne Deutsch. Bitte sprechen Sie langsam.",
+  "summary": "An essential communication repair strategy.",
+  "rule": "Use a short statement and then a polite request.",
+  "examples": [
+    [
+      "Ich verstehe das nicht.",
+      "I do not understand that."
+    ],
+    [
+      "Bitte sprechen Sie langsam.",
+      "Please speak slowly."
+    ],
+    [
+      "Was bedeutet das?",
+      "What does that mean?"
+    ]
+  ],
+  "avoid": "Avoid pretending to understand something important, especially dates, prices, or instructions.",
+  "note": "Other useful repair phrase: Können Sie das bitte aufschreiben?"
+}

@@ -1,0 +1,62 @@
+{
+  "recipes": [
+    "be",
+    "have",
+    "need",
+    "want",
+    "can",
+    "must",
+    "dont",
+    "help",
+    "can-i",
+    "where",
+    "find",
+    "exists",
+    "howmuch",
+    "when",
+    "yesno",
+    "time",
+    "problem",
+    "understand",
+    "past",
+    "short"
+  ],
+  "grammar": [
+    "verb2",
+    "questions",
+    "modals",
+    "sie",
+    "articles",
+    "negation",
+    "timechunks",
+    "directions",
+    "pastgram",
+    "shortgrammar"
+  ],
+  "scenarios": [
+    "intro",
+    "shop",
+    "cafe",
+    "direction",
+    "train",
+    "booking",
+    "doctor",
+    "office",
+    "housing",
+    "work",
+    "problemcall",
+    "social"
+  ],
+  "builders": [
+    "need",
+    "want",
+    "wantdo",
+    "cani",
+    "couldyou",
+    "where",
+    "looking",
+    "there",
+    "price",
+    "available"
+  ]
+}

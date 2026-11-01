@@ -1,0 +1,39 @@
+{
+  "id": "wantdo",
+  "name": "I would like to do something",
+  "instruction": "Notice that the action verb appears at the end.",
+  "start": "Ich möchte ",
+  "end": ".",
+  "eng": "I would like to {}.",
+  "options": [
+    [
+      "bezahlen",
+      "pay"
+    ],
+    [
+      "Deutsch lernen",
+      "learn German"
+    ],
+    [
+      "eine Fahrkarte kaufen",
+      "buy a ticket"
+    ],
+    [
+      "einen Termin vereinbaren",
+      "arrange an appointment"
+    ],
+    [
+      "das Formular ausfüllen",
+      "fill in the form"
+    ],
+    [
+      "hier warten",
+      "wait here"
+    ],
+    [
+      "das umtauschen",
+      "exchange that"
+    ]
+  ],
+  "recipe": "want"
+}

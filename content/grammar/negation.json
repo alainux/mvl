@@ -1,0 +1,22 @@
+{
+  "id": "negation",
+  "title": "Rule 06 — nicht vs. kein",
+  "short": "Use nicht to negate an action or idea; use kein with many nouns.",
+  "syntax": "Ich verstehe das nicht.\nIch habe keine Zeit.",
+  "body": "The word nicht can move depending on what is being negated. In this minimum system, learn reliable sentences first. Kein behaves like an article and changes form with the noun.",
+  "examples": [
+    [
+      "Ich kann heute nicht kommen.",
+      "I cannot come today."
+    ],
+    [
+      "Ich habe kein Geld.",
+      "I have no money."
+    ],
+    [
+      "Ich habe keinen Termin.",
+      "I do not have an appointment."
+    ]
+  ],
+  "pitfall": "“Ich muss nicht kommen” means “I do not have to come”; “Ich darf nicht kommen” means “I am not allowed to come”."
+}

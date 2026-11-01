@@ -1,0 +1,25 @@
+{
+  "id": "can-i",
+  "group": "Questions",
+  "title": "Ask permission or possibility",
+  "name": "Can I…?",
+  "syntax": "Kann ich + ... + infinitive?",
+  "summary": "Perfect for shops, restaurants, appointments, and travel.",
+  "rule": "Yes/no questions begin with the conjugated verb. The other verb is at the end.",
+  "examples": [
+    [
+      "Kann ich mit Karte bezahlen?",
+      "Can I pay by card?"
+    ],
+    [
+      "Kann ich hier sitzen?",
+      "Can I sit here?"
+    ],
+    [
+      "Kann ich morgen kommen?",
+      "Can I come tomorrow?"
+    ]
+  ],
+  "avoid": "Not Ich kann hier sitzen? for a neutral yes/no question. Lead with Kann.",
+  "note": "With a question word: Wo kann ich eine Fahrkarte kaufen?"
+}

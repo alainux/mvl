@@ -1,0 +1,22 @@
+{
+  "id": "verb2",
+  "title": "Rule 01 — Verb in position 2",
+  "short": "Normal statements put the conjugated verb in the second constituent.",
+  "syntax": "[Topic / time] + [conjugated verb] + [the rest].",
+  "body": "Think in chunks, not individual words. “Heute” can be the first chunk; then the verb must follow. This is the most valuable sentence-order rule in German.",
+  "examples": [
+    [
+      "Ich brauche heute Hilfe.",
+      "I need help today."
+    ],
+    [
+      "Heute brauche ich Hilfe.",
+      "Today I need help."
+    ],
+    [
+      "Morgen kann ich kommen.",
+      "Tomorrow I can come."
+    ]
+  ],
+  "pitfall": "Incorrect: Heute ich brauche Hilfe. Correct: Heute brauche ich Hilfe."
+}

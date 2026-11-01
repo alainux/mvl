@@ -1,0 +1,22 @@
+{
+  "id": "articles",
+  "title": "Rule 05 — Learn noun phrases as chunks",
+  "short": "A few case distinctions are unavoidable; avoid full declension by memorizing complete useful phrases.",
+  "syntax": "der Termin → einen Termin (object)\ndie Frage → eine Frage (object)\ndas Ticket → ein Ticket (object)",
+  "body": "German nouns have grammatical gender. For a direct object, masculine der/ein changes to den/einen; feminine and neuter articles generally keep their familiar nominative form. Store “einen Termin”, “eine Frage”, “ein Ticket” as if each were one dictionary entry.",
+  "examples": [
+    [
+      "Ich brauche einen Termin.",
+      "I need an appointment."
+    ],
+    [
+      "Ich habe eine Frage.",
+      "I have a question."
+    ],
+    [
+      "Ich kaufe ein Ticket.",
+      "I am buying a ticket."
+    ]
+  ],
+  "pitfall": "Incorrect: Ich brauche ein Termin. Correct: Ich brauche einen Termin."
+}

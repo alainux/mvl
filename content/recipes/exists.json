@@ -1,0 +1,25 @@
+{
+  "id": "exists",
+  "group": "Questions",
+  "title": "Ask whether something exists nearby",
+  "name": "Is there…?",
+  "syntax": "Gibt es hier + object?",
+  "summary": "Find a facility or service.",
+  "rule": "Gibt es takes an accusative object. For “a” use einen / eine / ein depending on the noun.",
+  "examples": [
+    [
+      "Gibt es hier eine Toilette?",
+      "Is there a toilet here?"
+    ],
+    [
+      "Gibt es hier einen Geldautomaten?",
+      "Is there an ATM here?"
+    ],
+    [
+      "Gibt es hier WLAN?",
+      "Is there Wi-Fi here?"
+    ]
+  ],
+  "avoid": "German says Gibt es, not Ist es, for “there is/are”.",
+  "note": "Hier means here. In der Nähe means nearby: Gibt es in der Nähe eine Apotheke?"
+}

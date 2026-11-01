@@ -1,0 +1,25 @@
+{
+  "id": "need",
+  "group": "Fundamentals",
+  "title": "Ask for what you need",
+  "name": "I need…",
+  "syntax": "Ich brauche + object.",
+  "summary": "A highly reusable structure for shops, services, and everyday life.",
+  "rule": "Brauchen takes a direct object. Store useful nouns as ready-made chunks: Hilfe, einen Termin, eine Quittung.",
+  "examples": [
+    [
+      "Ich brauche Hilfe.",
+      "I need help."
+    ],
+    [
+      "Ich brauche einen Termin.",
+      "I need an appointment."
+    ],
+    [
+      "Ich brauche eine Quittung.",
+      "I need a receipt."
+    ]
+  ],
+  "avoid": "Avoid Ich brauchen. With ich, the form is brauche.",
+  "note": "You can soften this by adding bitte: Ich brauche eine Quittung, bitte."
+}

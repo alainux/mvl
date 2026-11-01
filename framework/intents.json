@@ -1,0 +1,135 @@
+[
+  {
+    "id": "greet",
+    "category": "Social",
+    "label": "Greet someone",
+    "canDo": "I can greet another person politely.",
+    "priority": 1
+  },
+  {
+    "id": "introduce_self",
+    "category": "Social",
+    "label": "Say your name",
+    "canDo": "I can introduce myself by name.",
+    "priority": 2
+  },
+  {
+    "id": "request_help",
+    "category": "Repair",
+    "label": "Ask for help",
+    "canDo": "I can ask another person for assistance.",
+    "priority": 3
+  },
+  {
+    "id": "say_learning",
+    "category": "Repair",
+    "label": "Say you are learning",
+    "canDo": "I can say that I am learning this language.",
+    "priority": 4
+  },
+  {
+    "id": "ask_repeat",
+    "category": "Repair",
+    "label": "Ask for repetition",
+    "canDo": "I can ask somebody to repeat a sentence.",
+    "priority": 5
+  },
+  {
+    "id": "ask_slow",
+    "category": "Repair",
+    "label": "Ask someone to slow down",
+    "canDo": "I can ask someone to speak more slowly.",
+    "priority": 6
+  },
+  {
+    "id": "say_not_understand",
+    "category": "Repair",
+    "label": "Say you do not understand",
+    "canDo": "I can tell someone I do not understand.",
+    "priority": 7
+  },
+  {
+    "id": "request_item",
+    "category": "Transactions",
+    "label": "Request an item",
+    "canDo": "I can ask for an everyday item politely.",
+    "priority": 8
+  },
+  {
+    "id": "ask_price",
+    "category": "Transactions",
+    "label": "Ask for a price",
+    "canDo": "I can ask how much something costs.",
+    "priority": 9
+  },
+  {
+    "id": "ask_location",
+    "category": "Navigation",
+    "label": "Ask where a place is",
+    "canDo": "I can ask for the location of a place.",
+    "priority": 10
+  },
+  {
+    "id": "say_need",
+    "category": "Transactions",
+    "label": "Explain what you need",
+    "canDo": "I can explain what I need.",
+    "priority": 11
+  },
+  {
+    "id": "ask_payment_card",
+    "category": "Transactions",
+    "label": "Ask to pay by card",
+    "canDo": "I can ask whether I can pay by card.",
+    "priority": 12
+  },
+  {
+    "id": "ask_availability",
+    "category": "Scheduling",
+    "label": "Ask about availability",
+    "canDo": "I can ask when someone is available.",
+    "priority": 13
+  },
+  {
+    "id": "state_unavailable",
+    "category": "Scheduling",
+    "label": "Say you cannot come",
+    "canDo": "I can say I cannot come tomorrow.",
+    "priority": 14
+  },
+  {
+    "id": "ask_write_down",
+    "category": "Repair",
+    "label": "Ask someone to write it",
+    "canDo": "I can request important information in writing.",
+    "priority": 15
+  },
+  {
+    "id": "state_problem",
+    "category": "Repair",
+    "label": "Explain there is a problem",
+    "canDo": "I can say that I have a problem.",
+    "priority": 16
+  },
+  {
+    "id": "confirm_understanding",
+    "category": "Repair",
+    "label": "Check your understanding",
+    "canDo": "I can confirm that I understood correctly.",
+    "priority": 17
+  },
+  {
+    "id": "thank",
+    "category": "Social",
+    "label": "Thank someone",
+    "canDo": "I can thank someone politely.",
+    "priority": 18
+  },
+  {
+    "id": "ask_english",
+    "category": "Repair",
+    "label": "Ask about English",
+    "canDo": "I can ask whether someone speaks English.",
+    "priority": 19
+  }
+]

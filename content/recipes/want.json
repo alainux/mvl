@@ -1,0 +1,25 @@
+{
+  "id": "want",
+  "group": "Fundamentals",
+  "title": "Ask politely for something",
+  "name": "I would like…",
+  "syntax": "Ich möchte + object / ... infinitive.",
+  "summary": "The most useful polite request pattern.",
+  "rule": "For a thing, use a ready-made object phrase. For an action, put the main verb in its infinitive at the end.",
+  "examples": [
+    [
+      "Ich möchte einen Kaffee.",
+      "I would like a coffee."
+    ],
+    [
+      "Ich möchte bezahlen.",
+      "I would like to pay."
+    ],
+    [
+      "Ich möchte einen Termin vereinbaren.",
+      "I would like to arrange an appointment."
+    ]
+  ],
+  "avoid": "Ich will is grammatically correct but often sounds more forceful in requests. Ich möchte is a safe default.",
+  "note": "Want + action: Ich möchte + [other words] + [infinitive]."
+}

@@ -1,0 +1,201 @@
+{
+  "code": "de",
+  "name": "German",
+  "variety": "Standard German",
+  "htmlLang": "de-DE",
+  "status": "Pilot — not a full curriculum",
+  "editorialNote": "Polite Sie for strangers and short standard-German sentences.",
+  "realizations": {
+    "greet": {
+      "pattern": "Guten Tag!",
+      "usage": "Polite neutral greeting.",
+      "register": "polite",
+      "slots": {}
+    },
+    "introduce_self": {
+      "pattern": "Ich heiße {name}.",
+      "usage": "A fixed introduction.",
+      "register": "polite",
+      "slots": {
+        "name": [
+          {
+            "id": "alex",
+            "value": "Alex",
+            "gloss": "Alex"
+          },
+          {
+            "id": "sam",
+            "value": "Sam",
+            "gloss": "Sam"
+          },
+          {
+            "id": "kim",
+            "value": "Kim",
+            "gloss": "Kim"
+          }
+        ]
+      }
+    },
+    "request_help": {
+      "pattern": "Können Sie mir bitte helfen?",
+      "usage": "Use formal Sie, and put the infinitive helfen last.",
+      "register": "polite",
+      "slots": {}
+    },
+    "say_learning": {
+      "pattern": "Ich lerne Deutsch.",
+      "usage": "The conjugated verb is in the second position.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_repeat": {
+      "pattern": "Können Sie das bitte wiederholen?",
+      "usage": "A useful fixed polite request.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_slow": {
+      "pattern": "Können Sie bitte langsamer sprechen?",
+      "usage": "Langsamer means more slowly.",
+      "register": "polite",
+      "slots": {}
+    },
+    "say_not_understand": {
+      "pattern": "Ich verstehe das nicht.",
+      "usage": "Nicht negates the statement.",
+      "register": "polite",
+      "slots": {}
+    },
+    "request_item": {
+      "pattern": "Ich hätte gern {item}, bitte.",
+      "usage": "Memorize complete noun phrases, including case-dependent articles.",
+      "register": "polite",
+      "slots": {
+        "item": [
+          {
+            "id": "water",
+            "value": "ein Wasser",
+            "gloss": "a water"
+          },
+          {
+            "id": "coffee",
+            "value": "einen Kaffee",
+            "gloss": "a coffee"
+          },
+          {
+            "id": "ticket",
+            "value": "ein Ticket",
+            "gloss": "a ticket"
+          },
+          {
+            "id": "receipt",
+            "value": "eine Quittung",
+            "gloss": "a receipt"
+          }
+        ]
+      }
+    },
+    "ask_price": {
+      "pattern": "Wie viel kostet das?",
+      "usage": "A fixed price question.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_location": {
+      "pattern": "Wo ist {place}?",
+      "usage": "Use the full phrase, including its article.",
+      "register": "polite",
+      "slots": {
+        "place": [
+          {
+            "id": "station",
+            "value": "der Bahnhof",
+            "gloss": "the station"
+          },
+          {
+            "id": "bathroom",
+            "value": "die Toilette",
+            "gloss": "the toilet"
+          },
+          {
+            "id": "pharmacy",
+            "value": "die Apotheke",
+            "gloss": "the pharmacy"
+          }
+        ]
+      }
+    },
+    "say_need": {
+      "pattern": "Ich brauche {item}.",
+      "usage": "Brauchen takes a direct object.",
+      "register": "polite",
+      "slots": {
+        "item": [
+          {
+            "id": "help",
+            "value": "Hilfe",
+            "gloss": "help"
+          },
+          {
+            "id": "appointment",
+            "value": "einen Termin",
+            "gloss": "an appointment"
+          },
+          {
+            "id": "receipt",
+            "value": "eine Quittung",
+            "gloss": "a receipt"
+          }
+        ]
+      }
+    },
+    "ask_payment_card": {
+      "pattern": "Kann ich mit Karte bezahlen?",
+      "usage": "Modal kann plus the final infinitive bezahlen.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_availability": {
+      "pattern": "Haben Sie morgen Zeit?",
+      "usage": "A verb-first yes/no question.",
+      "register": "polite",
+      "slots": {}
+    },
+    "state_unavailable": {
+      "pattern": "Ich kann morgen nicht kommen.",
+      "usage": "Modal verb second; infinitive last.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_write_down": {
+      "pattern": "Können Sie das bitte aufschreiben?",
+      "usage": "Useful for names, times and directions.",
+      "register": "polite",
+      "slots": {}
+    },
+    "state_problem": {
+      "pattern": "Ich habe ein Problem.",
+      "usage": "Learn the complete phrase ein Problem.",
+      "register": "polite",
+      "slots": {}
+    },
+    "confirm_understanding": {
+      "pattern": "Habe ich das richtig verstanden?",
+      "usage": "Use this to check an important detail.",
+      "register": "polite",
+      "slots": {}
+    },
+    "thank": {
+      "pattern": "Vielen Dank!",
+      "usage": "A polite, neutral expression of gratitude.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_english": {
+      "pattern": "Sprechen Sie Englisch?",
+      "usage": "Verb-first question using formal Sie.",
+      "register": "polite",
+      "slots": {}
+    }
+  }
+}

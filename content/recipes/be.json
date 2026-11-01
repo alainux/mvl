@@ -1,0 +1,25 @@
+{
+  "id": "be",
+  "group": "Fundamentals",
+  "title": "Say what you are / how you feel",
+  "name": "I am…",
+  "syntax": "Ich bin + name / adjective.",
+  "summary": "Make a basic statement about yourself.",
+  "rule": "Use ich bin for “I am”. An adjective after sein normally has no ending.",
+  "examples": [
+    [
+      "Ich bin Alex.",
+      "I am Alex."
+    ],
+    [
+      "Ich bin müde.",
+      "I am tired."
+    ],
+    [
+      "Ich bin neu hier.",
+      "I am new here."
+    ]
+  ],
+  "avoid": "Do not translate “I am 30 years old” literally with bin. Say: Ich bin 30 Jahre alt.",
+  "note": "Ich bin / du bist / er, sie, es ist / wir sind / Sie sind."
+}

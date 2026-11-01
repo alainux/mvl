@@ -1,0 +1,25 @@
+{
+  "id": "short",
+  "group": "Daily life",
+  "title": "Break complex thoughts into short sentences",
+  "name": "One idea per sentence",
+  "syntax": "Ich kann heute nicht kommen. Ich bin krank.",
+  "summary": "The simplest way to avoid difficult subordinate clauses.",
+  "rule": "Prefer two clear independent sentences to a sentence involving weil, dass, obwohl, or relative clauses.",
+  "examples": [
+    [
+      "Ich kann heute nicht kommen. Ich bin krank.",
+      "I cannot come today. I am sick."
+    ],
+    [
+      "Ich brauche Hilfe. Ich verstehe das Formular nicht.",
+      "I need help. I do not understand the form."
+    ],
+    [
+      "Ich habe eine Frage. Haben Sie kurz Zeit?",
+      "I have a question. Do you have a moment?"
+    ]
+  ],
+  "avoid": "“Short and clear” does not mean omitting the verb. Keep German verb order intact.",
+  "note": "Later you can join ideas with denn (because) or more advanced subordinate clauses."
+}

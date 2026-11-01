@@ -1,0 +1,201 @@
+{
+  "code": "es",
+  "name": "Spanish",
+  "variety": "Spain-oriented Spanish",
+  "htmlLang": "es-ES",
+  "status": "Pilot — not a full curriculum",
+  "editorialNote": "A starter pilot; vocabulary and register may vary between regions.",
+  "realizations": {
+    "greet": {
+      "pattern": "¡Buenos días!",
+      "usage": "A morning greeting; use Buenas tardes later.",
+      "register": "polite",
+      "slots": {}
+    },
+    "introduce_self": {
+      "pattern": "Me llamo {name}.",
+      "usage": "A fixed introduction.",
+      "register": "polite",
+      "slots": {
+        "name": [
+          {
+            "id": "alex",
+            "value": "Alex",
+            "gloss": "Alex"
+          },
+          {
+            "id": "sam",
+            "value": "Sam",
+            "gloss": "Sam"
+          },
+          {
+            "id": "kim",
+            "value": "Kim",
+            "gloss": "Kim"
+          }
+        ]
+      }
+    },
+    "request_help": {
+      "pattern": "¿Me puede ayudar, por favor?",
+      "usage": "Formal usted is implied by puede.",
+      "register": "polite",
+      "slots": {}
+    },
+    "say_learning": {
+      "pattern": "Estoy aprendiendo español.",
+      "usage": "Estar plus gerund indicates an ongoing action.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_repeat": {
+      "pattern": "¿Puede repetirlo, por favor?",
+      "usage": "A polite request.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_slow": {
+      "pattern": "¿Puede hablar más despacio, por favor?",
+      "usage": "Más despacio means more slowly.",
+      "register": "polite",
+      "slots": {}
+    },
+    "say_not_understand": {
+      "pattern": "No entiendo.",
+      "usage": "Put no before the verb.",
+      "register": "polite",
+      "slots": {}
+    },
+    "request_item": {
+      "pattern": "Quisiera {item}, por favor.",
+      "usage": "A polite way to request an item.",
+      "register": "polite",
+      "slots": {
+        "item": [
+          {
+            "id": "water",
+            "value": "agua",
+            "gloss": "water"
+          },
+          {
+            "id": "coffee",
+            "value": "un café",
+            "gloss": "a coffee"
+          },
+          {
+            "id": "ticket",
+            "value": "un billete",
+            "gloss": "a ticket (Spain)"
+          },
+          {
+            "id": "receipt",
+            "value": "un recibo",
+            "gloss": "a receipt"
+          }
+        ]
+      }
+    },
+    "ask_price": {
+      "pattern": "¿Cuánto cuesta esto?",
+      "usage": "A fixed price question.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_location": {
+      "pattern": "¿Dónde está {place}?",
+      "usage": "Estar is used to express location.",
+      "register": "polite",
+      "slots": {
+        "place": [
+          {
+            "id": "station",
+            "value": "la estación",
+            "gloss": "the station"
+          },
+          {
+            "id": "bathroom",
+            "value": "el baño",
+            "gloss": "the bathroom"
+          },
+          {
+            "id": "pharmacy",
+            "value": "la farmacia",
+            "gloss": "the pharmacy"
+          }
+        ]
+      }
+    },
+    "say_need": {
+      "pattern": "Necesito {item}.",
+      "usage": "Spanish usually omits yo.",
+      "register": "polite",
+      "slots": {
+        "item": [
+          {
+            "id": "help",
+            "value": "ayuda",
+            "gloss": "help"
+          },
+          {
+            "id": "appointment",
+            "value": "una cita",
+            "gloss": "an appointment"
+          },
+          {
+            "id": "receipt",
+            "value": "un recibo",
+            "gloss": "a receipt"
+          }
+        ]
+      }
+    },
+    "ask_payment_card": {
+      "pattern": "¿Puedo pagar con tarjeta?",
+      "usage": "Puedo plus an infinitive is reusable.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_availability": {
+      "pattern": "¿Tiene tiempo mañana?",
+      "usage": "Polite usted is implied.",
+      "register": "polite",
+      "slots": {}
+    },
+    "state_unavailable": {
+      "pattern": "No puedo venir mañana.",
+      "usage": "No plus puedo and an infinitive expresses inability.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_write_down": {
+      "pattern": "¿Puede escribirlo, por favor?",
+      "usage": "Useful for names and other details.",
+      "register": "polite",
+      "slots": {}
+    },
+    "state_problem": {
+      "pattern": "Tengo un problema.",
+      "usage": "Tener expresses having something.",
+      "register": "polite",
+      "slots": {}
+    },
+    "confirm_understanding": {
+      "pattern": "¿Lo he entendido bien?",
+      "usage": "A polite way to check understanding.",
+      "register": "polite",
+      "slots": {}
+    },
+    "thank": {
+      "pattern": "¡Muchas gracias!",
+      "usage": "A polite thanks.",
+      "register": "polite",
+      "slots": {}
+    },
+    "ask_english": {
+      "pattern": "¿Habla inglés?",
+      "usage": "Formal usted address often omits the subject pronoun.",
+      "register": "polite",
+      "slots": {}
+    }
+  }
+}

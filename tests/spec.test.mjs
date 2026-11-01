@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {PREDICATES,OPERATORS,event,modal,makeTree,notation,analyze} from '../src/algebra.mjs';
 import {languages,linearize} from '../src/languages/index.mjs';
+import {deriveProfile,CAPABILITIES} from '../src/profile.mjs';
 
 test('grammar is small and interfaces conform',()=>{
  assert.equal(Object.keys(PREDICATES).length,6);
@@ -47,4 +48,13 @@ test('shared AST generation matrix: every allowed combination works in 3 languag
   }
  }
  assert.ok(count>=400);
+});
+
+test('profile derivation computes the smallest required operator closure',()=>{
+  assert.deepEqual(deriveProfile(['assert']).operators,['EVENT']);
+  assert.deepEqual(deriveProfile(['request']).operators,['EVENT','CAN','ASK','PLEASE']);
+  assert.deepEqual(deriveProfile(['ask','deny','situate']).operators,['EVENT','NOT','WHEN','ASK']);
+  assert.equal(Object.keys(CAPABILITIES).length,7);
+  assert.throws(()=>deriveProfile([]),/Select at least/);
+  assert.throws(()=>deriveProfile(['made-up-goal']),/Unknown capability/);
 });

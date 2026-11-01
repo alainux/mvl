@@ -1,9 +1,11 @@
 import {ROLES,CONCEPTS,PREDICATES,OPERATORS,makeTree,notation} from './algebra.mjs';
 import {languages} from './languages/index.mjs';
+import {CAPABILITIES,deriveProfile} from './profile.mjs';
 const $=(selector,root=document)=>root.querySelector(selector);
 const $$=(selector,root=document)=>[...root.querySelectorAll(selector)];
 const escape=value=>String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const state={predicate:'help',agent:'addressee',argument:'speaker',modal:'can',negative:false,time:'',question:true,polite:false};
+const selectedGoals=new Set(['assert','deny','ask','ability','request']);
 const programs={
  assistance:{predicate:'help',agent:'addressee',argument:'speaker',modal:'can',negative:false,time:'',question:true,polite:true},
  information:{predicate:'understand',agent:'speaker',argument:'this',modal:'',negative:true,time:'',question:false,polite:false},
@@ -11,6 +13,19 @@ const programs={
  possession:{predicate:'have',agent:'addressee',argument:'time',modal:'',negative:false,time:'',question:true,polite:false}
 };
 const options=(map,selected)=>Object.entries(map).map(([key,label])=>`<option value="${escape(key)}" ${key===selected?'selected':''}>${escape(label)}</option>`).join('');
+function renderProfiles(){
+  $('#capability-options').innerHTML=Object.entries(CAPABILITIES).map(([id,cap])=>`<label class="capability"><input type="checkbox" data-goal="${id}" ${selectedGoals.has(id)?'checked':''}><span><strong>${escape(cap.title)}</strong><small>${escape(cap.description)}</small></span></label>`).join('');
+  const profile=deriveProfile([...selectedGoals]);
+  $('#profile-count').textContent=`${profile.operators.length} / ${Object.keys(OPERATORS).length}`;
+  $('#profile-ops').innerHTML=Object.keys(OPERATORS).map(op=>`<span class="operator-chip ${profile.operators.includes(op)?'included':'excluded'}">${op}</span>`).join('');
+  $('#profile-goals').textContent=`${profile.goals.length} capabilities · ${profile.omitted.length} operators excluded`;
+  $$('#capability-options input').forEach(input=>input.addEventListener('change',e=>{
+    if(e.target.checked)selectedGoals.add(input.dataset.goal);
+    else if(selectedGoals.size>1)selectedGoals.delete(input.dataset.goal);
+    else {e.target.checked=true;return;}
+    renderProfiles();
+  }));
+}
 function renderReference(){
   $('#types-grid').innerHTML=[['Person','speaker · addressee','Participants rather than surface pronouns'],['Thing','help · ticket · time · this','Objects independent of grammatical gender'],['Place','home · station','Destinations; each language chooses its prepositions'],['Event','predicate + typed slots','Atomic meaning with agent and argument'],['Clause','event + operators','Modal, negative, temporal meaning'],['Question','ASK(clause)','An information-seeking speech act']].map(([name,ex,desc])=>`<article class="reference-item"><span class="type-icon">T</span><div><strong>${name}</strong><code>${ex}</code><p>${desc}</p></div></article>`).join('');
   $('#operators-list').innerHTML=Object.entries(OPERATORS).map(([name,signature])=>`<div class="operator-row"><code>${name}</code><span>${escape(signature)}</span></div>`).join('');
@@ -54,4 +69,4 @@ function bind(){
  $('#copy-ast').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('#ast-view').textContent);$('#copy-ast').textContent='Copied';setTimeout(()=>$('#copy-ast').textContent='Copy expression',1300);}catch{}});
  $$('.nav-link').forEach(link=>link.addEventListener('click',()=>{if(matchMedia('(max-width: 850px)').matches)$('#mobile-nav').checked=false;}));
 }
-renderReference();update();bind();
+renderProfiles();renderReference();update();bind();

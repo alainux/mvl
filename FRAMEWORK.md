@@ -80,7 +80,20 @@ A realizer must:
 
 Initial choices: German uses formal `Sie`, French formal `vous` and `est-ce que` questions, and Spanish `usted` in a European Spanish profile. These choices are *one* viable register, not universal norms for all contexts. The test suite includes a Cartesian matrix of permitted combinations as a structural sanity check plus hand-reviewed golden examples. Generated grammaticality still requires native-speaker review.
 
-## 5. Extending the core
+## 5. Defining the "minimum"
+
+A profile is defined by communicative capabilities `G`, a semantic operator dependency graph `D`, a lexical and predicate inventory `L`, and language adapters `A`. The first formal minimization step is **operator dependency closure**:
+
+```text
+O*(G) = smallest subset of operators closed under D
+        that supports every capability in G.
+```
+
+`src/profile.mjs` implements this closure and powers the interactive profile planner. For example, a polite assistance request requires the operators `EVENT`, `CAN`, `ASK`, `PLEASE`; a basic assertion requires only `EVENT`. This is a reproducible rule-based notion of "minimum" and a starting point for language profiles.
+
+It does **not** claim a globally minimal lexicon, smallest possible natural-language grammar, optimal lesson order or best communicative success rate. Those require measured learning cost, alternative realizations, corpus statistics, real task coverage and user studies. An eventual full objective could minimize operator complexity, lexical inventory and exception count subject to a target threshold of tested communicative success. Those weights and thresholds are intentionally unspecified until evidence exists.
+
+## 6. Extending the core
 
 Before adding a primitive: (a) identify a communicative capability the current system cannot express, (b) give it a type, (c) define composition and scope, (d) specify which language adapters need new rules, (e) add golden fixtures and invalid-program tests. Adding one concept may require different articles, cases or lexicalization strategies in each adapter.
 
@@ -88,7 +101,7 @@ Longer-term features may include tense/aspect, polarity scope, information quest
 
 **Evaluation framework:** count *typed expressible meanings*, linguistic features implemented, and task coverage. Do not report CEFR proficiency or "number of sentences" as a proxy for useful communication. Test a curated set of communicative tasks (request clarification, express a need, seek help, ask for information), inspired by the CEFR, but preserve semantics-first design.
 
-## 6. Research relationships
+## 7. Research relationships
 
 | Source | Contribution | Not adopted wholesale |
 | --- | --- | --- |

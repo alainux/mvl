@@ -14,7 +14,7 @@ After you enable Pages: **https://alainux.github.io/mvl/**
 
 This repo deliberately has **no GitHub Actions workflow**. The compiled site is committed to **`docs/`**, which GitHub Pages can serve using branch deployment. In GitHub: **Settings → Pages → Build and deployment → Deploy from a branch → main → /docs → Save**.
 
-To build locally, you need **Node.js 20+**; there are no npm dependencies:
+To build locally, you need **Node.js 20.11+**; there are no npm dependencies:
 
 ```bash
 git clone https://github.com/alainux/mvl.git

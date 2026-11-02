@@ -1,9 +1,21 @@
 {
-  "name":"minimum-viable-language",
-  "version":"0.1.0",
-  "private":true,
-  "type":"module",
-  "engines":{"node":">=20"},
-  "scripts":{"build":"node scripts/build.mjs","test":"node --test tests/*.test.mjs","check":"npm run test && npm run build","dev":"npm run build && node scripts/serve.mjs","pages":"npm run check"},
-  "license":"MIT"
+  "name": "minimum-viable-language",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "A typed framework for compositional subsets of natural languages",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm run typecheck && npm run build && npm test",
+    "dev": "node scripts/serve.mjs",
+    "pages": "npm run check"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
+  }
 }

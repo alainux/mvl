@@ -1,4 +1,4 @@
-# MVL Meta-framework · Specification 0.1
+# MVL Meta-framework · Specification 0.2
 
 ## 1. Purpose
 
@@ -19,14 +19,16 @@ Person      := speaker | addressee
 Thing       := help | ticket | time | this
 Place       := home | station
 Event       := EVENT(predicate, Person, argument)
-Clause      := Event | CAN(Event) | WANT(Event) | NOT(Clause) | WHEN(Clause, Time)
-Question    := ASK(Clause) | PLEASE(Question)
+BaseClause  := Event | CAN(Event) | WANT(Event)
+Polarity    := BaseClause | NOT(BaseClause)
+Clause      := Polarity | WHEN(Polarity, Time)
+Question    := ASK(Clause) | PLEASE(ASK(Clause))
 Time        := today | tomorrow
 
 CAN  : Event -> Clause
 WANT : Event -> Clause
-NOT  : Clause -> Clause
-WHEN : Clause x Time -> Clause
+NOT  : BaseClause -> Polarity
+WHEN : Polarity x Time -> Clause
 ASK  : Clause -> Question
 PLEASE : Question -> Question
 ```
@@ -52,22 +54,19 @@ These outputs are a *demonstration of linearization* and do not constitute a phr
 - Reject unknown predicates or roles and out-of-domain arguments.
 - Reject `CAN` and `WANT` on predicates whose frame has no vetted modal construction in this profile.
 - Reject `PLEASE` unless applied to an `ASK` tree.
-- Do not pretend `NOT(WANT(E))` and `WANT(NOT(E))` are equivalent. Version 0.1 exposes the former only.
+- Do not pretend `NOT(WANT(E))` and `WANT(NOT(E))` are equivalent. Version 0.2 exposes the former only.
 - Do not assume that a structure in one language predicts its structure in another.
 - Any unsupported realization should fail explicitly rather than return invented grammar.
 
 ## 4. Implementer contract
 
-Each adapter in `src/languages` exports:
+Each module in `src/languages/` provides a `LanguageAdapter`:
 
 ```ts
-export const profile: {
-  code: string;
-  name: string;
-  region: string;
-  features: string[];
+export const adapter: LanguageAdapter = {
+  profile: { code: "de", name: "German", variety: "Standard German", features: [] },
+  realize(expression: Expression): string { /* grammar rules */ }
 };
-export function realize(tree: MVLTree): string;
 ```
 
 A realizer must:
@@ -89,7 +88,7 @@ O*(G) = smallest subset of operators closed under D
         that supports every capability in G.
 ```
 
-`src/profile.mjs` implements this closure and powers the interactive profile planner. For example, a polite assistance request requires the operators `EVENT`, `CAN`, `ASK`, `PLEASE`; a basic assertion requires only `EVENT`. This is a reproducible rule-based notion of "minimum" and a starting point for language profiles.
+`src/core/profile.ts` implements this closure and powers the interactive profile planner. For example, a polite assistance request requires the operators `EVENT`, `CAN`, `ASK`, `PLEASE`; a basic assertion requires only `EVENT`. This is a reproducible rule-based notion of "minimum" and a starting point for language profiles.
 
 It does **not** claim a globally minimal lexicon, smallest possible natural-language grammar, optimal lesson order or best communicative success rate. Those require measured learning cost, alternative realizations, corpus statistics, real task coverage and user studies. An eventual full objective could minimize operator complexity, lexical inventory and exception count subject to a target threshold of tested communicative success. Those weights and thresholds are intentionally unspecified until evidence exists.
 
@@ -115,3 +114,15 @@ Longer-term features may include tense/aspect, polarity scope, information quest
 ### What MVL is not
 
 A conlang, a standardized simplified dialect, a phrasebook, an automatic all-purpose translator, a claim of universal grammar, or a replacement for human validation.
+
+## 8. Implementation notes
+
+MVL is written in strict TypeScript with no browser runtime dependencies. The
+abstract type model is implemented in `src/core/model.ts`; the constructors in
+`src/core/algebra.ts` validate inputs at runtime as well as compile time. The
+semantic core deliberately never imports a language adapter. The adapters
+import the core types and a small, normalized semantic analysis.
+
+The TypeScript compiler preserves the readable module tree in `docs/assets/`.
+`npm run check` validates the program and builds the static website, whose
+assets are committed under `docs/` for GitHub Pages hosting.

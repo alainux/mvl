@@ -1,128 +1,191 @@
-# MVL Meta-framework · Specification 0.2
+# MVL framework specification
 
-## 1. Purpose
+This is the **developer-facing specification**. The published app is intended to
+teach German, French, and Spanish. Its normal navigation does not ask learners
+to learn this meta-model.
 
-Define a **portable, typed semantic core** for tiny, useful subsets of natural languages. An MVL implementation is not a translation table. It maps abstract meaning trees to standard utterances using declared linguistic rules. A minimum viable language is a *profile*: a selected semantic capability set, composition operations, one or more realizers, and testable limitations.
+## 1. Design goals
 
-MVL separates three planes:
+1. Represent a small, high-utility **communicative meaning** independently of
+   any target-language word order.
+2. Compose meaning from typed reusable operators rather than treating each
+   sentence as a key in a phrase dictionary.
+3. Let each natural language make its own grammatical decisions.
+4. Generate learner manuals (lessons, examples, and drills) from shared goals
+   while allowing **authored, language-specific teaching explanations**.
+5. Fail visibly when an operation falls outside the implemented subset.
+6. Keep the source readable and outputs reproducible, without a hosted backend.
 
-1. **Semantic plane**: concepts and predicates independent of any writing system, case system or syntactic order.
-2. **Composition plane**: type-checked operators that transform structured meaning.
-3. **Realization plane**: regional and register-aware morphosyntax that renders the meaning to a surface string.
+## 2. Meaning algebra
 
-This follows the broad abstract/concrete syntax pattern of Grammatical Framework, but MVL is its own intentionally much smaller JavaScript system, not an implementation of GF.
+### Types
 
-## 2. Types and expression syntax
+The starter uses disjoint semantic types such as `Participant`, `Thing`,
+`Place`, `Time`, `PredicateId`, and `Modality`.
 
-```text
-Person      := speaker | addressee
-Thing       := help | ticket | time | this
-Place       := home | station
-Event       := EVENT(predicate, Person, argument)
-BaseClause  := Event | CAN(Event) | WANT(Event)
-Polarity    := BaseClause | NOT(BaseClause)
-Clause      := Polarity | WHEN(Polarity, Time)
-Question    := ASK(Clause) | PLEASE(ASK(Clause))
-Time        := today | tomorrow
+The `Event` discriminated union enforces predicate-specific argument roles.
+For example:
 
-CAN  : Event -> Clause
-WANT : Event -> Clause
-NOT  : BaseClause -> Polarity
-WHEN : Polarity x Time -> Clause
-ASK  : Clause -> Question
-PLEASE : Question -> Question
+```ts
+// The helper is a participant and the receiver must be another participant.
+type HelpEvent = Readonly<{
+  kind: 'event';
+  predicate: 'help';
+  agent: Participant;
+  recipient: Participant;
+}>;
 ```
 
-`EVENT` is a schema family whose last slot varies by predicate. For example `help` takes a recipient of type Person; `go` takes a destination of type Place. The compiler enforces available values and restricts modal combinations. These are engineering choices and can be revisited in later profiles.
+A `go` event accepts destinations, not objects that one can purchase; a `buy`
+event accepts countable or mass items, not a location. Constructor runtime checks
+protect the browser interface from invalid user-generated selections.
 
-A strictly compositional program:
+### Operators
+
+| Operator | Input | Meaning |
+| --- | --- | --- |
+| `EVENT` | predicate + participant + typed argument | Situation |
+| `CAN` | event | Ability or permission |
+| `WANT` | event | Intention |
+| `NOT` | clause | Negation |
+| `WHEN` | clause + time | Temporal qualification |
+| `ASK` | clause | Yes/no question |
+| `PLEASE` | question | Courteous request |
+| `WHERE` | place | Location question |
+| `PRICE` | purchasable thing | Cost question |
+
+Composition is constrained. `PLEASE` accepts a question; an unsupported modal
+for a predicate is rejected. Explicit AST nesting preserves operator scope.
 
 ```text
 PLEASE(ASK(CAN(EVENT(help, addressee, speaker))))
 ```
 
-Generated realization for selected formal registers:
+The target grammar receives this tree, not a literal English sentence. The
+language adapters may flatten the supported operator order into a typed
+`Analysis` structure before realizing surface forms.
 
-- `de`: Können Sie mir bitte helfen?
-- `fr`: Est-ce que vous pouvez m’aider, s’il vous plaît ?
-- `es`: ¿Usted puede ayudarme, por favor?
+## 3. Language adapters
 
-These outputs are a *demonstration of linearization* and do not constitute a phrase corpus. No translated sentence is a key in the core semantic layer.
-
-## 3. Type safety and restrictions
-
-- Reject unknown predicates or roles and out-of-domain arguments.
-- Reject `CAN` and `WANT` on predicates whose frame has no vetted modal construction in this profile.
-- Reject `PLEASE` unless applied to an `ASK` tree.
-- Do not pretend `NOT(WANT(E))` and `WANT(NOT(E))` are equivalent. Version 0.2 exposes the former only.
-- Do not assume that a structure in one language predicts its structure in another.
-- Any unsupported realization should fail explicitly rather than return invented grammar.
-
-## 4. Implementer contract
-
-Each module in `src/languages/` provides a `LanguageAdapter`:
+A language adapter implements:
 
 ```ts
-export const adapter: LanguageAdapter = {
-  profile: { code: "de", name: "German", variety: "Standard German", features: [] },
-  realize(expression: Expression): string { /* grammar rules */ }
-};
+interface LanguageAdapter {
+  readonly profile: LanguageProfile;
+  realize(expression: Expression): string;
+}
 ```
 
-A realizer must:
+The German adapter has forms for case-marked noun phrases and dative recipients.
+French has obligatory clitic positioning, article elision, and one predictable
+`est-ce que` question pattern. Spanish has formal second-person conjugations,
+pronoun placement, and inverted written question punctuation. English is a
+**fourth renderer** used only to generate learning prompts from the same AST.
 
-- Preserve the core meaning as far as possible; surface politeness and idiom vary.
-- Implement word order, agreement, morphological form, clitics/case and negation locally.
-- State the intended register and regional standard in `profile`.
-- Never mutate the input AST or infer unrepresented semantic properties.
-- Be tested across the complete supported meaning tree corpus.
+Adapters may share trivial helpers (whitespace, casing) but cannot share rules
+that are actually language-specific. Lexical entries may store lemmas, gender,
+countability, or irregular morphology. They must not store a full translation of
+every teachable utterance.
 
-Initial choices: German uses formal `Sie`, French formal `vous` and `est-ce que` questions, and Spanish `usted` in a European Spanish profile. These choices are *one* viable register, not universal norms for all contexts. The test suite includes a Cartesian matrix of permitted combinations as a structural sanity check plus hand-reviewed golden examples. Generated grammaticality still requires native-speaker review.
+## 4. Generation pipeline
 
-## 5. Defining the "minimum"
+### Shared curriculum
 
-A profile is defined by communicative capabilities `G`, a semantic operator dependency graph `D`, a lexical and predicate inventory `L`, and language adapters `A`. The first formal minimization step is **operator dependency closure**:
+`src/learning/curriculum.ts` declares goals and `LessonBlock` programs.
+A `paradigm` block specifies a predicate, person, compatible arguments, and
+optional operator settings. `expandBlock` enumerates these inputs into valid
+ASTs. Location and price blocks construct typed questions directly.
 
-```text
-O*(G) = smallest subset of operators closed under D
-        that supports every capability in G.
-```
+**No productive lesson block contains a `target` or `english` sentence.**
 
-`src/core/profile.ts` implements this closure and powers the interactive profile planner. For example, a polite assistance request requires the operators `EVENT`, `CAN`, `ASK`, `PLEASE`; a basic assertion requires only `EVENT`. This is a reproducible rule-based notion of "minimum" and a starting point for language profiles.
+### Language-local explanation
 
-It does **not** claim a globally minimal lexicon, smallest possible natural-language grammar, optimal lesson order or best communicative success rate. Those require measured learning cost, alternative realizations, corpus statistics, real task coverage and user studies. An eventual full objective could minimize operator complexity, lexical inventory and exception count subject to a target threshold of tested communicative success. Those weights and thresholds are intentionally unspecified until evidence exists.
+`src/learning/notes.ts` contains each language's recipe, explanation, detail,
+and caution. These explanations are **authored** because an explanation of
+German verb-second or French negation is not just a translation of an abstract
+rule. It is pedagogical content, not a phrase lookup engine.
 
-## 6. Extending the core
+### Compilation
 
-Before adding a primitive: (a) identify a communicative capability the current system cannot express, (b) give it a type, (c) define composition and scope, (d) specify which language adapters need new rules, (e) add golden fixtures and invalid-program tests. Adding one concept may require different articles, cases or lexicalization strategies in each adapter.
+`compileGuide(code)` expands each lesson block and calls two realizers for each
+productive AST: `realizeEnglish(expression)` and
+`linearize(expression, code)`. The build script writes the resulting guides to
+`docs/guides/{de,fr,es}.json`. Learner pages load these artifacts.
 
-Longer-term features may include tense/aspect, polarity scope, information questions, comparison, reference resolution, quantification, plural/number, and discourse state. They should be introduced as explicit operators or semantic features rather than hidden string templates.
+### Practice
 
-**Evaluation framework:** count *typed expressible meanings*, linguistic features implemented, and task coverage. Do not report CEFR proficiency or "number of sentences" as a proxy for useful communication. Test a curated set of communicative tasks (request clarification, express a need, seek help, ask for information), inspired by the CEFR, but preserve semantics-first design.
+`generatePractice` transforms a teaching AST by changing a valid semantic slot
+or an operator, avoiding already-shown ASTs where possible. It then realizes
+**both** its English prompt and the target-language model form from the new tree.
+No practice answer dictionary exists. A few closed-class patterns, and the
+conventional social formulas, cannot produce distinct unseen combinations.
 
-## 7. Research relationships
+## 5. Conventional language is not an anti-pattern
 
-| Source | Contribution | Not adopted wholesale |
-| --- | --- | --- |
-| [Grammatical Framework](https://www.grammaticalframework.org/doc/tutorial/gf-tutorial.html) | Abstract syntax / many concrete syntaxes, linearization | Full GF formalism and resource grammar library |
-| [Minimal Language](https://tidsskrift.dk/sss/article/view/135070) / [NSM](https://www.cambridge.org/core/books/abs/cambridge-handbook-of-language-in-context/natural-semantic-metalanguage-and-context/3CB8DE484FAC6AD8190D95D0501B6424) | Small semantic vocabularies; proposed semantic primes | Claims of 65 universals or exhaustive reducibility |
-| [FrameNet](https://berkeleyfn.framenetbr.ufjf.br/WhatIsFrameNet) | Semantic predicates with participant slots | Complete lexical-frame database |
-| [Universal Dependencies](https://universaldependencies.org/) | Comparable morphosyntactic categories across languages | UD annotation format for all our trees |
-| [CEFR descriptors](https://www.coe.int/en/web/common-european-framework-reference-languages/cefr-descriptors) | Human tasks and testable communicative outcomes | Claim of A1–C2 equivalence |
-| [ISO 24617-2](https://www.iso.org/standard/76443.html) | Annotation of dialogue acts, useful when adding speech acts | ISO's complete taxonomy and markup language |
+A very small number of social formulas have lexicalized meanings which are not
+compositional in this starter grammar: greeting, thanks, polite social repair.
+These are stored in the separate `routines.ts` map and tagged
+`provenance: 'conventional'` when compiled. They should remain a modest exception
+rather than an alternative implementation of the curriculum.
 
-### What MVL is not
+To add an expression, first ask whether it can be composed from an existing
+meaning, a new operator, or a new lexical entry. Only preserve it as a whole
+chunk if its conventional structure truly falls outside the grammar's scope.
 
-A conlang, a standardized simplified dialect, a phrasebook, an automatic all-purpose translator, a claim of universal grammar, or a replacement for human validation.
+## 6. Quality gates
 
-## 8. Implementation notes
+The local check command runs strict TypeScript checking, builds every guide,
+and executes automated tests:
 
-MVL is written in strict TypeScript with no browser runtime dependencies. The
-abstract type model is implemented in `src/core/model.ts`; the constructors in
-`src/core/algebra.ts` validate inputs at runtime as well as compile time. The
-semantic core deliberately never imports a language adapter. The adapters
-import the core types and a small, normalized semantic analysis.
+- Constructor and AST scope tests.
+- Grammar regression cases for German, French, and Spanish.
+- A matrix of supported argument/operator/person combinations.
+- A contract proving every productive example is exactly the result of a
+  shared AST rendered into English and the target language.
+- A comparison proving each checked-in JSON guide matches a fresh compiler run.
+- Practice checks that new combinations use semantic transformations.
 
-The TypeScript compiler preserves the readable module tree in `docs/assets/`.
-`npm run check` validates the program and builds the static website, whose
-assets are committed under `docs/` for GitHub Pages hosting.
+Golden surface strings in tests are **assertions only**, not production data.
+The browser never imports them to generate an utterance.
+
+A comprehensive grammar review by native speakers remains valuable; tests
+cover established intended forms, not all possible meanings or dialects.
+
+## 7. Minimality and coverage
+
+Minimality is a design optimization with a moving target. More rules can unlock
+further communicative tasks but also impose teaching overhead. MVL's starting
+scope privileges practical production:
+
+- ask for help;
+- say what one needs or has;
+- ask a yes/no question;
+- navigate common places;
+- buy or pay for common items;
+- add a time and negate a statement.
+
+The current model is intentionally not an unrestricted interlingua. Languages
+have distinctions that cannot always be cleanly erased: German noun case,
+French partitives, Spanish subject omission, politeness, or aspect. The grammar
+adapter must retain whichever distinction makes a supported construction
+natural and intelligible. Support is narrower than general A1, and is not a
+claim of CEFR proficiency.
+
+## 8. Precedents and research direction
+
+The architecture draws on several established ideas without claiming to
+implement any one framework fully:
+
+- **Grammatical Framework (GF):** abstract syntax separated from language-specific
+  concrete syntax. <https://www.grammaticalframework.org/>
+- **Construction Grammar:** reusable form–meaning pairings rather than isolated
+  grammatical facts. <https://www.constructiongrammar.org/>
+- **Council of Europe Threshold Level / CEFR:** communicative functions and
+  observable can-do goals rather than a grammar-only syllabus.
+  <https://www.coe.int/en/web/common-european-framework-reference-languages>
+- **Basic English:** the idea of a deliberately restricted productive inventory,
+  while acknowledging that its English-specific choices cannot be generalized.
+
+Future work includes grammar coverage metrics, independent language review,
+more systematic lexical features, alternative politeness registers, and an
+explicit optimization model for learning burden versus communicative reach.

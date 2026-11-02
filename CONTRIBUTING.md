@@ -1,10 +1,9 @@
 # Contributing to MVL
 
-MVL is a **meta-framework**. Contributions should improve semantic expressivity,
-validated composition, concrete grammar, or evaluation—not add catalogs of
-translated sentences.
+MVL's public pages are **learning guides**. Its reusable compiler is the
+implementation mechanism, not the subject of the learner-facing interface.
 
-## Local workflow
+## Start locally
 
 ```bash
 npm install
@@ -12,60 +11,67 @@ npm run check
 npm run dev
 ```
 
-`npm run check` performs the strict TypeScript check, regenerates `docs/`, and
-runs the local Node test suite. Commit the generated `docs/` files alongside
-source changes; GitHub Pages serves that directory directly.
+The command `npm run check` runs `tsc --strict`, builds compiled modules and all
+three JSON guides into `/docs`, and runs the test suite. Make sure it succeeds
+before opening a pull request.
 
-## Code conventions
+## What to edit
 
-- Use **strict TypeScript** for production code; keep public types explicit.
-- Use discriminated unions rather than untyped AST objects or stringly-typed
-  access to arbitrary properties.
-- Prefer named, small functions with one responsibility. Keep semantics in
-  `src/core`, language rules in `src/languages`, and DOM code in `src/ui`.
-- Explain *why* a rule exists (case assignment, clitic placement, semantic
-  scope); do not annotate self-evident assignments with redundant comments.
-- Avoid minification, compressed expressions, giant render functions, global
-  mutation, and unnecessary dependencies.
-- Never let language-specific words enter the semantic core. Do not introduce
-  literal sentence-output lookup tables as a substitute for grammar rules.
-- Preserve existing accessible markup and support for mobile layouts.
+### Teach another communicative goal
 
-## Extending the meaning algebra
+Edit `src/learning/curriculum.ts` with a semantic lesson plan. Compose a typed
+`paradigm`, `where`, or `price` block; do **not** supply hand-translated German,
+French, and Spanish sentences. When genuinely needed, extend the AST operators
+and each language adapter first. A lesson addition needs language-specific
+explanatory notes in `src/learning/notes.ts`.
 
-1. Describe a communicative capability the current model cannot express.
-2. Add or update its semantic type in `src/core/model.ts` and its frame in
-   `src/core/vocabulary.ts`.
-3. Add validated constructors, normalization, or composition logic in
-   `src/core/algebra.ts`. Specify scope explicitly.
-4. Update the capability dependency model if the change introduces operators.
-5. Implement the new construction in **all three** language adapters or model
-   unsupported capabilities explicitly. Do not silently change the meaning.
-6. Add positive and negative tests, and check new expected outputs with a
-   competent speaker of each affected language.
-7. Update `FRAMEWORK.md` when the public semantic contract changes.
+### Add vocabulary
 
-## Adding a language
+Use semantic concepts in `src/core/model.ts` and predicate argument constraints
+in `src/core/vocabulary.ts`. Add lexical information to each language module.
+Noun gender, article behavior, irregular verb forms, and prepositions are normal
+lexical or morphological facts. **Do not add a phrase lookup table** for
+ordinary examples.
 
-Create `src/languages/<code>.ts`, export a `LanguageAdapter` object conforming
-to `src/core/model.ts`, and register it in `src/languages/index.ts`.
-Document the regional variety, formality, and rules used by the implementation.
-Make inflection and constituent ordering explicit. Include golden fixtures and
-extend the cross-language matrix before claiming support.
+### Add another language
 
-A language adapter is not required to use the same *surface* structures as the
-others. It is required to express the same *meaning*, or reject unsupported
-features clearly.
+1. Implement `LanguageAdapter` in `src/languages/<code>.ts`.
+2. Register it in `src/languages/index.ts` and `INSTALLED_LANGUAGES`.
+3. Extend the language-code type, authored lesson notes, and social formulas.
+4. Include grammatical golden tests and support every declared starter AST.
+5. Generate the site's guide artifact and check all interactive routes.
 
-## Review checklist
+The first three language modules are German, French, and Spanish. Their
+production scope is limited and documented in `FRAMEWORK.md`.
 
-- [ ] Type checking and `npm run check` pass locally.
-- [ ] A new semantic distinction is not hidden in a language adapter.
-- [ ] All adapters and tests cover the change (or declare the gap).
-- [ ] Golden examples have been linguistically reviewed.
-- [ ] `docs/` is regenerated from source.
-- [ ] Documentation explains behavior and limitations, without deployment
-      anecdotes or conversation-related commentary on the user-facing page.
+### Add a conventional expression
 
-There is no per-commit Actions CI workflow. Local checks keep maintenance and
-compute usage modest.
+Use `src/learning/routines.ts` only if the form is idiomatic and outside the
+productive grammar. Conventional formulas are explicitly labeled in the
+compiled JSON. Avoid adding arbitrary daily phrases there.
+
+## Source standards
+
+- Write strict TypeScript; use discriminated unions and typed function signatures.
+- Keep named functions and variables readable. Do not minify source or build
+  outputs. Favor comments explaining linguistic or semantic decisions over
+  comments that merely repeat the code.
+- Keep compositional semantics and language-specific surface morphology apart.
+- Add a regression test for each new form or morphology rule.
+- Do not silently fall back to an approximate or grammatically incorrect phrase.
+- Test copy, navigation, and responsive layout when modifying the UI.
+- Prefer a concrete, scoped rule over making a claim about all dialects.
+
+## Publication and CI
+
+The site is deployed through GitHub Pages from `main:/docs` and has **no custom
+CI workflows**. This avoids running a Node build on every push. Contributors
+must regenerate `/docs` with `npm run pages`, commit the resulting files, and
+include them in their pull request. Tests detect stale guide JSON.
+
+## Human language review
+
+Automation validates composition and expected outputs, but it cannot certify
+whether a construction is the best teaching choice. Please explain register,
+regional assumptions, and native-speaker judgments in PRs that change grammar.
+Do not expand the language model beyond what the adapters can reliably produce.

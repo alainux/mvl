@@ -33,6 +33,8 @@ const DEPENDENCIES: Readonly<Record<OperatorId, readonly OperatorId[]>> = {
   WHEN: ['EVENT'],
   ASK: ['EVENT'],
   PLEASE: ['ASK'],
+  WHERE: [],
+  PRICE: [],
 };
 
 export interface DerivedProfile {

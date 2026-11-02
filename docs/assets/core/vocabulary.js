@@ -1,66 +1,105 @@
+/**
+ * Shared semantic concepts are not target-language translations. They are
+ * English UI labels for slots that can appear in a typed predicate frame.
+ */
 export const PARTICIPANTS = {
-    speaker: 'the speaker',
-    addressee: 'the person addressed',
+    speaker: 'I',
+    addressee: 'you (formal)',
 };
 export const CONCEPTS = {
-    speaker: 'the speaker',
-    addressee: 'the person addressed',
-    help: 'assistance',
+    speaker: 'me',
+    addressee: 'you (formal)',
+    help: 'help',
     ticket: 'a ticket',
-    time: 'available time',
-    this: 'this information',
+    time: 'time',
+    this: 'this',
+    coffee: 'a coffee',
+    water: 'water',
+    german: 'German',
+    french: 'French',
+    spanish: 'Spanish',
+    english: 'English',
+    card: 'by card',
+    cash: 'in cash',
     home: 'home',
     station: 'the station',
+    bathroom: 'the bathroom',
+    hotel: 'the hotel',
 };
 /**
- * Frames describe semantic *roles*, not how languages express them.
- * A realizer is free to express a theme as an object, a prepositional phrase,
- * or an entirely different construction when the meaning is preserved.
+ * Predicate frames enforce learnable, reliably realizable combinations.
+ * Lexical restrictions are explicit rather than silently accepting nonsense.
  */
 export const PREDICATES = {
     need: {
-        description: 'A person needs something',
+        description: 'Need something',
         argumentRole: 'theme',
-        allowedArguments: ['help', 'ticket'],
+        allowedArguments: ['help', 'ticket', 'coffee', 'water'],
         allowedModalities: [],
     },
     have: {
-        description: 'A person possesses something',
+        description: 'Have something',
         argumentRole: 'theme',
         allowedArguments: ['time', 'ticket'],
         allowedModalities: [],
     },
     understand: {
-        description: 'A person understands information',
+        description: 'Understand this',
         argumentRole: 'theme',
         allowedArguments: ['this'],
         allowedModalities: ['can'],
     },
     help: {
-        description: 'One person helps another',
+        description: 'Help someone',
         argumentRole: 'recipient',
         allowedArguments: ['speaker', 'addressee'],
         allowedModalities: ['can', 'want'],
     },
     go: {
-        description: 'A person goes to a destination',
+        description: 'Go somewhere',
         argumentRole: 'destination',
-        allowedArguments: ['home', 'station'],
+        allowedArguments: ['home', 'station', 'bathroom', 'hotel'],
         allowedModalities: ['can', 'want'],
     },
     buy: {
-        description: 'A person purchases something',
+        description: 'Buy something',
         argumentRole: 'theme',
-        allowedArguments: ['ticket'],
+        allowedArguments: ['ticket', 'coffee', 'water'],
+        allowedModalities: ['can', 'want'],
+    },
+    speak: {
+        description: 'Speak a language',
+        argumentRole: 'theme',
+        allowedArguments: ['german', 'french', 'spanish', 'english'],
+        allowedModalities: [],
+    },
+    repeat: {
+        description: 'Repeat this',
+        argumentRole: 'theme',
+        allowedArguments: ['this'],
+        allowedModalities: ['can'],
+    },
+    would_like: {
+        description: 'Would like something',
+        argumentRole: 'theme',
+        allowedArguments: ['ticket', 'coffee', 'water'],
+        allowedModalities: [],
+    },
+    pay: {
+        description: 'Pay by a method',
+        argumentRole: 'theme',
+        allowedArguments: ['card', 'cash'],
         allowedModalities: ['can', 'want'],
     },
 };
 export const OPERATORS = [
-    { id: 'EVENT', signature: 'Predicate × Person × Argument → Event', description: 'Create an atomic event.' },
-    { id: 'CAN', signature: 'Event → Clause', description: 'Express ability or possibility.' },
-    { id: 'WANT', signature: 'Event → Clause', description: 'Express intention or desire.' },
-    { id: 'NOT', signature: 'Clause → Clause', description: 'Negate the clause within its scope.' },
-    { id: 'WHEN', signature: 'Clause × Time → Clause', description: 'Locate an event in time.' },
-    { id: 'ASK', signature: 'Clause → Question', description: 'Form a yes/no question.' },
-    { id: 'PLEASE', signature: 'Question → Question', description: 'Mark a question as a polite request.' },
+    { id: 'EVENT', signature: 'Predicate × Person × Argument → Event', description: 'Describe a situation.' },
+    { id: 'CAN', signature: 'Event → Clause', description: 'Say what someone can do.' },
+    { id: 'WANT', signature: 'Event → Clause', description: 'Say what someone wants to do.' },
+    { id: 'NOT', signature: 'Clause → Clause', description: 'Negate a statement.' },
+    { id: 'WHEN', signature: 'Clause × Time → Clause', description: 'Add a time expression.' },
+    { id: 'ASK', signature: 'Clause → Question', description: 'Ask for a yes/no answer.' },
+    { id: 'PLEASE', signature: 'Question → Question', description: 'Add a courteous marker.' },
+    { id: 'WHERE', signature: 'Place → Question', description: 'Ask for a location.' },
+    { id: 'PRICE', signature: 'PricedThing → Question', description: 'Ask how much something costs.' },
 ];

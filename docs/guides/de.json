@@ -1,0 +1,1669 @@
+{
+  "language": {
+    "code": "de",
+    "name": "German",
+    "variety": "Standard German · formal Sie",
+    "features": [
+      "In statements, the finite verb normally occupies the second position.",
+      "Yes/no questions normally start with the finite verb.",
+      "A modal moves the main verb to the end in its infinitive form.",
+      "Noun negation uses forms of kein; verb negation commonly uses nicht.",
+      "Learn a noun together with its gender and the cases a verb requires."
+    ]
+  },
+  "lessons": [
+    {
+      "id": "first-words",
+      "title": "First words",
+      "goal": "Start and end a simple interaction",
+      "introduction": "A few social expressions are conventional, not assembled by grammar. Learn these short forms as complete units.",
+      "notes": {
+        "recipe": "Hallo. / Danke. / Entschuldigung.",
+        "explanation": "Learn these as complete expressions. You do not need to understand endings before using them.",
+        "detail": "Use Sie with strangers, staff, and people you do not know well. The guide uses formal address so its requests work in ordinary public situations.",
+        "caution": "“Bitte” is versatile: it can mean please, here you go, or a response to thanks. Context decides."
+      },
+      "examples": [
+        {
+          "id": "first-words-1",
+          "english": "Hello.",
+          "target": "Hallo.",
+          "source": {
+            "kind": "convention",
+            "routine": "hello"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "first-words-2",
+          "english": "Good morning.",
+          "target": "Guten Morgen.",
+          "source": {
+            "kind": "convention",
+            "routine": "good_morning"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "first-words-3",
+          "english": "Excuse me.",
+          "target": "Entschuldigung.",
+          "source": {
+            "kind": "convention",
+            "routine": "excuse_me"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "first-words-4",
+          "english": "Thank you.",
+          "target": "Danke.",
+          "source": {
+            "kind": "convention",
+            "routine": "thank_you"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "first-words-5",
+          "english": "You are welcome.",
+          "target": "Gern geschehen.",
+          "source": {
+            "kind": "convention",
+            "routine": "you_are_welcome"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "first-words-6",
+          "english": "Goodbye.",
+          "target": "Auf Wiedersehen.",
+          "source": {
+            "kind": "convention",
+            "routine": "goodbye"
+          },
+          "provenance": "conventional"
+        }
+      ]
+    },
+    {
+      "id": "needs",
+      "title": "Needs and possession",
+      "goal": "Say what you need or already have",
+      "introduction": "A verb plus an interchangeable noun phrase gives you a whole family of useful statements.",
+      "notes": {
+        "recipe": "Ich brauche + noun phrase. / Ich habe + noun phrase.",
+        "explanation": "For “I need” use ich brauche. For “I have” use ich habe. The verb stays in the second position in simple statements.",
+        "detail": "Learn ein Ticket, einen Kaffee, Wasser, and Hilfe as ready-to-use units. German articles change with the role of a noun in the sentence.",
+        "caution": "Do not attach ein to every noun: Wasser and Hilfe normally have no indefinite article in these examples."
+      },
+      "examples": [
+        {
+          "id": "needs-1",
+          "english": "I need help.",
+          "target": "Ich brauche Hilfe.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "need",
+              "agent": "speaker",
+              "theme": "help"
+            },
+            "selection": {
+              "predicate": "need",
+              "agent": "speaker",
+              "argument": "help",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "needs-2",
+          "english": "I need water.",
+          "target": "Ich brauche Wasser.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "need",
+              "agent": "speaker",
+              "theme": "water"
+            },
+            "selection": {
+              "predicate": "need",
+              "agent": "speaker",
+              "argument": "water",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "needs-3",
+          "english": "I need a ticket.",
+          "target": "Ich brauche ein Ticket.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "need",
+              "agent": "speaker",
+              "theme": "ticket"
+            },
+            "selection": {
+              "predicate": "need",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "needs-4",
+          "english": "I need a coffee.",
+          "target": "Ich brauche einen Kaffee.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "need",
+              "agent": "speaker",
+              "theme": "coffee"
+            },
+            "selection": {
+              "predicate": "need",
+              "agent": "speaker",
+              "argument": "coffee",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "needs-5",
+          "english": "I have time.",
+          "target": "Ich habe Zeit.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "have",
+              "agent": "speaker",
+              "theme": "time"
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "speaker",
+              "argument": "time",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "needs-6",
+          "english": "I have a ticket.",
+          "target": "Ich habe ein Ticket.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "have",
+              "agent": "speaker",
+              "theme": "ticket"
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "preferences",
+      "title": "What you would like",
+      "goal": "Ask for something politely",
+      "introduction": "One courteous construction works with many objects. Substitute the thing you want instead of memorizing an order.",
+      "notes": {
+        "recipe": "Ich möchte + noun phrase.",
+        "explanation": "Ich möchte is a courteous way to say what you would like. It works well in shops, cafés, and at counters.",
+        "detail": "The article is part of the noun phrase: einen Kaffee, ein Ticket, but simply Wasser. For a question to the listener, the verb comes first: Möchten Sie …?",
+        "caution": "Ich will expresses “I want” more directly and can sound demanding as an order. Prefer ich möchte when asking for a product."
+      },
+      "examples": [
+        {
+          "id": "preferences-1",
+          "english": "I would like a coffee.",
+          "target": "Ich möchte einen Kaffee.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "would_like",
+              "agent": "speaker",
+              "theme": "coffee"
+            },
+            "selection": {
+              "predicate": "would_like",
+              "agent": "speaker",
+              "argument": "coffee",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "preferences-2",
+          "english": "I would like water.",
+          "target": "Ich möchte Wasser.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "would_like",
+              "agent": "speaker",
+              "theme": "water"
+            },
+            "selection": {
+              "predicate": "would_like",
+              "agent": "speaker",
+              "argument": "water",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "preferences-3",
+          "english": "I would like a ticket.",
+          "target": "Ich möchte ein Ticket.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "would_like",
+              "agent": "speaker",
+              "theme": "ticket"
+            },
+            "selection": {
+              "predicate": "would_like",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "preferences-4",
+          "english": "Would you like a coffee?",
+          "target": "Möchten Sie einen Kaffee?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "would_like",
+                "agent": "addressee",
+                "theme": "coffee"
+              }
+            },
+            "selection": {
+              "predicate": "would_like",
+              "agent": "addressee",
+              "argument": "coffee",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "preferences-5",
+          "english": "Would you like water?",
+          "target": "Möchten Sie Wasser?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "would_like",
+                "agent": "addressee",
+                "theme": "water"
+              }
+            },
+            "selection": {
+              "predicate": "would_like",
+              "agent": "addressee",
+              "argument": "water",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "questions",
+      "title": "Yes/no questions",
+      "goal": "Ask a direct question",
+      "introduction": "A question changes the form of a whole clause. The same mechanism works with several verbs.",
+      "notes": {
+        "recipe": "Finite verb + Sie + rest + ?",
+        "explanation": "For yes/no questions, put the conjugated verb first: Haben Sie …? Sprechen Sie …? The statement equivalent starts with the subject.",
+        "detail": "Sie is the formal “you.” Its verb forms usually match the infinitive: haben, sprechen, verstehen.",
+        "caution": "A question does not need a separate “do” helper in German."
+      },
+      "examples": [
+        {
+          "id": "questions-1",
+          "english": "Do you have time?",
+          "target": "Haben Sie Zeit?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "have",
+                "agent": "addressee",
+                "theme": "time"
+              }
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "addressee",
+              "argument": "time",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "questions-2",
+          "english": "Do you have a ticket?",
+          "target": "Haben Sie ein Ticket?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "have",
+                "agent": "addressee",
+                "theme": "ticket"
+              }
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "addressee",
+              "argument": "ticket",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "questions-3",
+          "english": "Do you understand this?",
+          "target": "Verstehen Sie das?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "understand",
+                "agent": "addressee",
+                "theme": "this"
+              }
+            },
+            "selection": {
+              "predicate": "understand",
+              "agent": "addressee",
+              "argument": "this",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "questions-4",
+          "english": "Do you speak English?",
+          "target": "Sprechen Sie Englisch?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "addressee",
+                "theme": "english"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "addressee",
+              "argument": "english",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "questions-5",
+          "english": "Do you speak German?",
+          "target": "Sprechen Sie Deutsch?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "addressee",
+                "theme": "german"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "addressee",
+              "argument": "german",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "help",
+      "title": "Ask for help",
+      "goal": "Request and offer assistance",
+      "introduction": "A question, a modal verb and an action can be combined. Change the recipient or action to make a new request.",
+      "notes": {
+        "recipe": "Können Sie + object + bitte + infinitive?",
+        "explanation": "Können Sie is a productive and courteous question starter. The action verb stays in its infinitive form at the end.",
+        "detail": "Helfen requires a dative recipient: mir for “me,” Ihnen for formal “you.” This is why “help me” is mir helfen.",
+        "caution": "Bitte is optional, but useful. Keep the infinitive at the end: Können Sie mir helfen?"
+      },
+      "examples": [
+        {
+          "id": "help-1",
+          "english": "Can you help me?",
+          "target": "Können Sie mir helfen?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "modal",
+                "modality": "can",
+                "value": {
+                  "kind": "event",
+                  "predicate": "help",
+                  "agent": "addressee",
+                  "recipient": "speaker"
+                }
+              }
+            },
+            "selection": {
+              "predicate": "help",
+              "agent": "addressee",
+              "argument": "speaker",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "help-2",
+          "english": "Can you help me, please?",
+          "target": "Können Sie mir bitte helfen?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "please",
+              "value": {
+                "kind": "ask",
+                "value": {
+                  "kind": "modal",
+                  "modality": "can",
+                  "value": {
+                    "kind": "event",
+                    "predicate": "help",
+                    "agent": "addressee",
+                    "recipient": "speaker"
+                  }
+                }
+              }
+            },
+            "selection": {
+              "predicate": "help",
+              "agent": "addressee",
+              "argument": "speaker",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": true
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "help-3",
+          "english": "I can help you.",
+          "target": "Ich kann Ihnen helfen.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "modal",
+              "modality": "can",
+              "value": {
+                "kind": "event",
+                "predicate": "help",
+                "agent": "speaker",
+                "recipient": "addressee"
+              }
+            },
+            "selection": {
+              "predicate": "help",
+              "agent": "speaker",
+              "argument": "addressee",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "help-4",
+          "english": "Can you repeat this, please?",
+          "target": "Können Sie das bitte wiederholen?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "please",
+              "value": {
+                "kind": "ask",
+                "value": {
+                  "kind": "modal",
+                  "modality": "can",
+                  "value": {
+                    "kind": "event",
+                    "predicate": "repeat",
+                    "agent": "addressee",
+                    "theme": "this"
+                  }
+                }
+              }
+            },
+            "selection": {
+              "predicate": "repeat",
+              "agent": "addressee",
+              "argument": "this",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": true
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "repair",
+      "title": "When you do not understand",
+      "goal": "Keep a conversation going",
+      "introduction": "Say what you cannot understand and ask for clarification instead of trying to guess.",
+      "notes": {
+        "recipe": "Ich verstehe das nicht. / Sprechen Sie bitte langsam.",
+        "explanation": "Nicht is the common negative word for a verb phrase. Say plainly when you do not understand rather than guessing.",
+        "detail": "The short request Sprechen Sie bitte langsam is a conventional polite imperative. Memorize it whole for now.",
+        "caution": "German has two major negation strategies: nicht and kein. The negation lesson compares them."
+      },
+      "examples": [
+        {
+          "id": "repair-1",
+          "english": "I do not understand this.",
+          "target": "Ich verstehe das nicht.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "understand",
+                "agent": "speaker",
+                "theme": "this"
+              }
+            },
+            "selection": {
+              "predicate": "understand",
+              "agent": "speaker",
+              "argument": "this",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "repair-2",
+          "english": "I do not speak German.",
+          "target": "Ich spreche kein Deutsch.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "speaker",
+                "theme": "german"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "speaker",
+              "argument": "german",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "repair-3",
+          "english": "I do not speak French.",
+          "target": "Ich spreche kein Französisch.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "speaker",
+                "theme": "french"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "speaker",
+              "argument": "french",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "repair-4",
+          "english": "I do not speak Spanish.",
+          "target": "Ich spreche kein Spanisch.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "speaker",
+                "theme": "spanish"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "speaker",
+              "argument": "spanish",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "repair-5",
+          "english": "Do you speak English?",
+          "target": "Sprechen Sie Englisch?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "addressee",
+                "theme": "english"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "addressee",
+              "argument": "english",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "repair-6",
+          "english": "Please speak slowly.",
+          "target": "Sprechen Sie bitte langsam.",
+          "source": {
+            "kind": "convention",
+            "routine": "slowly"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "repair-7",
+          "english": "I am learning this language.",
+          "target": "Ich lerne Deutsch.",
+          "source": {
+            "kind": "convention",
+            "routine": "learning"
+          },
+          "provenance": "conventional"
+        }
+      ]
+    },
+    {
+      "id": "places",
+      "title": "Places and directions",
+      "goal": "Find a place and say where you are going",
+      "introduction": "The place is a slot. Its preposition and article are handled by the language, not by you inventing a new sentence.",
+      "notes": {
+        "recipe": "Wo ist + place? / Ich gehe + destination.",
+        "explanation": "Wo ist asks where something is. The destination expression after gehen changes depending on the place.",
+        "detail": "Memorize the chunks zum Bahnhof, zum Hotel, zur Toilette, and nach Hause. Prepositions and articles are combined in these forms.",
+        "caution": "Do not say “zu Hause” for motion. Nach Hause means going home; zu Hause means being at home."
+      },
+      "examples": [
+        {
+          "id": "places-1",
+          "english": "Where is the station?",
+          "target": "Wo ist der Bahnhof?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "where",
+              "place": "station"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-2",
+          "english": "Where is the bathroom?",
+          "target": "Wo ist die Toilette?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "where",
+              "place": "bathroom"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-3",
+          "english": "Where is the hotel?",
+          "target": "Wo ist das Hotel?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "where",
+              "place": "hotel"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-4",
+          "english": "I go to the station.",
+          "target": "Ich gehe zum Bahnhof.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "go",
+              "agent": "speaker",
+              "destination": "station"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "station",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-5",
+          "english": "I go to the hotel.",
+          "target": "Ich gehe zum Hotel.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "go",
+              "agent": "speaker",
+              "destination": "hotel"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "hotel",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-6",
+          "english": "I go to the bathroom.",
+          "target": "Ich gehe zur Toilette.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "go",
+              "agent": "speaker",
+              "destination": "bathroom"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "bathroom",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-7",
+          "english": "I want to go home.",
+          "target": "Ich will nach Hause gehen.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "modal",
+              "modality": "want",
+              "value": {
+                "kind": "event",
+                "predicate": "go",
+                "agent": "speaker",
+                "destination": "home"
+              }
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "home",
+              "modal": "want",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "shopping",
+      "title": "Buying and paying",
+      "goal": "Ask a price and pay for something",
+      "introduction": "Combine price questions, purchasing and payment methods. Only the useful noun or payment method changes.",
+      "notes": {
+        "recipe": "Wie viel kostet + noun? / Kann ich mit Karte bezahlen?",
+        "explanation": "Use Wie viel kostet …? to ask a price. For permission to pay, Kann ich … bezahlen? follows the same modal pattern as the help requests.",
+        "detail": "Mit Karte means by card; bar means in cash. You can substitute a different noun phrase after kostet.",
+        "caution": "Kaffee is masculine, so the examples use einen Kaffee as the object but ein Kaffee as the subject of kostet."
+      },
+      "examples": [
+        {
+          "id": "shopping-1",
+          "english": "How much does a ticket cost?",
+          "target": "Wie viel kostet ein Ticket?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "price",
+              "thing": "ticket"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-2",
+          "english": "How much does a coffee cost?",
+          "target": "Wie viel kostet ein Kaffee?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "price",
+              "thing": "coffee"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-3",
+          "english": "I want to buy a ticket.",
+          "target": "Ich will ein Ticket kaufen.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "modal",
+              "modality": "want",
+              "value": {
+                "kind": "event",
+                "predicate": "buy",
+                "agent": "speaker",
+                "theme": "ticket"
+              }
+            },
+            "selection": {
+              "predicate": "buy",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "want",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-4",
+          "english": "I want to buy a coffee.",
+          "target": "Ich will einen Kaffee kaufen.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "modal",
+              "modality": "want",
+              "value": {
+                "kind": "event",
+                "predicate": "buy",
+                "agent": "speaker",
+                "theme": "coffee"
+              }
+            },
+            "selection": {
+              "predicate": "buy",
+              "agent": "speaker",
+              "argument": "coffee",
+              "modal": "want",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-5",
+          "english": "I want to buy water.",
+          "target": "Ich will Wasser kaufen.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "modal",
+              "modality": "want",
+              "value": {
+                "kind": "event",
+                "predicate": "buy",
+                "agent": "speaker",
+                "theme": "water"
+              }
+            },
+            "selection": {
+              "predicate": "buy",
+              "agent": "speaker",
+              "argument": "water",
+              "modal": "want",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-6",
+          "english": "Can I pay by card?",
+          "target": "Kann ich mit Karte bezahlen?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "modal",
+                "modality": "can",
+                "value": {
+                  "kind": "event",
+                  "predicate": "pay",
+                  "agent": "speaker",
+                  "theme": "card"
+                }
+              }
+            },
+            "selection": {
+              "predicate": "pay",
+              "agent": "speaker",
+              "argument": "card",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-7",
+          "english": "Can I pay in cash?",
+          "target": "Kann ich bar bezahlen?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "modal",
+                "modality": "can",
+                "value": {
+                  "kind": "event",
+                  "predicate": "pay",
+                  "agent": "speaker",
+                  "theme": "cash"
+                }
+              }
+            },
+            "selection": {
+              "predicate": "pay",
+              "agent": "speaker",
+              "argument": "cash",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "time",
+      "title": "Today and tomorrow",
+      "goal": "Situate a simple statement in time",
+      "introduction": "Adding a time expression makes ordinary statements useful for near-future plans, without learning new tenses first.",
+      "notes": {
+        "recipe": "Ich + verb + heute/morgen + rest.",
+        "explanation": "Heute means today; morgen means tomorrow. The finite verb remains second in statements, even when you add a time expression.",
+        "detail": "Present-tense German can express a scheduled near-future action when tomorrow makes the timing clear.",
+        "caution": "Morgen can also mean morning as a noun. Here it is the lowercase adverb “tomorrow.”"
+      },
+      "examples": [
+        {
+          "id": "time-1",
+          "english": "I have time today.",
+          "target": "Ich habe heute Zeit.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "when",
+              "value": {
+                "kind": "event",
+                "predicate": "have",
+                "agent": "speaker",
+                "theme": "time"
+              },
+              "time": "today"
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "speaker",
+              "argument": "time",
+              "modal": "",
+              "negative": false,
+              "time": "today",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "time-2",
+          "english": "I go to the hotel tomorrow.",
+          "target": "Ich gehe morgen zum Hotel.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "when",
+              "value": {
+                "kind": "event",
+                "predicate": "go",
+                "agent": "speaker",
+                "destination": "hotel"
+              },
+              "time": "tomorrow"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "hotel",
+              "modal": "",
+              "negative": false,
+              "time": "tomorrow",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "time-3",
+          "english": "I go to the station tomorrow.",
+          "target": "Ich gehe morgen zum Bahnhof.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "when",
+              "value": {
+                "kind": "event",
+                "predicate": "go",
+                "agent": "speaker",
+                "destination": "station"
+              },
+              "time": "tomorrow"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "station",
+              "modal": "",
+              "negative": false,
+              "time": "tomorrow",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "time-4",
+          "english": "Can you help me tomorrow?",
+          "target": "Können Sie mir morgen helfen?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "when",
+                "value": {
+                  "kind": "modal",
+                  "modality": "can",
+                  "value": {
+                    "kind": "event",
+                    "predicate": "help",
+                    "agent": "addressee",
+                    "recipient": "speaker"
+                  }
+                },
+                "time": "tomorrow"
+              }
+            },
+            "selection": {
+              "predicate": "help",
+              "agent": "addressee",
+              "argument": "speaker",
+              "modal": "can",
+              "negative": false,
+              "time": "tomorrow",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "time-5",
+          "english": "I want to buy a ticket today.",
+          "target": "Ich will heute ein Ticket kaufen.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "when",
+              "value": {
+                "kind": "modal",
+                "modality": "want",
+                "value": {
+                  "kind": "event",
+                  "predicate": "buy",
+                  "agent": "speaker",
+                  "theme": "ticket"
+                }
+              },
+              "time": "today"
+            },
+            "selection": {
+              "predicate": "buy",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "want",
+              "negative": false,
+              "time": "today",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "negation",
+      "title": "Say no and set limits",
+      "goal": "Turn a positive sentence into a negative one",
+      "introduction": "Negation is an operator: it changes the meaning of a clause, while each language decides where its negative words go.",
+      "notes": {
+        "recipe": "nicht + action / kein + noun phrase",
+        "explanation": "German distinguishes negating an action from saying you have or need none of something. Nicht typically negates actions; kein often negates indefinite noun phrases.",
+        "detail": "Compare Ich verstehe das nicht with Ich habe kein Ticket. In a modal construction, nicht commonly appears before the destination or final infinitive.",
+        "caution": "Kein changes like an article: kein Ticket, keine Zeit, keinen Kaffee. Learn each useful chunk rather than a full chart first."
+      },
+      "examples": [
+        {
+          "id": "negation-1",
+          "english": "I do not have a ticket.",
+          "target": "Ich habe kein Ticket.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "have",
+                "agent": "speaker",
+                "theme": "ticket"
+              }
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "negation-2",
+          "english": "I do not have time.",
+          "target": "Ich habe keine Zeit.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "have",
+                "agent": "speaker",
+                "theme": "time"
+              }
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "speaker",
+              "argument": "time",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "negation-3",
+          "english": "I do not understand this.",
+          "target": "Ich verstehe das nicht.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "understand",
+                "agent": "speaker",
+                "theme": "this"
+              }
+            },
+            "selection": {
+              "predicate": "understand",
+              "agent": "speaker",
+              "argument": "this",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "negation-4",
+          "english": "I cannot go to the station today.",
+          "target": "Ich kann heute nicht zum Bahnhof gehen.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "when",
+              "value": {
+                "kind": "not",
+                "value": {
+                  "kind": "modal",
+                  "modality": "can",
+                  "value": {
+                    "kind": "event",
+                    "predicate": "go",
+                    "agent": "speaker",
+                    "destination": "station"
+                  }
+                }
+              },
+              "time": "today"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "station",
+              "modal": "can",
+              "negative": true,
+              "time": "today",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "negation-5",
+          "english": "I do not speak Spanish.",
+          "target": "Ich spreche kein Spanisch.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "speaker",
+                "theme": "spanish"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "speaker",
+              "argument": "spanish",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "combine",
+      "title": "Put the blocks together",
+      "goal": "Handle a short everyday interaction",
+      "introduction": "Put a greeting, a question, a need and a request into separate short sentences. Complexity is optional.",
+      "notes": {
+        "recipe": "Entschuldigung. → Wo ist …? → Ich brauche … → Danke.",
+        "explanation": "Short sentences are enough. Start politely, ask one thing at a time, and check important details.",
+        "detail": "You can reuse the same few patterns across a station, hotel, supermarket, or café. These examples share predictable grammar.",
+        "caution": "Understanding a short answer from a native speaker may require more vocabulary than producing the question."
+      },
+      "examples": [
+        {
+          "id": "combine-1",
+          "english": "Excuse me.",
+          "target": "Entschuldigung.",
+          "source": {
+            "kind": "convention",
+            "routine": "excuse_me"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "combine-2",
+          "english": "Where is the station?",
+          "target": "Wo ist der Bahnhof?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "where",
+              "place": "station"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "combine-3",
+          "english": "I need a ticket.",
+          "target": "Ich brauche ein Ticket.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "need",
+              "agent": "speaker",
+              "theme": "ticket"
+            },
+            "selection": {
+              "predicate": "need",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "combine-4",
+          "english": "How much does a ticket cost?",
+          "target": "Wie viel kostet ein Ticket?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "price",
+              "thing": "ticket"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "combine-5",
+          "english": "Can I pay by card?",
+          "target": "Kann ich mit Karte bezahlen?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "modal",
+                "modality": "can",
+                "value": {
+                  "kind": "event",
+                  "predicate": "pay",
+                  "agent": "speaker",
+                  "theme": "card"
+                }
+              }
+            },
+            "selection": {
+              "predicate": "pay",
+              "agent": "speaker",
+              "argument": "card",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "combine-6",
+          "english": "Thank you.",
+          "target": "Danke.",
+          "source": {
+            "kind": "convention",
+            "routine": "thank_you"
+          },
+          "provenance": "conventional"
+        }
+      ]
+    }
+  ]
+}

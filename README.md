@@ -1,132 +1,112 @@
 # Minimum Viable Language
 
-**A typed meta-framework for constructing small, compositional fragments of natural languages.**
+**Three practical language manuals, generated from one compositional language framework.**
 
-MVL models an utterance as a language-independent meaning tree. An adapter then
-realizes that tree with the grammar of a particular language. Its first three
-implementations are **German**, **French**, and **Spanish**. The implementations
-are intentionally bounded; MVL is not a phrasebook, a universal translator, or
-an established language-learning standard.
+MVL helps independent learners communicate with a deliberately small subset of
+standard German, French, or Spanish. The published application presents rules,
+worked examples, a sentence builder, active-recall practice, and a quick reference.
+It is a **learning product**; the language-engine specification lives separately
+in [FRAMEWORK.md](FRAMEWORK.md).
 
-**Interactive reference:** https://alainux.github.io/mvl/
+The learner-facing site is at **https://alainux.github.io/mvl/**.
 
-## Get started
+## What is generated?
 
-Requirements: Node.js 20 or newer and npm.
+A lesson does not contain German, French, or Spanish translations. It specifies
+*meanings* such as “speaker needs one of these objects” and the operators permitted
+for that lesson. The compiler expands the meaning specifications into abstract
+syntax trees (ASTs). English prompts and target-language sentences are **both**
+realizations of those trees.
+
+```text
+Shared learning goal
+   └── Lesson plan: NEED(speaker, [water, ticket, coffee])
+         └── Semantic AST: EVENT(need, speaker, ticket)
+               ├── English renderer → I need a ticket.
+               ├── German grammar   → Ich brauche ein Ticket.
+               ├── French grammar   → J’ai besoin d’un billet.
+               └── Spanish grammar  → Necesito un billete.
+```
+
+Changing the object triggers new morphology and word order from the grammar,
+not a translation lookup. The sentence builder composes the same ASTs live.
+Exercises derive additional valid combinations by changing slots and operators.
+
+**Intentional exception:** greetings, thanks, and a few conventional social
+formulas are stored whole because the starter grammar cannot derive them safely.
+They live only in `src/learning/routines.ts`, and are explicitly marked as
+`conventional` in generated output. Productive content is marked `composed`.
+
+## Development
+
+Node.js 20+ is required.
 
 ```bash
 npm install
-npm run check  # strict type check, compile docs/, and run regression tests
-npm run dev    # serve the last build at http://127.0.0.1:4174/
+npm run check   # strict type check, compile three guides, run 32+ tests
+npm run dev     # serve the last compiled /docs at localhost:4174
 ```
 
-The project has **one development dependency: TypeScript**. Browser execution
-uses native JavaScript modules, with no framework, runtime dependencies, CDN,
-backend, or bundler.
-
-## Repository layout
+`npm run build` compiles unminified TypeScript modules and generates:
 
 ```text
-src/
-  core/
-    model.ts       Types: Event, Clause, Expression, language adapter contract
-    vocabulary.ts  Typed predicates, semantic roles, operator signatures
-    algebra.ts     Validated AST constructors, normalization and notation
-    profile.ts     Capability sets and operator dependency closure
-  languages/
-    shared.ts      Small morphology / orthography helpers
-    de.ts          German realizer: verb placement, dative, negation
-    fr.ts          French realizer: elision, clitics, negation, questions
-    es.ts          Spanish realizer: agreement, clitics, questions
-    index.ts       Registered adapters and linearization entry point
-  ui/
-    dom.ts         Safe, small DOM helpers
-    reference.ts   Render documentation from the real specifications
-    profiles.ts    Interactive capability planner
-    workbench.ts   Typed expression builder and compilation output
-  main.ts          Browser bootstrap
-  index.html       Semantic page structure
-  style.css        Responsive presentation
-scripts/
-  build.mjs        Compile TypeScript and copy static assets to docs/
-  serve.mjs        Tiny local development server
-
-tests/
-  core.test.mjs    AST validation, scope, profile dependencies
-  languages.test.mjs  Golden outputs + full supported combination matrix
-  site.test.mjs    Publishable-asset contract
-
-docs/              Generated, committed GitHub Pages site
+/docs/index.html
+/docs/assets/...
+/docs/guides/de.json
+/docs/guides/fr.json
+/docs/guides/es.json
 ```
 
-Source files under `src/` are the canonical implementation. Files under `docs/`
-are generated build artifacts and **must not be edited directly**.
+`docs/` is a checked-in **build artifact**, not authored source. The frontend
+loads the compiled guides and uses the same core grammar to power its interactive
+builder and practice tools.
 
-## How composition works
+### Publishing
 
-```ts
-import { event, modal, ask, please } from './core/algebra.js';
-import { linearize } from './languages/index.js';
-
-// Shared semantics. No words from any particular language appear in the AST.
-const assistance = event('help', 'addressee', 'speaker');
-const request = please(ask(modal('can', assistance)));
-
-linearize(request, 'de'); // Können Sie mir bitte helfen?
-linearize(request, 'fr'); // Est-ce que vous pouvez m’aider, s’il vous plaît ?
-linearize(request, 'es'); // ¿Usted puede ayudarme, por favor?
-```
-
-The example above is illustrative TypeScript source: its relative imports assume
-it lives in `src/`. The browser also offers an interactive workbench for the
-same construction process.
-
-`Event`, `Clause`, and `Question` are **discriminated unions**. The compiler
-rejects unsupported predicate–argument pairs and predicate–modal combinations.
-The syntax prevents `PLEASE` from applying to a statement. Language adapters
-receive the same `Expression` and cannot alter its semantic types.
-
-The profile planner computes the smallest **operator dependency closure** for
-selected goals. This does not establish an optimal teaching order or a complete
-communication curriculum; see [FRAMEWORK.md](FRAMEWORK.md).
-
-## Quality gates
-
-- **Strict TypeScript:** `strict`, `noUncheckedIndexedAccess`,
-  `exactOptionalPropertyTypes`, unused-symbol checks, and additional guards.
-- **Runtime contracts:** Invalid events and unsupported combinations throw
-  instead of returning invented phrases.
-- **Regression cases:** Human-readable expected realizations for each adapter,
-  including elision and clitic placement.
-- **Combination matrix:** Every supported predicate, agent, argument, modality,
-  negation, question, and time combination is compiled by every adapter.
-- **Static assets:** The generated site uses relative paths, so it works under
-  a repository-specific GitHub Pages URL.
-
-Unit tests validate invariants and selected outputs; they **cannot guarantee**
-that every generated sentence is idiomatic. New constructions should receive
-native-speaker review.
-
-## Publish
-
-GitHub Pages is configured to serve `main` from `/docs`. Build and check locally:
+The repository uses GitHub Pages **Deploy from a branch → main → /docs**.
+There is no custom CI workflow. To release:
 
 ```bash
-npm run pages
-
-git add src docs tests README.md FRAMEWORK.md CONTRIBUTING.md
-
-git commit -m "Extend MVL grammar"
+npm run pages  # same as check; regenerates docs/ and verifies outputs
+git add .
+git commit -m "Improve language guides"
 git push
 ```
 
-The repository does not define a custom CI pipeline. Compiled Pages assets are
-committed so hosting does not require a TypeScript build on GitHub Actions.
+GitHub Pages then publishes the committed static output. This approach minimizes
+CI minutes, but reviewers must check that `docs/` matches `src/`.
 
-## Contributing
+## Architecture
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for code style, semantic extension rules,
-and the language review checklist. See [FRAMEWORK.md](FRAMEWORK.md) for the
-formal model and its relationship to GF, Frame Semantics, NSM, and CEFR.
+| Path | Responsibility |
+| --- | --- |
+| `src/core/` | Typed AST, semantic roles, composable operators, capability profiles |
+| `src/languages/` | Independent grammatical realizers and English gloss generator |
+| `src/learning/curriculum.ts` | Shared learning goals and declarative semantic lesson plans |
+| `src/learning/expand.ts` | Expands lesson plans into ASTs |
+| `src/learning/compile.ts` | Creates per-language learner guides |
+| `src/learning/notes.ts` | Language-specific explanations; not translated phrase inventories |
+| `src/learning/practice.ts` | Derives unseen exercises from meaning-tree transformations |
+| `src/ui/` | Learner screens and interactive controls |
+| `scripts/build.mjs` | Reproducible generation of the static deployment |
+| `tests/` | Grammar regression tests, composition matrix, generation contracts |
 
-Original code and documentation: MIT license.
+Read [FRAMEWORK.md](FRAMEWORK.md) for the formal model and
+[CONTRIBUTING.md](CONTRIBUTING.md) for adding a language, operator, or lesson.
+
+## Scope and limitations
+
+This is a controlled **production subset**, not a CEFR certification or a
+complete grammar. Current coverage emphasizes requests, possession, questions,
+places, small transactions, time adverbs, and negation. The initial grammar
+supports first-person singular and formal second-person constructions, singular
+objects, and a few simple tense and register choices. It does not understand
+arbitrary user-written sentences or certify other valid phrasings.
+
+MVL deliberately prefers standard-language constructions where possible rather
+than inventing a new dialect. Minimality is about the learning surface, not a
+claim that human languages share one grammar.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

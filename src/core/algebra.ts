@@ -5,16 +5,18 @@ import type {
   Clause,
   Event,
   Expression,
+  LocatablePlace,
   ModalClause,
   Modality,
   NegativeClause,
   Participant,
-  Place,
   PolarityClause,
   PoliteQuestion,
   PredicateId,
+  PricedThing,
   Question,
   SemanticArgument,
+  SentenceExpression,
   Time,
   TimedClause,
 } from './model.js';
@@ -24,9 +26,13 @@ function invalid(message: string): never {
   throw new TypeError(message);
 }
 
+function assertNever(value: never): never {
+  throw new TypeError(`Unexpected value: ${String(value)}`);
+}
+
 /**
- * Check runtime input as well as compile-time types. UI controls are typed,
- * but future callers might read AST parameters from JSON or other input.
+ * Construct a well-typed event from potentially untrusted UI selections.
+ * The static Event union protects authored code; these guards protect the UI.
  */
 export function event(
   predicate: PredicateId,
@@ -40,58 +46,83 @@ export function event(
     invalid(`Unknown participant: ${agent}`);
   }
   if (!frame.allowedArguments.includes(argument)) {
-    invalid(`${predicate} requires ${frame.argumentRole} in {${frame.allowedArguments.join(', ')}}`);
+    invalid(
+      `${predicate} requires ${frame.argumentRole} in {${frame.allowedArguments.join(', ')}}`,
+    );
   }
 
   switch (predicate) {
     case 'need':
-      if (argument === 'help' || argument === 'ticket') {
+      if (
+        argument === 'help' || argument === 'ticket' ||
+        argument === 'coffee' || argument === 'water'
+      ) {
         return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
       }
       break;
+
+    case 'buy':
+    case 'would_like':
+      if (argument === 'ticket' || argument === 'coffee' || argument === 'water') {
+        return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
+      }
+      break;
+
     case 'have':
       if (argument === 'time' || argument === 'ticket') {
         return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
       }
       break;
+
     case 'understand':
+    case 'repeat':
       if (argument === 'this') {
         return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
       }
       break;
+
     case 'help':
-      if (argument === agent) {
-        invalid('The helping agent and recipient must differ in this starter profile');
+      if (agent === argument) {
+        invalid('The helping agent and recipient must differ in this profile');
       }
       if (argument === 'speaker' || argument === 'addressee') {
         return Object.freeze({ kind: 'event', predicate, agent, recipient: argument });
       }
       break;
+
     case 'go':
-      if (argument === 'home' || argument === 'station') {
-        return Object.freeze({ kind: 'event', predicate, agent, destination: argument as Place });
+      if (
+        argument === 'home' || argument === 'station' ||
+        argument === 'bathroom' || argument === 'hotel'
+      ) {
+        return Object.freeze({ kind: 'event', predicate, agent, destination: argument });
       }
       break;
-    case 'buy':
-      if (argument === 'ticket') {
+
+    case 'speak':
+      if (
+        argument === 'german' || argument === 'french' ||
+        argument === 'spanish' || argument === 'english'
+      ) {
         return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
       }
       break;
+
+    case 'pay':
+      if (argument === 'card' || argument === 'cash') {
+        return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
+      }
+      break;
+
     default:
       return assertNever(predicate);
   }
 
-  // This guards invalid data supplied by callers that bypass TypeScript.
   return invalid(`Invalid argument ${argument} for predicate ${predicate}`);
 }
 
-function assertNever(value: never): never {
-  throw new TypeError(`Unexpected value: ${String(value)}`);
-}
-
 export function modal(modality: Modality, value: Event): ModalClause {
-  const frame = PREDICATES[value.predicate];
-  if (!frame.allowedModalities.includes(modality)) {
+  if (!PREDICATES[value.predicate].allowedModalities.includes(modality)) {
     invalid(`${modality} is not supported for ${value.predicate}`);
   }
   return Object.freeze({ kind: 'modal', modality, value });
@@ -102,8 +133,10 @@ export function negate(value: BaseClause): NegativeClause {
 }
 
 export function when(value: PolarityClause, time: Time): TimedClause {
-  if (time !== 'today' && time !== 'tomorrow') invalid(`Unknown time: ${time}`);
-  return Object.freeze({ kind: 'when', time, value });
+  if (time !== 'today' && time !== 'tomorrow') {
+    invalid(`Unknown time: ${time}`);
+  }
+  return Object.freeze({ kind: 'when', value, time });
 }
 
 export function ask(value: Clause): Question {
@@ -114,6 +147,20 @@ export function please(value: Question): PoliteQuestion {
   return Object.freeze({ kind: 'please', value });
 }
 
+export function where(place: LocatablePlace): Expression {
+  if (place !== 'station' && place !== 'bathroom' && place !== 'hotel') {
+    invalid(`Unknown locatable place: ${place}`);
+  }
+  return Object.freeze({ kind: 'where', place });
+}
+
+export function price(thing: PricedThing): Expression {
+  if (thing !== 'ticket' && thing !== 'coffee') {
+    invalid(`Unknown priced item: ${thing}`);
+  }
+  return Object.freeze({ kind: 'price', thing });
+}
+
 export const DEFAULT_SELECTION: Readonly<BuilderSelection> = Object.freeze({
   predicate: 'help',
   agent: 'addressee',
@@ -122,31 +169,31 @@ export const DEFAULT_SELECTION: Readonly<BuilderSelection> = Object.freeze({
   negative: false,
   time: '',
   question: true,
-  polite: false,
+  polite: true,
 });
 
-/** Build a tree in the only supported scope order: modal → not → when → ask → please. */
-export function makeTree(selection: BuilderSelection): Expression {
-  const baseEvent = event(selection.predicate, selection.agent, selection.argument);
-  const base: BaseClause = selection.modal
-    ? modal(selection.modal, baseEvent)
-    : baseEvent;
-
+/**
+ * A teachable subset permits one canonical operator order. General arbitrary
+ * nesting would require substantially larger grammar implementations.
+ */
+export function makeTree(selection: BuilderSelection): SentenceExpression {
+  const action = event(selection.predicate, selection.agent, selection.argument);
+  const base: BaseClause = selection.modal ? modal(selection.modal, action) : action;
   const withPolarity: PolarityClause = selection.negative ? negate(base) : base;
-  const statement: Clause = selection.time ? when(withPolarity, selection.time) : withPolarity;
+  const clause: Clause = selection.time
+    ? when(withPolarity, selection.time)
+    : withPolarity;
 
-  if (selection.polite && !selection.question) {
-    invalid('PLEASE requires ASK');
-  }
-  if (!selection.question) return statement;
+  if (selection.polite && !selection.question) invalid('PLEASE requires ASK');
+  if (!selection.question) return clause;
 
-  const question = ask(statement);
+  const question = ask(clause);
   return selection.polite ? please(question) : question;
 }
 
-/** Normalize a valid expression for the bounded concrete syntax implementations. */
-export function analyze(expression: Expression): Analysis {
-  let current: Expression = expression;
+/** Flatten the bounded AST once; language adapters decide all surface forms. */
+export function analyze(expression: SentenceExpression): Analysis {
+  let current: SentenceExpression = expression;
   let polite = false;
   let question = false;
   let time: Time | null = null;
@@ -173,19 +220,24 @@ export function analyze(expression: Expression): Analysis {
     modality = current.modality;
     current = current.value;
   }
-
-  if (current.kind !== 'event') invalid('Malformed AST: expected EVENT');
+  if (current.kind !== 'event') {
+    invalid('Malformed sentence AST: expected EVENT');
+  }
 
   return Object.freeze({ event: current, modality, negative, time, question, polite });
 }
 
-/** Human-readable notation keeps operator scope visible in the UI and tests. */
+export function eventArgument(value: Event): SemanticArgument {
+  if (value.predicate === 'help') return value.recipient;
+  if (value.predicate === 'go') return value.destination;
+  return value.theme;
+}
+
+/** Stable notation is useful for debugging, documentation, and AST comparisons. */
 export function notation(expression: Expression): string {
   switch (expression.kind) {
-    case 'event': {
-      const argument = eventArgument(expression);
-      return `EVENT(${expression.predicate}, ${expression.agent}, ${argument})`;
-    }
+    case 'event':
+      return `EVENT(${expression.predicate}, ${expression.agent}, ${eventArgument(expression)})`;
     case 'modal':
       return `${expression.modality.toUpperCase()}(${notation(expression.value)})`;
     case 'not':
@@ -196,24 +248,11 @@ export function notation(expression: Expression): string {
       return `ASK(${notation(expression.value)})`;
     case 'please':
       return `PLEASE(${notation(expression.value)})`;
+    case 'where':
+      return `WHERE(${expression.place})`;
+    case 'price':
+      return `PRICE(${expression.thing})`;
     default:
       return assertNever(expression);
-  }
-}
-
-/** Extract a typed semantic slot without guessing a property name at runtime. */
-export function eventArgument(value: Event): SemanticArgument {
-  switch (value.predicate) {
-    case 'need':
-    case 'have':
-    case 'understand':
-    case 'buy':
-      return value.theme;
-    case 'help':
-      return value.recipient;
-    case 'go':
-      return value.destination;
-    default:
-      return assertNever(value);
   }
 }

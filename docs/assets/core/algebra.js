@@ -2,9 +2,12 @@ import { PREDICATES } from './vocabulary.js';
 function invalid(message) {
     throw new TypeError(message);
 }
+function assertNever(value) {
+    throw new TypeError(`Unexpected value: ${String(value)}`);
+}
 /**
- * Check runtime input as well as compile-time types. UI controls are typed,
- * but future callers might read AST parameters from JSON or other input.
+ * Construct a well-typed event from potentially untrusted UI selections.
+ * The static Event union protects authored code; these guards protect the UI.
  */
 export function event(predicate, agent, argument) {
     const frame = PREDICATES[predicate];
@@ -18,7 +21,14 @@ export function event(predicate, agent, argument) {
     }
     switch (predicate) {
         case 'need':
-            if (argument === 'help' || argument === 'ticket') {
+            if (argument === 'help' || argument === 'ticket' ||
+                argument === 'coffee' || argument === 'water') {
+                return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
+            }
+            break;
+        case 'buy':
+        case 'would_like':
+            if (argument === 'ticket' || argument === 'coffee' || argument === 'water') {
                 return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
             }
             break;
@@ -28,40 +38,43 @@ export function event(predicate, agent, argument) {
             }
             break;
         case 'understand':
+        case 'repeat':
             if (argument === 'this') {
                 return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
             }
             break;
         case 'help':
-            if (argument === agent) {
-                invalid('The helping agent and recipient must differ in this starter profile');
+            if (agent === argument) {
+                invalid('The helping agent and recipient must differ in this profile');
             }
             if (argument === 'speaker' || argument === 'addressee') {
                 return Object.freeze({ kind: 'event', predicate, agent, recipient: argument });
             }
             break;
         case 'go':
-            if (argument === 'home' || argument === 'station') {
+            if (argument === 'home' || argument === 'station' ||
+                argument === 'bathroom' || argument === 'hotel') {
                 return Object.freeze({ kind: 'event', predicate, agent, destination: argument });
             }
             break;
-        case 'buy':
-            if (argument === 'ticket') {
+        case 'speak':
+            if (argument === 'german' || argument === 'french' ||
+                argument === 'spanish' || argument === 'english') {
+                return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
+            }
+            break;
+        case 'pay':
+            if (argument === 'card' || argument === 'cash') {
                 return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
             }
             break;
         default:
             return assertNever(predicate);
     }
-    // This guards invalid data supplied by callers that bypass TypeScript.
     return invalid(`Invalid argument ${argument} for predicate ${predicate}`);
 }
-function assertNever(value) {
-    throw new TypeError(`Unexpected value: ${String(value)}`);
-}
 export function modal(modality, value) {
-    const frame = PREDICATES[value.predicate];
-    if (!frame.allowedModalities.includes(modality)) {
+    if (!PREDICATES[value.predicate].allowedModalities.includes(modality)) {
         invalid(`${modality} is not supported for ${value.predicate}`);
     }
     return Object.freeze({ kind: 'modal', modality, value });
@@ -70,15 +83,28 @@ export function negate(value) {
     return Object.freeze({ kind: 'not', value });
 }
 export function when(value, time) {
-    if (time !== 'today' && time !== 'tomorrow')
+    if (time !== 'today' && time !== 'tomorrow') {
         invalid(`Unknown time: ${time}`);
-    return Object.freeze({ kind: 'when', time, value });
+    }
+    return Object.freeze({ kind: 'when', value, time });
 }
 export function ask(value) {
     return Object.freeze({ kind: 'ask', value });
 }
 export function please(value) {
     return Object.freeze({ kind: 'please', value });
+}
+export function where(place) {
+    if (place !== 'station' && place !== 'bathroom' && place !== 'hotel') {
+        invalid(`Unknown locatable place: ${place}`);
+    }
+    return Object.freeze({ kind: 'where', place });
+}
+export function price(thing) {
+    if (thing !== 'ticket' && thing !== 'coffee') {
+        invalid(`Unknown priced item: ${thing}`);
+    }
+    return Object.freeze({ kind: 'price', thing });
 }
 export const DEFAULT_SELECTION = Object.freeze({
     predicate: 'help',
@@ -88,25 +114,27 @@ export const DEFAULT_SELECTION = Object.freeze({
     negative: false,
     time: '',
     question: true,
-    polite: false,
+    polite: true,
 });
-/** Build a tree in the only supported scope order: modal → not → when → ask → please. */
+/**
+ * A teachable subset permits one canonical operator order. General arbitrary
+ * nesting would require substantially larger grammar implementations.
+ */
 export function makeTree(selection) {
-    const baseEvent = event(selection.predicate, selection.agent, selection.argument);
-    const base = selection.modal
-        ? modal(selection.modal, baseEvent)
-        : baseEvent;
+    const action = event(selection.predicate, selection.agent, selection.argument);
+    const base = selection.modal ? modal(selection.modal, action) : action;
     const withPolarity = selection.negative ? negate(base) : base;
-    const statement = selection.time ? when(withPolarity, selection.time) : withPolarity;
-    if (selection.polite && !selection.question) {
+    const clause = selection.time
+        ? when(withPolarity, selection.time)
+        : withPolarity;
+    if (selection.polite && !selection.question)
         invalid('PLEASE requires ASK');
-    }
     if (!selection.question)
-        return statement;
-    const question = ask(statement);
+        return clause;
+    const question = ask(clause);
     return selection.polite ? please(question) : question;
 }
-/** Normalize a valid expression for the bounded concrete syntax implementations. */
+/** Flatten the bounded AST once; language adapters decide all surface forms. */
 export function analyze(expression) {
     let current = expression;
     let polite = false;
@@ -134,17 +162,23 @@ export function analyze(expression) {
         modality = current.modality;
         current = current.value;
     }
-    if (current.kind !== 'event')
-        invalid('Malformed AST: expected EVENT');
+    if (current.kind !== 'event') {
+        invalid('Malformed sentence AST: expected EVENT');
+    }
     return Object.freeze({ event: current, modality, negative, time, question, polite });
 }
-/** Human-readable notation keeps operator scope visible in the UI and tests. */
+export function eventArgument(value) {
+    if (value.predicate === 'help')
+        return value.recipient;
+    if (value.predicate === 'go')
+        return value.destination;
+    return value.theme;
+}
+/** Stable notation is useful for debugging, documentation, and AST comparisons. */
 export function notation(expression) {
     switch (expression.kind) {
-        case 'event': {
-            const argument = eventArgument(expression);
-            return `EVENT(${expression.predicate}, ${expression.agent}, ${argument})`;
-        }
+        case 'event':
+            return `EVENT(${expression.predicate}, ${expression.agent}, ${eventArgument(expression)})`;
         case 'modal':
             return `${expression.modality.toUpperCase()}(${notation(expression.value)})`;
         case 'not':
@@ -155,23 +189,11 @@ export function notation(expression) {
             return `ASK(${notation(expression.value)})`;
         case 'please':
             return `PLEASE(${notation(expression.value)})`;
+        case 'where':
+            return `WHERE(${expression.place})`;
+        case 'price':
+            return `PRICE(${expression.thing})`;
         default:
             return assertNever(expression);
-    }
-}
-/** Extract a typed semantic slot without guessing a property name at runtime. */
-export function eventArgument(value) {
-    switch (value.predicate) {
-        case 'need':
-        case 'have':
-        case 'understand':
-        case 'buy':
-            return value.theme;
-        case 'help':
-            return value.recipient;
-        case 'go':
-            return value.destination;
-        default:
-            return assertNever(value);
     }
 }

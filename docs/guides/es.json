@@ -1,0 +1,1669 @@
+{
+  "language": {
+    "code": "es",
+    "name": "Spanish",
+    "variety": "European Spanish · formal usted",
+    "features": [
+      "Subject pronouns are often omitted because the verb identifies the person.",
+      "Formal usted takes third-person singular verb endings.",
+      "Negate a clause with no immediately before its finite verb group.",
+      "Written questions start with ¿ and end with ?.",
+      "Poder and querer take an infinitive to express ability and desire."
+    ]
+  },
+  "lessons": [
+    {
+      "id": "first-words",
+      "title": "First words",
+      "goal": "Start and end a simple interaction",
+      "introduction": "A few social expressions are conventional, not assembled by grammar. Learn these short forms as complete units.",
+      "notes": {
+        "recipe": "Hola. / Gracias. / Disculpe.",
+        "explanation": "These are social expressions to remember as whole units. They are useful before you learn any verb endings.",
+        "detail": "This guide chooses formal usted for requests to strangers. Spanish-speaking regions differ in how often formal address is expected.",
+        "caution": "Use gracias for thanks and de nada as a conventional reply; there is no need to translate them word by word."
+      },
+      "examples": [
+        {
+          "id": "first-words-1",
+          "english": "Hello.",
+          "target": "Hola.",
+          "source": {
+            "kind": "convention",
+            "routine": "hello"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "first-words-2",
+          "english": "Good morning.",
+          "target": "Buenos días.",
+          "source": {
+            "kind": "convention",
+            "routine": "good_morning"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "first-words-3",
+          "english": "Excuse me.",
+          "target": "Disculpe.",
+          "source": {
+            "kind": "convention",
+            "routine": "excuse_me"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "first-words-4",
+          "english": "Thank you.",
+          "target": "Gracias.",
+          "source": {
+            "kind": "convention",
+            "routine": "thank_you"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "first-words-5",
+          "english": "You are welcome.",
+          "target": "De nada.",
+          "source": {
+            "kind": "convention",
+            "routine": "you_are_welcome"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "first-words-6",
+          "english": "Goodbye.",
+          "target": "Adiós.",
+          "source": {
+            "kind": "convention",
+            "routine": "goodbye"
+          },
+          "provenance": "conventional"
+        }
+      ]
+    },
+    {
+      "id": "needs",
+      "title": "Needs and possession",
+      "goal": "Say what you need or already have",
+      "introduction": "A verb plus an interchangeable noun phrase gives you a whole family of useful statements.",
+      "notes": {
+        "recipe": "Necesito + object. / Tengo + object.",
+        "explanation": "Necesito means I need; tengo means I have. Spanish often omits yo because the verb ending already identifies the speaker.",
+        "detail": "Learn un billete, un café, agua, and ayuda. Direct objects do not normally require a German-style case ending.",
+        "caution": "Do not add yo before every verb. It is optional for emphasis but usually unnecessary here."
+      },
+      "examples": [
+        {
+          "id": "needs-1",
+          "english": "I need help.",
+          "target": "Necesito ayuda.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "need",
+              "agent": "speaker",
+              "theme": "help"
+            },
+            "selection": {
+              "predicate": "need",
+              "agent": "speaker",
+              "argument": "help",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "needs-2",
+          "english": "I need water.",
+          "target": "Necesito agua.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "need",
+              "agent": "speaker",
+              "theme": "water"
+            },
+            "selection": {
+              "predicate": "need",
+              "agent": "speaker",
+              "argument": "water",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "needs-3",
+          "english": "I need a ticket.",
+          "target": "Necesito un billete.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "need",
+              "agent": "speaker",
+              "theme": "ticket"
+            },
+            "selection": {
+              "predicate": "need",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "needs-4",
+          "english": "I need a coffee.",
+          "target": "Necesito un café.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "need",
+              "agent": "speaker",
+              "theme": "coffee"
+            },
+            "selection": {
+              "predicate": "need",
+              "agent": "speaker",
+              "argument": "coffee",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "needs-5",
+          "english": "I have time.",
+          "target": "Tengo tiempo.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "have",
+              "agent": "speaker",
+              "theme": "time"
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "speaker",
+              "argument": "time",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "needs-6",
+          "english": "I have a ticket.",
+          "target": "Tengo un billete.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "have",
+              "agent": "speaker",
+              "theme": "ticket"
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "preferences",
+      "title": "What you would like",
+      "goal": "Ask for something politely",
+      "introduction": "One courteous construction works with many objects. Substitute the thing you want instead of memorizing an order.",
+      "notes": {
+        "recipe": "Quisiera + noun phrase.",
+        "explanation": "Quisiera is a polite conventional form for “I would like.” It is well suited to everyday requests.",
+        "detail": "A café is un café; water is agua. The formal question ¿Quisiera un café? is an offer to the listener.",
+        "caution": "Quiero is valid “I want,” but quisiera sounds less abrupt in service situations."
+      },
+      "examples": [
+        {
+          "id": "preferences-1",
+          "english": "I would like a coffee.",
+          "target": "Quisiera un café.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "would_like",
+              "agent": "speaker",
+              "theme": "coffee"
+            },
+            "selection": {
+              "predicate": "would_like",
+              "agent": "speaker",
+              "argument": "coffee",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "preferences-2",
+          "english": "I would like water.",
+          "target": "Quisiera agua.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "would_like",
+              "agent": "speaker",
+              "theme": "water"
+            },
+            "selection": {
+              "predicate": "would_like",
+              "agent": "speaker",
+              "argument": "water",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "preferences-3",
+          "english": "I would like a ticket.",
+          "target": "Quisiera un billete.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "would_like",
+              "agent": "speaker",
+              "theme": "ticket"
+            },
+            "selection": {
+              "predicate": "would_like",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "preferences-4",
+          "english": "Would you like a coffee?",
+          "target": "¿Quisiera un café?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "would_like",
+                "agent": "addressee",
+                "theme": "coffee"
+              }
+            },
+            "selection": {
+              "predicate": "would_like",
+              "agent": "addressee",
+              "argument": "coffee",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "preferences-5",
+          "english": "Would you like water?",
+          "target": "¿Quisiera agua?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "would_like",
+                "agent": "addressee",
+                "theme": "water"
+              }
+            },
+            "selection": {
+              "predicate": "would_like",
+              "agent": "addressee",
+              "argument": "water",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "questions",
+      "title": "Yes/no questions",
+      "goal": "Ask a direct question",
+      "introduction": "A question changes the form of a whole clause. The same mechanism works with several verbs.",
+      "notes": {
+        "recipe": "¿ + statement + ?",
+        "explanation": "Spanish often forms a yes/no question without adding a helper word. In writing, the opening ¿ marks the question.",
+        "detail": "With usted the finite verb is third-person singular: ¿Tiene tiempo? The speaker’s own verb forms end differently: tengo, necesito.",
+        "caution": "Spanish subject pronouns are often omitted; including usted can add emphasis, but is not always required."
+      },
+      "examples": [
+        {
+          "id": "questions-1",
+          "english": "Do you have time?",
+          "target": "¿Tiene tiempo?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "have",
+                "agent": "addressee",
+                "theme": "time"
+              }
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "addressee",
+              "argument": "time",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "questions-2",
+          "english": "Do you have a ticket?",
+          "target": "¿Tiene un billete?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "have",
+                "agent": "addressee",
+                "theme": "ticket"
+              }
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "addressee",
+              "argument": "ticket",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "questions-3",
+          "english": "Do you understand this?",
+          "target": "¿Entiende esto?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "understand",
+                "agent": "addressee",
+                "theme": "this"
+              }
+            },
+            "selection": {
+              "predicate": "understand",
+              "agent": "addressee",
+              "argument": "this",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "questions-4",
+          "english": "Do you speak English?",
+          "target": "¿Habla inglés?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "addressee",
+                "theme": "english"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "addressee",
+              "argument": "english",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "questions-5",
+          "english": "Do you speak German?",
+          "target": "¿Habla alemán?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "addressee",
+                "theme": "german"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "addressee",
+              "argument": "german",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "help",
+      "title": "Ask for help",
+      "goal": "Request and offer assistance",
+      "introduction": "A question, a modal verb and an action can be combined. Change the recipient or action to make a new request.",
+      "notes": {
+        "recipe": "¿Puede + infinitive + (object), por favor?",
+        "explanation": "Puede means formal “you can.” A second verb follows in the infinitive: ayudarme, repetirme or repetir esto.",
+        "detail": "In ayudarme the object me is attached to the infinitive. With a simple finite verb it goes before: me ayuda.",
+        "caution": "¿Usted puede ayudarme? is correct, but many speakers would naturally omit usted."
+      },
+      "examples": [
+        {
+          "id": "help-1",
+          "english": "Can you help me?",
+          "target": "¿Puede ayudarme?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "modal",
+                "modality": "can",
+                "value": {
+                  "kind": "event",
+                  "predicate": "help",
+                  "agent": "addressee",
+                  "recipient": "speaker"
+                }
+              }
+            },
+            "selection": {
+              "predicate": "help",
+              "agent": "addressee",
+              "argument": "speaker",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "help-2",
+          "english": "Can you help me, please?",
+          "target": "¿Puede ayudarme, por favor?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "please",
+              "value": {
+                "kind": "ask",
+                "value": {
+                  "kind": "modal",
+                  "modality": "can",
+                  "value": {
+                    "kind": "event",
+                    "predicate": "help",
+                    "agent": "addressee",
+                    "recipient": "speaker"
+                  }
+                }
+              }
+            },
+            "selection": {
+              "predicate": "help",
+              "agent": "addressee",
+              "argument": "speaker",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": true
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "help-3",
+          "english": "I can help you.",
+          "target": "Puedo ayudarle.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "modal",
+              "modality": "can",
+              "value": {
+                "kind": "event",
+                "predicate": "help",
+                "agent": "speaker",
+                "recipient": "addressee"
+              }
+            },
+            "selection": {
+              "predicate": "help",
+              "agent": "speaker",
+              "argument": "addressee",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "help-4",
+          "english": "Can you repeat this, please?",
+          "target": "¿Puede repetir esto, por favor?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "please",
+              "value": {
+                "kind": "ask",
+                "value": {
+                  "kind": "modal",
+                  "modality": "can",
+                  "value": {
+                    "kind": "event",
+                    "predicate": "repeat",
+                    "agent": "addressee",
+                    "theme": "this"
+                  }
+                }
+              }
+            },
+            "selection": {
+              "predicate": "repeat",
+              "agent": "addressee",
+              "argument": "this",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": true
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "repair",
+      "title": "When you do not understand",
+      "goal": "Keep a conversation going",
+      "introduction": "Say what you cannot understand and ask for clarification instead of trying to guess.",
+      "notes": {
+        "recipe": "No + verb + rest. / Hable más despacio, por favor.",
+        "explanation": "Negation is direct: put no before the verb. Memorize the slower-speech request as a polite fixed expression.",
+        "detail": "No entiendo esto and no hablo español apply the same negative rule to different predicates.",
+        "caution": "No usually stays immediately before the verb (or an attached pronoun group)."
+      },
+      "examples": [
+        {
+          "id": "repair-1",
+          "english": "I do not understand this.",
+          "target": "No entiendo esto.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "understand",
+                "agent": "speaker",
+                "theme": "this"
+              }
+            },
+            "selection": {
+              "predicate": "understand",
+              "agent": "speaker",
+              "argument": "this",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "repair-2",
+          "english": "I do not speak German.",
+          "target": "No hablo alemán.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "speaker",
+                "theme": "german"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "speaker",
+              "argument": "german",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "repair-3",
+          "english": "I do not speak French.",
+          "target": "No hablo francés.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "speaker",
+                "theme": "french"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "speaker",
+              "argument": "french",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "repair-4",
+          "english": "I do not speak Spanish.",
+          "target": "No hablo español.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "speaker",
+                "theme": "spanish"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "speaker",
+              "argument": "spanish",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "repair-5",
+          "english": "Do you speak English?",
+          "target": "¿Habla inglés?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "addressee",
+                "theme": "english"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "addressee",
+              "argument": "english",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "repair-6",
+          "english": "Please speak slowly.",
+          "target": "Hable más despacio, por favor.",
+          "source": {
+            "kind": "convention",
+            "routine": "slowly"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "repair-7",
+          "english": "I am learning this language.",
+          "target": "Estoy aprendiendo español.",
+          "source": {
+            "kind": "convention",
+            "routine": "learning"
+          },
+          "provenance": "conventional"
+        }
+      ]
+    },
+    {
+      "id": "places",
+      "title": "Places and directions",
+      "goal": "Find a place and say where you are going",
+      "introduction": "The place is a slot. Its preposition and article are handled by the language, not by you inventing a new sentence.",
+      "notes": {
+        "recipe": "¿Dónde está + place? / Voy a + destination.",
+        "explanation": "¿Dónde está …? asks for a location. Voy a … says where you are going.",
+        "detail": "Learn la estación, el hotel, el baño and a casa as complete chunks. Al combines a + el.",
+        "caution": "The article changes by noun: la estación, but el hotel and el baño."
+      },
+      "examples": [
+        {
+          "id": "places-1",
+          "english": "Where is the station?",
+          "target": "¿Dónde está la estación?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "where",
+              "place": "station"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-2",
+          "english": "Where is the bathroom?",
+          "target": "¿Dónde está el baño?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "where",
+              "place": "bathroom"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-3",
+          "english": "Where is the hotel?",
+          "target": "¿Dónde está el hotel?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "where",
+              "place": "hotel"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-4",
+          "english": "I go to the station.",
+          "target": "Voy a la estación.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "go",
+              "agent": "speaker",
+              "destination": "station"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "station",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-5",
+          "english": "I go to the hotel.",
+          "target": "Voy al hotel.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "go",
+              "agent": "speaker",
+              "destination": "hotel"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "hotel",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-6",
+          "english": "I go to the bathroom.",
+          "target": "Voy al baño.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "go",
+              "agent": "speaker",
+              "destination": "bathroom"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "bathroom",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "places-7",
+          "english": "I want to go home.",
+          "target": "Quiero ir a casa.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "modal",
+              "modality": "want",
+              "value": {
+                "kind": "event",
+                "predicate": "go",
+                "agent": "speaker",
+                "destination": "home"
+              }
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "home",
+              "modal": "want",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "shopping",
+      "title": "Buying and paying",
+      "goal": "Ask a price and pay for something",
+      "introduction": "Combine price questions, purchasing and payment methods. Only the useful noun or payment method changes.",
+      "notes": {
+        "recipe": "¿Cuánto cuesta + noun? / ¿Puedo pagar con tarjeta?",
+        "explanation": "¿Cuánto cuesta …? asks for a price. Puedo pagar asks whether you can pay in a particular way.",
+        "detail": "Con tarjeta is by card; en efectivo is in cash. After puedo, use the infinitive pagar.",
+        "caution": "Use cuesta for a single item. Plural prices would require cuestan and are outside this starter pattern."
+      },
+      "examples": [
+        {
+          "id": "shopping-1",
+          "english": "How much does a ticket cost?",
+          "target": "¿Cuánto cuesta un billete?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "price",
+              "thing": "ticket"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-2",
+          "english": "How much does a coffee cost?",
+          "target": "¿Cuánto cuesta un café?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "price",
+              "thing": "coffee"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-3",
+          "english": "I want to buy a ticket.",
+          "target": "Quiero comprar un billete.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "modal",
+              "modality": "want",
+              "value": {
+                "kind": "event",
+                "predicate": "buy",
+                "agent": "speaker",
+                "theme": "ticket"
+              }
+            },
+            "selection": {
+              "predicate": "buy",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "want",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-4",
+          "english": "I want to buy a coffee.",
+          "target": "Quiero comprar un café.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "modal",
+              "modality": "want",
+              "value": {
+                "kind": "event",
+                "predicate": "buy",
+                "agent": "speaker",
+                "theme": "coffee"
+              }
+            },
+            "selection": {
+              "predicate": "buy",
+              "agent": "speaker",
+              "argument": "coffee",
+              "modal": "want",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-5",
+          "english": "I want to buy water.",
+          "target": "Quiero comprar agua.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "modal",
+              "modality": "want",
+              "value": {
+                "kind": "event",
+                "predicate": "buy",
+                "agent": "speaker",
+                "theme": "water"
+              }
+            },
+            "selection": {
+              "predicate": "buy",
+              "agent": "speaker",
+              "argument": "water",
+              "modal": "want",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-6",
+          "english": "Can I pay by card?",
+          "target": "¿Puedo pagar con tarjeta?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "modal",
+                "modality": "can",
+                "value": {
+                  "kind": "event",
+                  "predicate": "pay",
+                  "agent": "speaker",
+                  "theme": "card"
+                }
+              }
+            },
+            "selection": {
+              "predicate": "pay",
+              "agent": "speaker",
+              "argument": "card",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "shopping-7",
+          "english": "Can I pay in cash?",
+          "target": "¿Puedo pagar en efectivo?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "modal",
+                "modality": "can",
+                "value": {
+                  "kind": "event",
+                  "predicate": "pay",
+                  "agent": "speaker",
+                  "theme": "cash"
+                }
+              }
+            },
+            "selection": {
+              "predicate": "pay",
+              "agent": "speaker",
+              "argument": "cash",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "time",
+      "title": "Today and tomorrow",
+      "goal": "Situate a simple statement in time",
+      "introduction": "Adding a time expression makes ordinary statements useful for near-future plans, without learning new tenses first.",
+      "notes": {
+        "recipe": "Verb + rest + hoy/mañana.",
+        "explanation": "Hoy means today and mañana means tomorrow. You can place these at the end of a short present-tense clause.",
+        "detail": "Present tense plus mañana is frequently enough for a clear near-future plan in the restricted contexts taught here.",
+        "caution": "Mañana can also refer to morning; the surrounding words determine the meaning."
+      },
+      "examples": [
+        {
+          "id": "time-1",
+          "english": "I have time today.",
+          "target": "Tengo tiempo hoy.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "when",
+              "value": {
+                "kind": "event",
+                "predicate": "have",
+                "agent": "speaker",
+                "theme": "time"
+              },
+              "time": "today"
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "speaker",
+              "argument": "time",
+              "modal": "",
+              "negative": false,
+              "time": "today",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "time-2",
+          "english": "I go to the hotel tomorrow.",
+          "target": "Voy al hotel mañana.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "when",
+              "value": {
+                "kind": "event",
+                "predicate": "go",
+                "agent": "speaker",
+                "destination": "hotel"
+              },
+              "time": "tomorrow"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "hotel",
+              "modal": "",
+              "negative": false,
+              "time": "tomorrow",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "time-3",
+          "english": "I go to the station tomorrow.",
+          "target": "Voy a la estación mañana.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "when",
+              "value": {
+                "kind": "event",
+                "predicate": "go",
+                "agent": "speaker",
+                "destination": "station"
+              },
+              "time": "tomorrow"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "station",
+              "modal": "",
+              "negative": false,
+              "time": "tomorrow",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "time-4",
+          "english": "Can you help me tomorrow?",
+          "target": "¿Puede ayudarme mañana?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "when",
+                "value": {
+                  "kind": "modal",
+                  "modality": "can",
+                  "value": {
+                    "kind": "event",
+                    "predicate": "help",
+                    "agent": "addressee",
+                    "recipient": "speaker"
+                  }
+                },
+                "time": "tomorrow"
+              }
+            },
+            "selection": {
+              "predicate": "help",
+              "agent": "addressee",
+              "argument": "speaker",
+              "modal": "can",
+              "negative": false,
+              "time": "tomorrow",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "time-5",
+          "english": "I want to buy a ticket today.",
+          "target": "Quiero comprar un billete hoy.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "when",
+              "value": {
+                "kind": "modal",
+                "modality": "want",
+                "value": {
+                  "kind": "event",
+                  "predicate": "buy",
+                  "agent": "speaker",
+                  "theme": "ticket"
+                }
+              },
+              "time": "today"
+            },
+            "selection": {
+              "predicate": "buy",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "want",
+              "negative": false,
+              "time": "today",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "negation",
+      "title": "Say no and set limits",
+      "goal": "Turn a positive sentence into a negative one",
+      "introduction": "Negation is an operator: it changes the meaning of a clause, while each language decides where its negative words go.",
+      "notes": {
+        "recipe": "No + conjugated verb + rest.",
+        "explanation": "No goes immediately before the conjugated verb. The rest of the sentence can usually stay as it was.",
+        "detail": "Compare tengo un billete with no tengo un billete, and puedo ir with no puedo ir.",
+        "caution": "Do not put no after the finite verb as in English “do not.”"
+      },
+      "examples": [
+        {
+          "id": "negation-1",
+          "english": "I do not have a ticket.",
+          "target": "No tengo un billete.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "have",
+                "agent": "speaker",
+                "theme": "ticket"
+              }
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "negation-2",
+          "english": "I do not have time.",
+          "target": "No tengo tiempo.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "have",
+                "agent": "speaker",
+                "theme": "time"
+              }
+            },
+            "selection": {
+              "predicate": "have",
+              "agent": "speaker",
+              "argument": "time",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "negation-3",
+          "english": "I do not understand this.",
+          "target": "No entiendo esto.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "understand",
+                "agent": "speaker",
+                "theme": "this"
+              }
+            },
+            "selection": {
+              "predicate": "understand",
+              "agent": "speaker",
+              "argument": "this",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "negation-4",
+          "english": "I cannot go to the station today.",
+          "target": "No puedo ir a la estación hoy.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "when",
+              "value": {
+                "kind": "not",
+                "value": {
+                  "kind": "modal",
+                  "modality": "can",
+                  "value": {
+                    "kind": "event",
+                    "predicate": "go",
+                    "agent": "speaker",
+                    "destination": "station"
+                  }
+                }
+              },
+              "time": "today"
+            },
+            "selection": {
+              "predicate": "go",
+              "agent": "speaker",
+              "argument": "station",
+              "modal": "can",
+              "negative": true,
+              "time": "today",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "negation-5",
+          "english": "I do not speak Spanish.",
+          "target": "No hablo español.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "not",
+              "value": {
+                "kind": "event",
+                "predicate": "speak",
+                "agent": "speaker",
+                "theme": "spanish"
+              }
+            },
+            "selection": {
+              "predicate": "speak",
+              "agent": "speaker",
+              "argument": "spanish",
+              "modal": "",
+              "negative": true,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        }
+      ]
+    },
+    {
+      "id": "combine",
+      "title": "Put the blocks together",
+      "goal": "Handle a short everyday interaction",
+      "introduction": "Put a greeting, a question, a need and a request into separate short sentences. Complexity is optional.",
+      "notes": {
+        "recipe": "Disculpe. → ¿Dónde está …? → Necesito … → Gracias.",
+        "explanation": "Build a practical interaction from small complete sentences: greet, ask, clarify, and thank the other person.",
+        "detail": "Spanish lets you omit many subject pronouns, so even longer exchanges can remain quite compact.",
+        "caution": "There are major regional varieties of Spanish; this guide chooses one consistent European reference variety."
+      },
+      "examples": [
+        {
+          "id": "combine-1",
+          "english": "Excuse me.",
+          "target": "Disculpe.",
+          "source": {
+            "kind": "convention",
+            "routine": "excuse_me"
+          },
+          "provenance": "conventional"
+        },
+        {
+          "id": "combine-2",
+          "english": "Where is the station?",
+          "target": "¿Dónde está la estación?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "where",
+              "place": "station"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "combine-3",
+          "english": "I need a ticket.",
+          "target": "Necesito un billete.",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "event",
+              "predicate": "need",
+              "agent": "speaker",
+              "theme": "ticket"
+            },
+            "selection": {
+              "predicate": "need",
+              "agent": "speaker",
+              "argument": "ticket",
+              "modal": "",
+              "negative": false,
+              "time": "",
+              "question": false,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "combine-4",
+          "english": "How much does a ticket cost?",
+          "target": "¿Cuánto cuesta un billete?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "price",
+              "thing": "ticket"
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "combine-5",
+          "english": "Can I pay by card?",
+          "target": "¿Puedo pagar con tarjeta?",
+          "source": {
+            "kind": "expression",
+            "expression": {
+              "kind": "ask",
+              "value": {
+                "kind": "modal",
+                "modality": "can",
+                "value": {
+                  "kind": "event",
+                  "predicate": "pay",
+                  "agent": "speaker",
+                  "theme": "card"
+                }
+              }
+            },
+            "selection": {
+              "predicate": "pay",
+              "agent": "speaker",
+              "argument": "card",
+              "modal": "can",
+              "negative": false,
+              "time": "",
+              "question": true,
+              "polite": false
+            }
+          },
+          "provenance": "composed"
+        },
+        {
+          "id": "combine-6",
+          "english": "Thank you.",
+          "target": "Gracias.",
+          "source": {
+            "kind": "convention",
+            "routine": "thank_you"
+          },
+          "provenance": "conventional"
+        }
+      ]
+    }
+  ]
+}

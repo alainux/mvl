@@ -16,6 +16,8 @@ const DEPENDENCIES = {
     WHEN: ['EVENT'],
     ASK: ['EVENT'],
     PLEASE: ['ASK'],
+    WHERE: [],
+    PRICE: [],
 };
 /**
  * Calculate a dependency closure, not a claim about optimal learning effort.

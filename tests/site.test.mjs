@@ -20,7 +20,9 @@ test('all generated guide artifacts exist as committed static outputs', () => {
   }
   assert.ok(existsSync('docs/.nojekyll'));
   assert.ok(existsSync('docs/assets/ui/app.js'));
-  assert.ok(existsSync('docs/assets/ui/builder.js'));
+  assert.ok(existsSync('docs/assets/ui/studio.js'));
+  assert.ok(existsSync('docs/assets/ui/studio-model.js'));
+  assert.ok(existsSync('docs/assets/ui/studio-view.js'));
   assert.ok(existsSync('docs/assets/learning/practice.js'));
 });
 
@@ -39,9 +41,11 @@ test('plain-language UI supports mobile reading and accessibility hooks', () => 
   assert.match(css, /:focus-visible/);
   assert.match(css, /@media print/);
   const ui = read('docs/assets/ui/views.js');
-  for (const label of ['Sentence builder', 'Practice lab', 'Quick reference', 'Worked examples']) {
+  for (const label of ['Block studio', 'Practice lab', 'Quick reference', 'Worked examples']) {
     assert.ok(ui.includes(label), label);
   }
+  assert.ok(read('docs/assets/ui/studio-view.js').includes('building blocks'));
+  assert.ok(read('docs/assets/ui/studio.js').includes('operatorApplied'));
 });
 
 test('no custom GitHub Actions workflow is required to publish checked-in /docs', () => {

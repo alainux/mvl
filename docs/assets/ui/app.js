@@ -2,7 +2,8 @@ import { makeTree } from '../core/algebra.js';
 import { realizeEnglish } from '../languages/en.js';
 import { linearize } from '../languages/index.js';
 import { generatePractice, matchesModel } from '../learning/practice.js';
-import { initializeBuilder } from './builder.js';
+import { initializeStudio, REMIX_STORAGE_KEY } from './studio.js';
+import { fromExpression } from './studio-model.js';
 import { escapeHtml, required } from './dom.js';
 import { currentRoute, href } from './router.js';
 import { completedLessons, getTheme, readNote, rememberLanguage, saveNote, setLessonCompleted, setTheme, } from './state.js';
@@ -36,7 +37,7 @@ function initializeHeader(runtime, route) {
     language.addEventListener('change', () => {
         const target = language.value;
         rememberLanguage(target);
-        location.hash = href(target, 'start');
+        location.hash = href(target, route.page === 'builder' ? 'builder' : 'start');
     });
     required('#theme-toggle').addEventListener('click', () => {
         const next = getTheme() === 'light' ? 'dark' : 'light';
@@ -106,6 +107,22 @@ function initializeLesson(runtime, route) {
         const expression = makeTree(selection);
         required('#substitution-output').textContent = linearize(expression, code);
         required('#substitution-english').textContent = realizeEnglish(expression);
+    });
+    // All productive examples can be opened as editable semantic programs.
+    document.querySelectorAll('[data-remix-example]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const example = lesson.examples.find((entry) => entry.id === button.dataset['remixExample']);
+            if (!example || example.source.kind !== 'expression')
+                return;
+            const studioState = fromExpression(example.source.expression);
+            if (!studioState)
+                return;
+            try {
+                sessionStorage.setItem(REMIX_STORAGE_KEY, JSON.stringify(studioState));
+            }
+            catch { /* Storage restrictions should not prevent opening the studio. */ }
+            location.hash = href(code, 'builder');
+        });
     });
     document.querySelectorAll('[data-copy-example]').forEach((button) => {
         button.addEventListener('click', async () => {
@@ -194,7 +211,7 @@ function render(runtime) {
     if (route.page === 'lesson')
         initializeLesson(runtime, route);
     if (route.page === 'builder')
-        initializeBuilder(code);
+        initializeStudio(code);
     if (route.page === 'practice')
         initializePractice(runtime, code);
     if (route.page === 'reference') {

@@ -9,6 +9,8 @@ import type {
 import { escapeHtml as escape } from './dom.js';
 import { href, type Code, type Route } from './router.js';
 import { completedLessons, getLanguage } from './state.js';
+import { renderStudio } from './studio-view.js';
+import { fromExpression } from './studio-model.js';
 
 const LANGUAGE_NAMES: Readonly<Record<Code, string>> = {
   de: 'German',
@@ -60,8 +62,8 @@ function renderSidebar(route: Route, model: GeneratedGuide): string {
 
     <div class="sidebar-label has-top">STUDY</div>
     <nav class="sidebar-group" aria-label="Study tools">
-      <a class="sidebar-link ${active(route, 'start')}" href="${href(code, 'start')}"><span class="nav-icon">⌂</span> Guide overview</a>
-      <a class="sidebar-link ${active(route, 'builder')}" href="${href(code, 'builder')}"><span class="nav-icon">⌘</span> Sentence builder</a>
+      <a class="sidebar-link ${active(route, 'builder')}" href="${href(code, 'builder')}"><span class="nav-icon">▦</span> Block studio</a>
+      <a class="sidebar-link ${active(route, 'start')}" href="${href(code, 'start')}"><span class="nav-icon">⌂</span> Learning path</a>
       <a class="sidebar-link ${active(route, 'practice')}" href="${href(code, 'practice')}"><span class="nav-icon">✎</span> Practice lab</a>
       <a class="sidebar-link ${active(route, 'reference')}" href="${href(code, 'reference')}"><span class="nav-icon">≡</span> Quick reference</a>
     </nav>
@@ -80,7 +82,7 @@ function titleFor(route: Route, guide: GeneratedGuide): string {
     case 'home': return 'Choose a language';
     case 'framework': return 'About the project';
     case 'start': return 'Overview';
-    case 'builder': return 'Sentence builder';
+    case 'builder': return 'Block studio';
     case 'practice': return 'Practice lab';
     case 'reference': return 'Quick reference';
     case 'lesson': return guide.lessons.find((lesson) => lesson.id === route.lesson)?.title ?? 'Lesson';
@@ -121,7 +123,7 @@ function renderLanguageCard(guide: GeneratedGuide): string {
   const completed = completedLessons(code).size;
   const width = Math.round((completed / total) * 100);
 
-  return `<a class="language-card" href="${href(code, 'start')}">
+  return `<a class="language-card" href="${href(code, 'builder')}">
     <span class="language-letters">${code.toUpperCase()}</span>
     <span class="language-card-arrow">↗</span>
     <h3>${escape(guide.language.name)}</h3>
@@ -135,13 +137,13 @@ function renderHome(guides: Readonly<Record<Code, GeneratedGuide>>): string {
   return `<section class="page home-page">
     <div class="eyebrow"><span class="eyebrow-line"></span>INDEPENDENT LANGUAGE STUDY</div>
     <h1>Learn the useful parts.<br /><em>Start communicating.</em></h1>
-    <p class="lead">A compact system for communicating about today, yesterday, and tomorrow. Clear explanations, examples, and hands-on practice. No illustrated worksheets or audio course.</p>
-    <div class="section-heading"><h2>Choose your manual</h2><p>One practical learning path, with the grammar that each language actually needs.</p></div>
+    <p class="lead">See the meaning blocks, snap them together, and watch real sentences emerge. Practice the smallest useful grammar for today, yesterday, tomorrow—and everyday life.</p>
+    <div class="section-heading"><h2>Choose your manual</h2><p>Choose a language to start building your own sentences.</p></div>
     <div class="language-grid">${(['de', 'fr', 'es'] as const).map((code) => renderLanguageCard(guides[code])).join('')}</div>
     <div class="principles">
-      <div><b>01 <span>Understand</span></b><p>Read a short explanation and the rule behind it.</p></div>
-      <div><b>02 <span>Substitute</span></b><p>Change a slot in a sentence and see the grammar adapt.</p></div>
-      <div><b>03 <span>Produce</span></b><p>Recall a sentence yourself, then compare it with the model.</p></div>
+      <div><b>01 <span>Understand</span></b><p>Explore the meaning blocks and the possibilities each one unlocks.</p></div>
+      <div><b>02 <span>Substitute</span></b><p>Connect who, action and object; add operators like past or not.</p></div>
+      <div><b>03 <span>Produce</span></b><p>Build a target expression, then use it in new situations.</p></div>
     </div>
   </section>`;
 }
@@ -164,10 +166,10 @@ function renderGuideOverview(model: GeneratedGuide): string {
   return `<section class="page overview-page">
     <div class="eyebrow">THE PRACTICAL MANUAL · ${escape(model.language.variety.toUpperCase())}</div>
     <h1>Minimum Viable<br /><em>${escape(model.language.name)}.</em></h1>
-    <p class="lead">${escape(TAGLINES[code])} Study a limited set of patterns you can actually use, with deliberate practice and plain explanations.</p>
+    <p class="lead">${escape(TAGLINES[code])} Start by assembling sentences as visual blocks. The lessons explain the grammar when you want to understand a transformation in more depth.</p>
     <div class="hero-buttons">
-      <a class="button primary" href="${href(code, `lesson/${firstUnfinished.id}`)}">${completed.size ? 'Continue studying' : 'Start lesson 01'} <span>↗</span></a>
-      <a class="button secondary" href="${href(code, 'builder')}">Open sentence builder</a>
+      <a class="button primary" href="${href(code, 'builder')}">Open block studio <span>↗</span></a>
+      <a class="button secondary" href="${href(code, `lesson/${firstUnfinished.id}`)}">${completed.size ? 'Continue lessons' : 'Follow the learning path'}</a>
     </div>
     <div class="guide-metrics"><span><strong>${model.lessons.length}</strong> lessons</span><span><strong>${examples}</strong> worked examples</span><span><strong>${completed.size}</strong> studied</span></div>
     ${featured ? `<div class="sample-card"><span class="micro-label">A USEFUL PATTERN</span><strong lang="${code}">${escape(featured.target)}</strong><p>${escape(featured.english)}</p></div>` : ''}
@@ -178,9 +180,11 @@ function renderGuideOverview(model: GeneratedGuide): string {
 }
 
 function renderExample(example: GeneratedExample, code: Code): string {
+  const canRemix = example.source.kind === 'expression'
+    && fromExpression(example.source.expression) !== null;
   return `<div class="example-row">
     <div class="example-copy"><strong lang="${code}">${escape(example.target)}</strong><small>${escape(example.english)}</small></div>
-    <button class="copy-button" data-copy-example="${escape(example.id)}" aria-label="Copy example" title="Copy sentence">Copy</button>
+    <div class="example-actions">${canRemix ? `<button class="copy-button" data-remix-example="${escape(example.id)}" title="Open this meaning in the block studio">Remix ↗</button>` : ''}<button class="copy-button" data-copy-example="${escape(example.id)}" aria-label="Copy example" title="Copy sentence">Copy</button></div>
   </div>`;
 }
 
@@ -219,6 +223,8 @@ function renderLesson(model: GeneratedGuide, lesson: GeneratedLesson): string {
     <h1>${escape(lesson.title)}</h1>
     <p class="lead">${escape(lesson.goal)}.</p>
     <p class="lesson-intro">${escape(lesson.introduction)}</p>
+    <div class="lesson-studio-jump"><span><strong>Make it yours.</strong> Open any worked example as editable blocks, or start from a blank canvas.</span>
+      <a class="button primary" href="${href(code, 'builder')}">Open block studio ↗</a></div>
 
     <section class="lesson-section">
       <div class="section-heading"><h2>The recipe</h2><span class="section-caption">01 / UNDERSTAND</span></div>
@@ -279,62 +285,6 @@ function renderReference(model: GeneratedGuide): string {
   </section>`;
 }
 
-function renderBuilder(): string {
-  const selectControl = (id: string, label: string) => `
-    <div class="form-field"><label for="${id}">${label}</label><select id="${id}"></select></div>`;
-  return `<section class="page builder-page">
-    <div class="eyebrow">INTERACTIVE PRACTICE · CHANGE ONE RULE AT A TIME</div>
-    <h1>Sentence<br /><em>builder.</em></h1>
-    <p class="lead">Build an action, describe an object, ask what is available, or request information. Change a single meaning block and watch the grammar adapt.</p>
-    <div class="builder-layout">
-      <section class="builder-controls">
-        <div class="panel-title"><span>01</span><h2>Compose the meaning</h2></div>
-        <div class="builder-form">
-          ${selectControl('builder-mode', 'What do you want to communicate?')}
-          <div id="builder-action-fields" class="builder-mode-fields">
-            ${selectControl('builder-predicate', 'Action')}
-            ${selectControl('builder-agent', 'Who is doing it?')}
-            ${selectControl('builder-argument', 'Object or destination')}
-            ${selectControl('builder-modal', 'Ability, intention or obligation')}
-            ${selectControl('builder-tense', 'When does it happen?')}
-            ${selectControl('builder-quantity', 'How many?')}
-            ${selectControl('builder-time', 'Time marker')}
-            ${selectControl('builder-frequency', 'How often?')}
-            ${selectControl('builder-reason', 'Explain why (optional)')}
-          </div>
-          <div id="builder-description-fields" class="builder-mode-fields" hidden>
-            ${selectControl('builder-description-thing', 'Thing to describe')}
-            ${selectControl('builder-description-quality', 'Quality')}
-            ${selectControl('builder-description-tense', 'Present or past state')}
-          </div>
-          <div id="builder-presence-fields" class="builder-mode-fields" hidden>
-            ${selectControl('builder-presence-thing', 'What may be available?')}
-            ${selectControl('builder-presence-place', 'Where?')}
-          </div>
-          <div id="builder-object-fields" class="builder-mode-fields" hidden>
-            ${selectControl('builder-object-predicate', 'Which action?')}
-            ${selectControl('builder-object-agent', 'Who do you ask about?')}
-          </div>
-          <div id="builder-route-fields" class="builder-mode-fields" hidden>
-            ${selectControl('builder-route-place', 'Destination')}
-          </div>
-          <div class="check-row" id="builder-negative-field"><label><input type="checkbox" id="builder-negative" /> Say it negatively</label></div>
-          <div class="check-row" id="builder-question-field"><label><input type="checkbox" id="builder-question" /> Ask as a yes/no question</label></div>
-          <div class="check-row" id="builder-polite-field"><label><input type="checkbox" id="builder-polite" /> Add a polite request</label></div>
-        </div>
-        <div class="builder-hint">Only combinations supported by this compact grammar are offered. The language determines the word order and endings.</div>
-      </section>
-      <section class="builder-result" aria-live="polite">
-        <div class="panel-title"><span>02</span><h2>Your sentence</h2></div>
-        <div class="builder-output" id="builder-output"></div>
-        <div class="builder-translation"><span>IN ENGLISH</span><p id="builder-english"></p></div>
-        <div id="builder-validation" class="builder-validation"></div>
-        <button class="button secondary" id="builder-copy">Copy sentence</button>
-        <details class="builder-details"><summary>Show construction</summary><pre id="builder-tree"></pre></details>
-      </section>
-    </div>
-  </section>`;
-}
 
 export interface PracticeViewState {
   readonly lessonId: LessonId;
@@ -412,7 +362,7 @@ export function renderContent(
   const model = guides[route.code];
   switch (route.page) {
     case 'start': return renderGuideOverview(model);
-    case 'builder': return renderBuilder();
+    case 'builder': return renderStudio();
     case 'practice': return renderPractice(model, practiceState);
     case 'reference': return renderReference(model);
     case 'lesson': {

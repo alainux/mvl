@@ -2,7 +2,7 @@
 
 The public app is a set of **minimal expressive language manuals**. Its core
 is a reusable, typed semantic system; it is not a phrasebook or a user-facing
-framework playground.
+framework playground. The primary UI teaches through visible editable meaning blocks.
 
 ## Development
 
@@ -15,6 +15,22 @@ npm run dev     # serve the generated site
 Use human-readable TypeScript, named functions and comments explaining the
 *linguistic decision* rather than narrating the obvious. Generated JavaScript
 is also unminified. No custom CI workflows are required.
+
+## Maintain the block studio
+
+`src/ui/studio-model.ts` defines language-neutral presets, valid operators,
+semantic state and guided build missions. `studio.ts` turns this model into an
+accessible visual editor, while `studio-rules.ts` explains how a selected
+operator changes grammar in a particular language.
+
+- Never put inflected target-language sentences inside a recipe or mission.
+- Keep editing, challenge validation and output generation bound to the same
+  AST accepted by the language adapter.
+- Preserve the keyboard/touch interaction model, live output and before/after
+  view. Avoid adding drag-and-drop as the only way to operate a block.
+- Add regression tests for new operators and for all installed languages.
+- When adding an expression kind, support remixing it only if the entire
+  meaning can round-trip into the editable state; never silently drop meaning.
 
 ## Add communicative coverage
 

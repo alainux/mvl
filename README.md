@@ -4,7 +4,7 @@ A **small, expressive subset of a real language**, taught through reusable rules
 instead of memorized conversations. The same semantic curriculum builds a German,
 French, and Spanish manual.
 
-**Live learner guides:** https://alainux.github.io/mvl/
+**Live interactive language studio:** https://alainux.github.io/mvl/
 
 ## What can you communicate?
 
@@ -15,6 +15,8 @@ measure, or guarantee CEFR A2. Reading and listening competence require further
 real-world practice.
 
 The current guides have **40 progressive lessons and over 420 generated examples each**.
+The primary learning surface is an interactive **block studio**, not a page of
+prewritten phrases.
 The working subset includes:
 
 - Present actions and states, negatives, yes/no and where/when/price questions.
@@ -40,6 +42,35 @@ These are *representative grammar constructions*, not translated sentence entrie
 used by the compiler. Where unavoidable, each language retains a few irregular
 forms and its own inflection rules. We do not pretend that one grammar applies to
 all languages.
+
+## Learn through visual composition
+
+The learner chooses German, French or Spanish and opens the **Block studio**.
+It is a small semantic editor with directly manipulable, keyboard-accessible
+building blocks:
+
+1. **Inspect:** each block has a role (WHO, ACTION, OBJECT, TIME, MODAL, WHY),
+   valid alternatives and one brief explanation of how it works.
+2. **Assemble:** start from a semantic recipe or three basic blocks; edit the
+   agent, action and compatible argument; add or remove operators such as PAST,
+   FUTURE, CAN, MUST, NOT, QUESTION, PLEASE, HABIT and BECAUSE.
+3. **Observe:** the language adapter regenerates the sentence and shows the
+   *before → after* transformation. The same expression can be inspected in the
+   other installed languages.
+4. **Practice:** four build missions start from incomplete meaning configurations
+   and check the **whole semantic state**, not a memorized translation string.
+5. **Remix:** compatible worked examples in the 40-lesson guide open directly in
+   the block studio with their meaning tree restored for editing.
+
+The studio also models descriptions, existence, open-object questions, prices,
+locations and routes. Operators which do not type-check for a chosen action are
+unavailable rather than producing ungrammatical combinations. Drag-and-drop is
+not required: every block is a button, including on touch devices.
+
+**Architecture invariant:** recipes, missions and UI state contain semantic
+identifiers and typed operators; they never contain German, French or Spanish
+sentence translations. Conjugations, articles and word order come from the
+existing independent language realizers.
 
 ## How the guides are generated
 
@@ -76,7 +107,9 @@ The site is a **learning manual**. Implementation details belong in
 | `src/learning/notes.ts` and `notes-everyday.ts` | Human-authored, language-specific teaching explanations |
 | `src/learning/compile.ts` | Deterministic guide compiler |
 | `src/learning/practice.ts` | AST transformations to generate further exercises |
-| `src/ui/` | Learner UI, progress, search, practice and builder |
+| `src/ui/studio-model.ts` | Meaning-only recipe, mission and block editor model
+| `src/ui/studio.ts` and `studio-view.ts` | Accessible visual composition studio and interactions
+| `src/ui/` | Learner UI, progress, search, lessons and practice |
 | `docs/` | Built, checked-in GitHub Pages artifacts; never edit directly |
 
 ## Develop, verify, publish

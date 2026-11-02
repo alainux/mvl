@@ -128,8 +128,14 @@ semantically typed `LessonBlock`s, including:
 prompt and a target-language output. The human-authored notes in
 `src/learning/notes.ts` and `notes-everyday.ts` explain language-specific grammar.
 
-The learning application provides a manual, quick reference, sentence builder,
-practice generated from new AST transformations, progress tracking and notes.
+The learning application prioritizes a **visual block studio**. A typed
+`StudioState` is edited using WHO/ACTION/OBJECT slots and optional operator
+blocks. All output passes through the same realizer used by the compiler;
+recipes and semantic build challenges carry **no translated sentences**.
+See `src/ui/studio-model.ts` for semantic presets and validation,
+`studio.ts` for the UI controller, and `studio-rules.ts` for pedagogical grammar
+explanations. The same source expressions power the lessons, quick reference,
+remix buttons and practice. Progress tracking and notes remain local.
 
 ## 5. What does minimal mean?
 

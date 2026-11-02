@@ -4,7 +4,8 @@ import { realizeEnglish } from '../languages/en.js';
 import { linearize } from '../languages/index.js';
 import { generatePractice, matchesModel } from '../learning/practice.js';
 import type { GeneratedGuide, GeneratedLesson, LessonId } from '../learning/types.js';
-import { initializeBuilder } from './builder.js';
+import { initializeStudio, REMIX_STORAGE_KEY } from './studio.js';
+import { fromExpression } from './studio-model.js';
 import { escapeHtml, required } from './dom.js';
 import { currentRoute, href, type Code, type Route } from './router.js';
 import {
@@ -62,7 +63,7 @@ function initializeHeader(runtime: Runtime, route: Route): void {
   language.addEventListener('change', () => {
     const target = language.value as Code;
     rememberLanguage(target);
-    location.hash = href(target, 'start');
+    location.hash = href(target, route.page === 'builder' ? 'builder' : 'start');
   });
 
   required<HTMLButtonElement>('#theme-toggle').addEventListener('click', () => {
@@ -141,6 +142,19 @@ function initializeLesson(runtime: Runtime, route: Extract<Route, { page: 'lesso
     const expression = makeTree(selection);
     required('#substitution-output').textContent = linearize(expression, code);
     required('#substitution-english').textContent = realizeEnglish(expression);
+  });
+
+  // All productive examples can be opened as editable semantic programs.
+  document.querySelectorAll<HTMLButtonElement>('[data-remix-example]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const example = lesson.examples.find((entry) => entry.id === button.dataset['remixExample']);
+      if (!example || example.source.kind !== 'expression') return;
+      const studioState = fromExpression(example.source.expression);
+      if (!studioState) return;
+      try { sessionStorage.setItem(REMIX_STORAGE_KEY, JSON.stringify(studioState)); }
+      catch { /* Storage restrictions should not prevent opening the studio. */ }
+      location.hash = href(code, 'builder');
+    });
   });
 
   document.querySelectorAll<HTMLButtonElement>('[data-copy-example]').forEach((button) => {
@@ -231,7 +245,7 @@ function render(runtime: Runtime): void {
   initializeHeader(runtime, route);
 
   if (route.page === 'lesson') initializeLesson(runtime, route);
-  if (route.page === 'builder') initializeBuilder(code);
+  if (route.page === 'builder') initializeStudio(code);
   if (route.page === 'practice') initializePractice(runtime, code);
   if (route.page === 'reference') {
     required<HTMLButtonElement>('#print-reference').addEventListener('click', () => window.print());

@@ -1,159 +1,115 @@
-/**
- * Abstract syntax for a compact, compositional set of communicative meanings.
- * None of these types encodes German, French, or Spanish surface word order.
- */
-export type Participant = 'speaker' | 'addressee';
+import type { DESCRIPTION_QUALITIES, PREDICATES, PredicateId, SemanticArgument, OBJECT_QUESTION_PREDICATES, PRESENCE_THINGS } from './vocabulary.js';
 
-export type Place = 'home' | 'station' | 'bathroom' | 'hotel';
+/** Shared meanings: never encode French, German or Spanish word order here. */
+export type Participant = 'speaker' | 'addressee' | 'we' | 'other';
+export type Tense = 'present' | 'past' | 'future';
+export type Modality = 'can' | 'want' | 'must';
+export type Time =
+  | 'today' | 'now' | 'this_week'
+  | 'yesterday' | 'last_week' | 'last_month'
+  | 'tomorrow' | 'next_week' | 'next_month' | 'soon' | 'tonight';
+export type Frequency = 'every_day' | 'every_week' | 'often' | 'sometimes';
+export type Connection = 'and' | 'but' | 'because';
+export type Quantity = 1 | 2;
+export type Place =
+  | 'home' | 'station' | 'hotel' | 'office' | 'hospital'
+  | 'restaurant' | 'supermarket' | 'pharmacy' | 'airport'
+  | 'bank' | 'school' | 'park' | 'library' | 'post_office'
+  | 'city_center' | 'cafe' | 'bus_stop';
 export type LocatablePlace = Exclude<Place, 'home'>;
+export type PricedThing = 'ticket' | 'coffee' | 'book' | 'room' | 'computer' | 'bag' | 'apartment';
 
-export type Thing =
-  | 'help'
-  | 'ticket'
-  | 'time'
-  | 'this'
-  | 'coffee'
-  | 'water'
-  | 'german'
-  | 'french'
-  | 'spanish'
-  | 'english'
-  | 'card'
-  | 'cash';
-
-export type LanguageConcept = 'german' | 'french' | 'spanish' | 'english';
-export type PricedThing = 'ticket' | 'coffee';
-export type Time = 'today' | 'tomorrow';
-export type Modality = 'can' | 'want';
-
-export type PredicateId =
-  | 'need'
-  | 'have'
-  | 'understand'
-  | 'help'
-  | 'go'
-  | 'buy'
-  | 'speak'
-  | 'repeat'
-  | 'would_like'
-  | 'pay';
-
-export type SemanticArgument = Participant | Place | Thing;
-export type ArgumentRole = 'theme' | 'recipient' | 'destination';
+/** The discriminated union is generated from the predicate frame definitions. */
+export type Event = {
+  [P in PredicateId]: Readonly<{
+    kind: 'event';
+    predicate: P;
+    agent: Participant;
+    argument: (typeof PREDICATES)[P]['allowedArguments'][number];
+    quantity: Quantity;
+  }>;
+}[PredicateId];
 
 /**
- * Each predicate has its own permissible semantic role and argument type.
- * A single optional `argument: string` field would allow nonsense like
- * BUY(home) or GO(coffee) and push validation into every language adapter.
+ * A clause is a semantic AST node, not a translated sentence template.
+ * Every operation returns a new immutable clause.
  */
-export type Event =
-  | Readonly<{
-      kind: 'event';
-      predicate: 'need';
-      agent: Participant;
-      theme: 'help' | 'ticket' | 'coffee' | 'water';
-    }>
-  | Readonly<{
-      kind: 'event';
-      predicate: 'have';
-      agent: Participant;
-      theme: 'time' | 'ticket';
-    }>
-  | Readonly<{
-      kind: 'event';
-      predicate: 'understand';
-      agent: Participant;
-      theme: 'this';
-    }>
-  | Readonly<{
-      kind: 'event';
-      predicate: 'help';
-      agent: Participant;
-      recipient: Participant;
-    }>
-  | Readonly<{
-      kind: 'event';
-      predicate: 'go';
-      agent: Participant;
-      destination: Place;
-    }>
-  | Readonly<{
-      kind: 'event';
-      predicate: 'buy';
-      agent: Participant;
-      theme: 'ticket' | 'coffee' | 'water';
-    }>
-  | Readonly<{
-      kind: 'event';
-      predicate: 'speak';
-      agent: Participant;
-      theme: LanguageConcept;
-    }>
-  | Readonly<{
-      kind: 'event';
-      predicate: 'repeat';
-      agent: Participant;
-      theme: 'this';
-    }>
-  | Readonly<{
-      kind: 'event';
-      predicate: 'would_like';
-      agent: Participant;
-      theme: 'ticket' | 'coffee' | 'water';
-    }>
-  | Readonly<{
-      kind: 'event';
-      predicate: 'pay';
-      agent: Participant;
-      theme: 'card' | 'cash';
-    }>;
+export interface Clause {
+  readonly kind: 'clause';
+  readonly event: Event;
+  readonly tense: Tense;
+  readonly modality: Modality | null;
+  readonly negative: boolean;
+  readonly time: Time | null;
+  readonly frequency: Frequency | null;
+  readonly question: boolean;
+  readonly polite: boolean;
+}
 
-/** Explicit operator nesting makes permitted scope unambiguous. */
-export type ModalClause = Readonly<{
-  kind: 'modal';
-  modality: Modality;
-  value: Event;
+export type Discourse = Readonly<{
+  kind: 'link';
+  connection: Connection;
+  first: Clause;
+  second: Clause;
 }>;
 
-export type BaseClause = Event | ModalClause;
-export type NegativeClause = Readonly<{ kind: 'not'; value: BaseClause }>;
-export type PolarityClause = BaseClause | NegativeClause;
-export type TimedClause = Readonly<{
-  kind: 'when';
-  value: PolarityClause;
-  time: Time;
-}>;
-
-export type Clause = PolarityClause | TimedClause;
-export type Question = Readonly<{ kind: 'ask'; value: Clause }>;
-export type PoliteQuestion = Readonly<{ kind: 'please'; value: Question }>;
-export type SentenceExpression = Clause | Question | PoliteQuestion;
-
-/** Independent question forms avoid over-generalizing the starter grammar. */
 export type LocationQuestion = Readonly<{ kind: 'where'; place: LocatablePlace }>;
 export type PriceQuestion = Readonly<{ kind: 'price'; thing: PricedThing }>;
-export type Expression = SentenceExpression | LocationQuestion | PriceQuestion;
+export type TimeQuestion = Readonly<{ kind: 'ask_when'; value: Clause }>;
+export type DescribableThing = keyof typeof DESCRIPTION_QUALITIES;
+export type Quality = (typeof DESCRIPTION_QUALITIES)[DescribableThing][number];
+export type PresenceThing = (typeof PRESENCE_THINGS)[number];
+export type PresencePlace = 'here' | 'station' | 'hotel' | 'airport' | 'city_center';
+export type ObjectQuestionPredicate = (typeof OBJECT_QUESTION_PREDICATES)[number];
 
-/** A form selection can come from an HTML UI; constructors validate it at runtime. */
+/** Typed propositions extend the same shared meanings, not translation pairs. */
+export interface Description {
+  readonly kind: 'describe';
+  readonly thing: DescribableThing;
+  readonly quality: Quality;
+  readonly tense: 'present' | 'past';
+  readonly negative: boolean;
+  readonly question: boolean;
+}
+export interface Presence {
+  readonly kind: 'presence';
+  readonly thing: PresenceThing;
+  readonly place: PresencePlace | null;
+  readonly negative: boolean;
+  readonly question: boolean;
+}
+export interface ObjectQuestion {
+  readonly kind: 'ask_object';
+  readonly predicate: ObjectQuestionPredicate;
+  readonly agent: 'speaker' | 'addressee';
+}
+export interface RouteQuestion {
+  readonly kind: 'route';
+  readonly place: LocatablePlace;
+}
+export interface Sequence {
+  readonly kind: 'sequence';
+  readonly steps: readonly Clause[];
+}
+
+export type Expression =
+  | Clause | Discourse | LocationQuestion | PriceQuestion | TimeQuestion
+  | Description | Presence | ObjectQuestion | RouteQuestion | Sequence;
+
+/** Values are validated when converting external form input into an Event. */
 export interface BuilderSelection {
   predicate: PredicateId;
   agent: Participant;
   argument: SemanticArgument;
+  quantity: Quantity;
+  tense: Tense;
   modal: Modality | '';
   negative: boolean;
   time: Time | '';
+  frequency: Frequency | '';
   question: boolean;
   polite: boolean;
-}
-
-/** Only grammar adapters use the flattened analysis of an AST. */
-export interface Analysis {
-  readonly event: Event;
-  readonly modality: Modality | null;
-  readonly negative: boolean;
-  readonly time: Time | null;
-  readonly question: boolean;
-  readonly polite: boolean;
+  reason: 'none' | 'sick' | 'busy' | 'no_time';
 }
 
 export interface LanguageProfile {

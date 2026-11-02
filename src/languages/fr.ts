@@ -1,180 +1,402 @@
-import { analyze } from '../core/algebra.js';
-import type {
-  Analysis,
-  Expression,
-  LanguageAdapter,
-  Modality,
-  PredicateId,
-  Time,
-} from '../core/model.js';
-import { capitalize, selectForm, timeWord, words } from './shared.js';
+import type { Clause, Description, Event, Expression, LanguageAdapter, Participant, Presence, Quantity, Time } from '../core/model.js';
+import type { PredicateId, SemanticArgument } from '../core/vocabulary.js';
+import { bare, capitalize, form, timeWord, words, type Forms } from './shared.js';
 
-/** French uses formal vous and a single productive yes/no question pattern. */
-const FINITE: Readonly<Record<PredicateId | Modality, readonly [string, string]>> = {
-  need: ['ai', 'avez'],
-  have: ['ai', 'avez'],
-  understand: ['comprends', 'comprenez'],
-  help: ['aide', 'aidez'],
-  go: ['vais', 'allez'],
-  buy: ['achète', 'achetez'],
-  speak: ['parle', 'parlez'],
-  repeat: ['répète', 'répétez'],
-  would_like: ['voudrais', 'voudriez'],
-  pay: ['paie', 'payez'],
-  can: ['peux', 'pouvez'],
-  want: ['veux', 'voulez'],
-};
-
-const TIMES: Readonly<Record<Time, string>> = {
-  today: 'aujourd’hui',
-  tomorrow: 'demain',
-};
-
-const LANGUAGES = {
-  german: 'allemand',
-  french: 'français',
-  spanish: 'espagnol',
-  english: 'anglais',
-} as const;
-
-type Item = 'help' | 'ticket' | 'coffee' | 'water';
-interface FrenchNoun {
+type Gender = 'm' | 'f';
+interface Noun {
   readonly singular: string;
+  readonly plural: string;
+  readonly gender: Gender;
   readonly countable: boolean;
-  readonly gender: 'masculine' | 'feminine';
 }
 
-const NOUNS: Readonly<Record<Item, FrenchNoun>> = {
-  help: { singular: 'aide', gender: 'feminine', countable: false },
-  ticket: { singular: 'billet', gender: 'masculine', countable: true },
-  coffee: { singular: 'café', gender: 'masculine', countable: true },
-  water: { singular: 'eau', gender: 'feminine', countable: false },
+/** Lexemes and their morphology; never preassembled example sentences. */
+const NOUNS: Readonly<Record<string, Noun>> = {
+  help: { singular:'aide', plural:'aides', gender:'f', countable:false },
+  ticket: { singular:'billet', plural:'billets', gender:'m', countable:true },
+  coffee: { singular:'café', plural:'cafés', gender:'m', countable:true },
+  water: { singular:'eau', plural:'eaux', gender:'f', countable:false },
+  time: { singular:'temps', plural:'temps', gender:'m', countable:false },
+  appointment: { singular:'rendez-vous', plural:'rendez-vous', gender:'m', countable:true },
+  question: { singular:'question', plural:'questions', gender:'f', countable:true },
+  problem: { singular:'problème', plural:'problèmes', gender:'m', countable:true },
+  message: { singular:'message', plural:'messages', gender:'m', countable:true },
+  food: { singular:'nourriture', plural:'nourritures', gender:'f', countable:false },
+  money: { singular:'argent', plural:'argents', gender:'m', countable:false },
+  phone: { singular:'téléphone', plural:'téléphones', gender:'m', countable:true },
+  book: { singular:'livre', plural:'livres', gender:'m', countable:true },
+  medicine: { singular:'médicament', plural:'médicaments', gender:'m', countable:true },
+  train: { singular:'train', plural:'trains', gender:'m', countable:true },
+  bus: { singular:'bus', plural:'bus', gender:'m', countable:true },
+  room: { singular:'chambre', plural:'chambres', gender:'f', countable:true },
+  address: { singular:'adresse', plural:'adresses', gender:'f', countable:true },
+  information: { singular:'information', plural:'informations', gender:'f', countable:true },
+  card: { singular:'carte', plural:'cartes', gender:'f', countable:true },
+  // Reusable noun lexemes. Articles and inflection are computed at runtime.
+  bag: { singular: 'sac', plural: 'sacs', gender: 'm', countable: true },
+  keys: { singular: 'clés', plural: 'clés', gender: 'f', countable: false },
+  passport: { singular: 'passeport', plural: 'passeports', gender: 'm', countable: true },
+  wallet: { singular: 'portefeuille', plural: 'portefeuilles', gender: 'm', countable: true },
+  bread: { singular: 'pain', plural: 'pains', gender: 'm', countable: false },
+  milk: { singular: 'lait', plural: 'laits', gender: 'm', countable: false },
+  music: { singular: 'musique', plural: 'musiques', gender: 'f', countable: false },
+  bill: { singular: 'addition', plural: 'additions', gender: 'f', countable: true },
+  receipt: { singular: 'reçu', plural: 'reçus', gender: 'm', countable: true },
+  job: { singular: 'emploi', plural: 'emplois', gender: 'm', countable: true },
+  meeting: { singular: 'réunion', plural: 'réunions', gender: 'f', countable: true },
+  email: { singular: 'courriel', plural: 'courriels', gender: 'm', countable: true },
+  computer: { singular: 'ordinateur', plural: 'ordinateurs', gender: 'm', countable: true },
+  internet: { singular: 'Internet', plural: 'Internet', gender: 'm', countable: false },
+  document: { singular: 'document', plural: 'documents', gender: 'm', countable: true },
+  form: { singular: 'formulaire', plural: 'formulaires', gender: 'm', countable: true },
+  family: { singular: 'famille', plural: 'familles', gender: 'f', countable: true },
+  friend: { singular: 'ami', plural: 'amis', gender: 'm', countable: true },
+  apartment: { singular: 'appartement', plural: 'appartements', gender: 'm', countable: true },
+  key: { singular: 'clé', plural: 'clés', gender: 'f', countable: true },
+  door: { singular: 'porte', plural: 'portes', gender: 'f', countable: true },
+  window: { singular: 'fenêtre', plural: 'fenêtres', gender: 'f', countable: true },
+  doctor: { singular: 'médecin', plural: 'médecins', gender: 'm', countable: true },
+  shop: { singular: 'magasin', plural: 'magasins', gender: 'm', countable: true },
+  weather: { singular: 'temps', plural: 'temps', gender: 'm', countable: false },
+  table: { singular: 'table', plural: 'tables', gender: 'f', countable: true },
+  reservation: { singular: 'réservation', plural: 'réservations', gender: 'f', countable: true },
+  trip: { singular: 'voyage', plural: 'voyages', gender: 'm', countable: true },
+  colleague: { singular: 'collègue', plural: 'collègues', gender: 'm', countable: true },
+  pharmacy: { singular: 'pharmacie', plural: 'pharmacies', gender: 'f', countable: true },
+  bank: { singular: 'banque', plural: 'banques', gender: 'f', countable: true },
+  hotel: { singular: 'hôtel', plural: 'hôtels', gender: 'm', countable: true },
+  restaurant: { singular: 'restaurant', plural: 'restaurants', gender: 'm', countable: true },
+  bus_stop: { singular: 'arrêt de bus', plural: 'arrêts de bus', gender: 'm', countable: true },
+  cafe: { singular: 'café', plural: 'cafés', gender: 'm', countable: true },
+  library: { singular: 'bibliothèque', plural: 'bibliothèques', gender: 'f', countable: true },
+  park: { singular: 'parc', plural: 'parcs', gender: 'm', countable: true },
 };
 
-function startsWithVowel(word: string): boolean {
-  return /^[aeiouhàâéèêîôùû]/i.test(word);
+function vowel(word: string): boolean {
+  return /^[aeiouhàâäéèêëîïôöùûüœ]/iu.test(word);
+}
+function elide(preposition: string, noun: string): string {
+  return vowel(noun) ? `${preposition}’${noun}` : `${preposition === 'd' ? 'de' : preposition} ${noun}`;
 }
 
-/**
- * Definite, partitive, and negative objects depend on the noun, not the
- * surrounding phrase. The starter covers singular nouns only.
- */
-function nounPhrase(id: Item, negative = false): string {
-  const noun = NOUNS[id];
-  if (negative) {
-    return startsWithVowel(noun.singular)
-      ? `d’${noun.singular}`
-      : `de ${noun.singular}`;
-  }
-  if (noun.countable) {
-    return words(noun.gender === 'masculine' ? 'un' : 'une', noun.singular);
-  }
-  if (startsWithVowel(noun.singular)) return `de l’${noun.singular}`;
-  return words(noun.gender === 'masculine' ? 'du' : 'de la', noun.singular);
+function noun(id: SemanticArgument, amount: Quantity, negative: boolean): string {
+  if (id === 'information') return negative ? 'd’informations' : 'des informations';
+  const entry = NOUNS[id];
+  if (!entry) throw new TypeError(`No French noun: ${id}`);
+  if (amount === 2) return words('deux', entry.plural);
+  if (negative) return elide('d', entry.singular); // after pas, indefinite articles disappear
+  if (entry.countable) return words(entry.gender === 'm' ? 'un' : 'une', entry.singular);
+  if (entry.singular === 'temps') return 'du temps';
+  return vowel(entry.singular)
+    ? `de l’${entry.singular}`
+    : words(entry.gender === 'm' ? 'du' : 'de la', entry.singular);
 }
 
-/** avoir besoin de + noun, with the required de/d’ elision. */
-function requiredNoun(id: Item): string {
-  const noun = NOUNS[id];
-  if (!noun.countable) return `besoin ${nounPhrase(id, true)}`;
-  const article = noun.gender === 'masculine' ? 'un' : 'une';
-  return `besoin d’${article} ${noun.singular}`;
+/** Needing something is avoir besoin de + NP, regardless of negation. */
+function needComplement(id: SemanticArgument, amount: Quantity): string {
+  if (id === 'information') return 'besoin d’informations';
+  const entry = NOUNS[id];
+  if (!entry) throw new TypeError(`No French noun: ${id}`);
+  if (amount === 2) return `besoin de deux ${entry.plural}`;
+  if (entry.countable) return `besoin d’${entry.gender === 'm' ? 'un' : 'une'} ${entry.singular}`;
+  return `besoin ${elide('d', entry.singular)}`;
 }
 
+interface Verb {
+  readonly present: Forms;
+  readonly infinitive: string;
+  readonly participle: string;
+  readonly auxiliary: 'avoir' | 'être';
+  readonly past?: Forms;
+}
+
+const VERBS: Readonly<Record<PredicateId, Verb>> = {
+  need: { present:['ai','avez','avons','a'], infinitive:'avoir', participle:'eu', auxiliary:'avoir', past:['avais','aviez','avions','avait'] },
+  have: { present:['ai','avez','avons','a'], infinitive:'avoir', participle:'eu', auxiliary:'avoir', past:['avais','aviez','avions','avait'] },
+  would_like: { present:['voudrais','voudriez','voudrions','voudrait'], infinitive:'vouloir', participle:'voulu', auxiliary:'avoir', past:['voulais','vouliez','voulions','voulait'] },
+  understand: { present:['comprends','comprenez','comprenons','comprend'], infinitive:'comprendre', participle:'compris', auxiliary:'avoir' },
+  help: { present:['aide','aidez','aidons','aide'], infinitive:'aider', participle:'aidé', auxiliary:'avoir' },
+  go: { present:['vais','allez','allons','va'], infinitive:'aller', participle:'allé', auxiliary:'être' },
+  come: { present:['viens','venez','venons','vient'], infinitive:'venir', participle:'venu', auxiliary:'être' },
+  buy: { present:['achète','achetez','achetons','achète'], infinitive:'acheter', participle:'acheté', auxiliary:'avoir' },
+  speak: { present:['parle','parlez','parlons','parle'], infinitive:'parler', participle:'parlé', auxiliary:'avoir' },
+  repeat: { present:['répète','répétez','répétons','répète'], infinitive:'répéter', participle:'répété', auxiliary:'avoir' },
+  pay: { present:['paie','payez','payons','paie'], infinitive:'payer', participle:'payé', auxiliary:'avoir' },
+  drink: { present:['bois','buvez','buvons','boit'], infinitive:'boire', participle:'bu', auxiliary:'avoir' },
+  eat: { present:['mange','mangez','mangeons','mange'], infinitive:'manger', participle:'mangé', auxiliary:'avoir' },
+  take: { present:['prends','prenez','prenons','prend'], infinitive:'prendre', participle:'pris', auxiliary:'avoir' },
+  work: { present:['travaille','travaillez','travaillons','travaille'], infinitive:'travailler', participle:'travaillé', auxiliary:'avoir' },
+  live: { present:['habite','habitez','habitons','habite'], infinitive:'habiter', participle:'habité', auxiliary:'avoir' },
+  be: { present:['suis','êtes','sommes','est'], infinitive:'être', participle:'été', auxiliary:'avoir', past:['étais','étiez','étions','était'] },
+  wait: { present:['attends','attendez','attendons','attend'], infinitive:'attendre', participle:'attendu', auxiliary:'avoir' },
+  call: { present:['appelle','appelez','appelons','appelle'], infinitive:'appeler', participle:'appelé', auxiliary:'avoir' },
+  find: { present:['trouve','trouvez','trouvons','trouve'], infinitive:'trouver', participle:'trouvé', auxiliary:'avoir' },
+  send: { present:['envoie','envoyez','envoyons','envoie'], infinitive:'envoyer', participle:'envoyé', auxiliary:'avoir' },
+  stay: { present:['reste','restez','restons','reste'], infinitive:'rester', participle:'resté', auxiliary:'être' },
+  study: { present:['apprends','apprenez','apprenons','apprend'], infinitive:'apprendre', participle:'appris', auxiliary:'avoir' },
+  arrive: { present:['arrive','arrivez','arrivons','arrive'], infinitive:'arriver', participle:'arrivé', auxiliary:'être' },
+  // Conjugation metadata is independent from lesson authoring.
+  look_for: { present: ['cherche', 'cherchez', 'cherchons', 'cherche'], infinitive: 'chercher', participle: 'cherché', auxiliary: 'avoir' },
+  lose: { present: ['perds', 'perdez', 'perdons', 'perd'], infinitive: 'perdre', participle: 'perdu', auxiliary: 'avoir' },
+  read: { present: ['lis', 'lisez', 'lisons', 'lit'], infinitive: 'lire', participle: 'lu', auxiliary: 'avoir' },
+  write: { present: ['écris', 'écrivez', 'écrivons', 'écrit'], infinitive: 'écrire', participle: 'écrit', auxiliary: 'avoir' },
+  use: { present: ['utilise', 'utilisez', 'utilisons', 'utilise'], infinitive: 'utiliser', participle: 'utilisé', auxiliary: 'avoir' },
+  open: { present: ['ouvre', 'ouvrez', 'ouvrons', 'ouvre'], infinitive: 'ouvrir', participle: 'ouvert', auxiliary: 'avoir' },
+  close: { present: ['ferme', 'fermez', 'fermons', 'ferme'], infinitive: 'fermer', participle: 'fermé', auxiliary: 'avoir' },
+  fill_out: { present: ['remplis', 'remplissez', 'remplissons', 'remplit'], infinitive: 'remplir', participle: 'rempli', auxiliary: 'avoir' },
+  sign: { present: ['signe', 'signez', 'signons', 'signe'], infinitive: 'signer', participle: 'signé', auxiliary: 'avoir' },
+  reserve: { present: ['réserve', 'réservez', 'réservons', 'réserve'], infinitive: 'réserver', participle: 'réservé', auxiliary: 'avoir' },
+  cancel: { present: ['annule', 'annulez', 'annulons', 'annule'], infinitive: 'annuler', participle: 'annulé', auxiliary: 'avoir' },
+  meet: { present: ['retrouve', 'retrouvez', 'retrouvons', 'retrouve'], infinitive: 'retrouver', participle: 'retrouvé', auxiliary: 'avoir' },
+  cook: { present: ['cuisine', 'cuisinez', 'cuisinons', 'cuisine'], infinitive: 'cuisiner', participle: 'cuisiné', auxiliary: 'avoir' },
+  sleep: { present: ['dors', 'dormez', 'dormons', 'dort'], infinitive: 'dormir', participle: 'dormi', auxiliary: 'avoir' },
+  leave: { present: ['pars', 'partez', 'partons', 'part'], infinitive: 'partir', participle: 'parti', auxiliary: 'être' },
+  return: { present: ['reviens', 'revenez', 'revenons', 'revient'], infinitive: 'revenir', participle: 'revenu', auxiliary: 'être' },
+  like: { present: ['aime', 'aimez', 'aimons', 'aime'], infinitive: 'aimer', participle: 'aimé', auxiliary: 'avoir' },
+  wait_for: { present: ['attends', 'attendez', 'attendons', 'attend'], infinitive: 'attendre', participle: 'attendu', auxiliary: 'avoir' },
+};
+
+const MODALS = {
+  can: { present:['peux','pouvez','pouvons','peut'], participle:'pu' },
+  want: { present:['veux','voulez','voulons','veut'], participle:'voulu' },
+  must: { present:['dois','devez','devons','doit'], participle:'dû' },
+} as const satisfies Readonly<Record<string, { present: Forms; participle: string }>>;
+
+const HAVE: Forms = ['ai','avez','avons','a'];
+const BE: Forms = ['suis','êtes','sommes','est'];
+const ALLER: Forms = ['vais','allez','allons','va'];
+const TIMES: Readonly<Record<Time,string>> = {
+  now:'maintenant', today:'aujourd’hui', yesterday:'hier', last_week:'la semaine dernière',
+  tomorrow:'demain', next_week:'la semaine prochaine', soon:'bientôt',
+  this_week: 'cette semaine', last_month: 'le mois dernier', next_month: 'le mois prochain', tonight: 'ce soir',
+};
+const FREQUENCIES = {
+  every_day: 'tous les jours', every_week: 'chaque semaine',
+  often: 'souvent', sometimes: 'parfois',
+} as const;
+const DEFINITES: Readonly<Record<'coffee' | 'bread' | 'music' | 'food', string>> = {
+  coffee: 'le café', bread: 'le pain', music: 'la musique', food: 'la nourriture',
+};
+
+const SUBJECTS: Readonly<Record<Participant,string>> = {
+  speaker:'je', addressee:'vous', we:'nous', other:'il',
+};
+const OBJECTS: Readonly<Record<Participant,string>> = {
+  speaker:'m’', addressee:'vous', we:'nous', other:'l’',
+};
+const LANGUAGES = { german:'allemand', french:'français', spanish:'espagnol', english:'anglais' } as const;
+const STATES = { sick:'malade', tired:'fatigué', busy:'occupé', ready:'prêt', late:'en retard' } as const;
 const DESTINATIONS = {
-  home: { speaker: 'chez moi', addressee: 'chez vous' },
-  station: { speaker: 'à la gare', addressee: 'à la gare' },
-  bathroom: { speaker: 'aux toilettes', addressee: 'aux toilettes' },
-  hotel: { speaker: 'à l’hôtel', addressee: 'à l’hôtel' },
+  home:'chez moi', station:'à la gare', hotel:'à l’hôtel', office:'au bureau',
+  hospital:'à l’hôpital', restaurant:'au restaurant', supermarket:'au supermarché',
+  pharmacy:'à la pharmacie', airport:'à l’aéroport',
+  bank:'à la banque', school:'à l’école', park:'au parc', library:'à la bibliothèque', post_office:'à la poste', city_center:'au centre-ville', cafe:'au café', bus_stop:'à l’arrêt de bus',
 } as const;
-
+const RESIDENCES = { here:'ici', berlin:'à Berlin', paris:'à Paris', madrid:'à Madrid' } as const;
+const STAYING = { home:'chez moi', hotel:'à l’hôtel', hospital:'à l’hôpital', office:'au bureau',
+  apartment:'dans l’appartement',
+} as const;
 const LOCATIONS = {
-  station: { noun: 'la gare', plural: false },
-  bathroom: { noun: 'les toilettes', plural: true },
-  hotel: { noun: 'l’hôtel', plural: false },
+  station:'la gare', hotel:'l’hôtel', office:'le bureau', hospital:'l’hôpital',
+  restaurant:'le restaurant', supermarket:'le supermarché',
+  pharmacy:'la pharmacie', airport:'l’aéroport',
+  bank:'la banque', school:'l’école', park:'le parc', library:'la bibliothèque', post_office:'la poste', city_center:'le centre-ville', cafe:'le café', bus_stop:'l’arrêt de bus',
 } as const;
 
-function subject(analysis: Analysis, finiteGroup: string): string {
-  if (analysis.event.agent === 'addressee') return words('vous', finiteGroup);
-  // je elides before j'ai, but not before je n'ai.
-  return startsWithVowel(finiteGroup) ? `j’${finiteGroup}` : words('je', finiteGroup);
+/** Clitics and subject elision are implemented once for every verb. */
+function clitic(value: Participant): string {
+  return OBJECTS[value];
+}
+function attachClitic(pronoun: string, word: string): string {
+  return pronoun.endsWith('’') ? `${pronoun}${word}` : words(pronoun, word);
+}
+function finiteGroup(person: Participant, finite: string, negative: boolean, prefix = ''): string {
+  const verbGroup = prefix ? attachClitic(prefix, finite) : finite;
+  const withNegation = negative
+    ? `${vowel(verbGroup) ? 'n’' : 'ne '}${verbGroup} pas`
+    : verbGroup;
+  const subject = SUBJECTS[person];
+  return subject === 'je' && vowel(withNegation)
+    ? `j’${withNegation}`
+    : words(subject, withNegation);
 }
 
-function negateFinite(finiteGroup: string): string {
-  const prefix = startsWithVowel(finiteGroup) ? 'n’' : 'ne ';
-  return `${prefix}${finiteGroup} pas`;
-}
-
-function recipientClitic(analysis: Analysis): string {
-  if (analysis.event.predicate !== 'help') return '';
-  return analysis.event.recipient === 'speaker' ? 'm’' : 'vous ';
-}
-
-function complement(analysis: Analysis): string {
-  const { event, modality, negative } = analysis;
-
-  switch (event.predicate) {
-    case 'need':
-      return requiredNoun(event.theme);
+function complement(action: Event, negativeNoun: boolean): string {
+  const { argument, predicate, quantity, agent } = action;
+  switch (predicate) {
+    case 'need': return needComplement(argument, quantity);
     case 'have':
-      return event.theme === 'time' ? 'le temps' : nounPhrase('ticket', negative);
-    case 'understand':
-      return modality ? 'comprendre ça' : 'ça';
-    case 'repeat':
-      return modality ? 'répéter ça' : 'ça';
-    case 'help':
-      // Pronoun appears before the infinitive with a modal, before finite otherwise.
-      return modality ? `${recipientClitic(analysis)}aider` : '';
-    case 'go':
-      return words(modality ? 'aller' : '', DESTINATIONS[event.destination][event.agent]);
-    case 'buy':
-      return words(modality ? 'acheter' : '', nounPhrase(event.theme, negative));
-    case 'would_like':
-      return nounPhrase(event.theme, negative);
-    case 'speak':
-      return LANGUAGES[event.theme];
-    case 'pay':
-      return words(
-        modality ? 'payer' : '',
-        event.theme === 'card' ? 'par carte' : 'en espèces',
-      );
+      if (argument === 'time') return negativeNoun ? 'le temps' : 'du temps';
+      return noun(argument, quantity, negativeNoun);
+    case 'would_like': case 'buy': case 'drink': case 'eat':
+    case 'take': case 'find': case 'send': case 'look_for': case 'lose':
+    case 'read': case 'write': case 'use': case 'open': case 'close':
+    case 'fill_out': case 'sign': case 'reserve': case 'cancel': case 'meet':
+      if (predicate === 'use' && argument === 'internet') return 'Internet';
+      if (predicate === 'would_like' && argument === 'bill') return 'l’addition';
+      return noun(argument, quantity, negativeNoun);
+    case 'understand': case 'repeat':
+      if (argument === 'information') return 'les informations';
+      return argument === 'this' ? 'ça' : noun(argument, quantity, negativeNoun);
+    case 'help': case 'call': return '';
+    case 'go': return argument === 'home' && agent === 'addressee' ? 'chez vous' : DESTINATIONS[argument];
+    case 'stay': return argument === 'home' && agent === 'addressee' ? 'chez vous' : STAYING[argument];
+    case 'live': return RESIDENCES[argument];
+    case 'be': return agent === 'we' && argument !== 'late' ? `${STATES[argument]}s` : STATES[argument];
+    case 'speak': return LANGUAGES[argument];
+    case 'study': return vowel(LANGUAGES[argument])
+      ? `l’${LANGUAGES[argument]}`
+      : words('le', LANGUAGES[argument]);
+    case 'pay': return argument === 'card' ? 'par carte' : 'en espèces';
+    case 'wait_for': return noun(argument, quantity, false);
+    case 'like': return DEFINITES[argument];
+    case 'come': case 'work': case 'wait': case 'arrive':
+    case 'cook': case 'sleep': case 'leave': case 'return': return '';
   }
+}
+
+function realizeClause(value: Clause): string {
+  const { event: action, tense, modality, negative } = value;
+  // Seeing a doctor uses voir, not the social-meeting verb retrouver.
+  const verb: Verb = action.predicate === 'meet' && action.argument === 'doctor'
+    ? { present: ['vois', 'voyez', 'voyons', 'voit'], infinitive: 'voir', participle: 'vu', auxiliary: 'avoir' }
+    : VERBS[action.predicate];
+  const person = action.agent;
+  const temporal = timeWord(value.time ?? (tense === 'future' ? 'soon' : null), TIMES);
+  const frequency = value.frequency ? FREQUENCIES[value.frequency] : '';
+  const pronoun = action.predicate === 'help' || action.predicate === 'call'
+    ? clitic(action.argument)
+    : '';
+  const nominalNegation = !modality && negative && ['have','would_like','buy','drink','eat','take','find','send',
+      'look_for','lose','read','write','use','open','close',
+      'fill_out','sign','reserve','cancel','meet'].includes(action.predicate);
+  const object = complement(action, nominalNegation);
+  let text: string;
+
+  if (modality) {
+    const m = MODALS[modality];
+    const finite = tense === 'past'
+      ? form(HAVE, person)
+      : form(m.present, person);
+    const first = finiteGroup(person, finite, negative);
+    // Modal conjugation has a finite helper, followed by the main infinitive.
+    // For past modals the finite helper is avoir + the modal participle.
+    const action = pronoun ? attachClitic(pronoun, verb.infinitive) : verb.infinitive;
+    text = words(first, tense === 'past' ? m.participle : '', action, object, temporal);
+  } else if (tense === 'future') {
+    const inf = pronoun ? attachClitic(pronoun, verb.infinitive) : verb.infinitive;
+    text = words(finiteGroup(person, form(ALLER, person), negative), inf, object, temporal);
+  } else if (tense === 'past' && !verb.past) {
+    const aux = verb.auxiliary === 'être' ? BE : HAVE;
+    const finite = finiteGroup(person, form(aux, person), negative, pronoun);
+    const participle = verb.auxiliary === 'être' && person === 'we' ? `${verb.participle}s` : verb.participle;
+    text = words(finite, participle, object, temporal);
+  } else {
+    const forms = tense === 'past' ? (verb.past ?? verb.present) : verb.present;
+    const beforeObject = value.frequency === 'often' || value.frequency === 'sometimes' ? frequency : '';
+    const afterObject = value.frequency === 'every_day' || value.frequency === 'every_week' ? frequency : '';
+    text = words(finiteGroup(person, form(forms, person), negative, pronoun), beforeObject, object, afterObject, temporal);
+  }
+
+  if (value.question) {
+    text = `est-ce que ${text}`;
+  }
+  if (value.polite) text += ', s’il vous plaît';
+  return `${capitalize(text)}${value.question ? ' ?' : '.'}`;
+}
+
+
+const QUALITIES = {
+  good: ['bon', 'bonne'], bad: ['mauvais', 'mauvaise'],
+  big: ['grand', 'grande'], small: ['petit', 'petite'],
+  expensive: ['cher', 'chère'], cheap: ['bon marché', 'bon marché'],
+  clean: ['propre', 'propre'], open: ['ouvert', 'ouverte'],
+  closed: ['fermé', 'fermée'], available: ['disponible', 'disponible'],
+  interesting: ['intéressant', 'intéressante'],
+  important: ['important', 'importante'], ready: ['prêt', 'prête'],
+} as const;
+const PRESENCE_PLACES = {
+  here: 'ici', station: 'à la gare', hotel: 'à l’hôtel',
+  airport: 'à l’aéroport', city_center: 'au centre-ville',
+} as const;
+
+function definiteNoun(id: string): string {
+  const entry = NOUNS[id];
+  if (!entry) throw new TypeError(`Missing French noun: ${id}`);
+  const article = vowel(entry.singular) ? 'l’' : entry.gender === 'm' ? 'le ' : 'la ';
+  return `${article}${entry.singular}`;
+}
+
+function realizeDescription(value: Description): string {
+  if (value.thing === 'weather') {
+    const weather = value.quality === 'good' ? 'beau' : 'mauvais';
+    const finite = value.tense === 'past' ? 'faisait' : 'fait';
+    const group = words('il', value.negative ? 'ne' : '', finite,
+      value.negative ? 'pas' : '', weather);
+    return value.question ? `Est-ce qu’${group} ?` : `${capitalize(group)}.`;
+  }
+  const entry = NOUNS[value.thing];
+  if (!entry) throw new TypeError(`Missing French description noun: ${value.thing}`);
+  const quality = QUALITIES[value.quality][entry.gender === 'f' ? 1 : 0];
+  const copula = value.tense === 'past' ? 'était' : 'est';
+  const phrase = words(definiteNoun(value.thing),
+    value.negative ? (copula === 'est' ? 'n’est pas' : 'n’était pas') : copula,
+    quality);
+  return value.question ? `Est-ce que ${phrase} ?` : `${capitalize(phrase)}.`;
+}
+
+function realizePresence(value: Presence): string {
+  const entry = NOUNS[value.thing];
+  if (!entry) throw new TypeError(`Missing French presence noun: ${value.thing}`);
+  const item = value.negative ? elide('d', entry.singular) : noun(value.thing, 1, false);
+  const location = value.place === null ? '' : PRESENCE_PLACES[value.place];
+  const text = words(value.negative ? 'il n’y a pas' : 'il y a', item, location);
+  return value.question ? `Est-ce qu’${text} ?` : `${capitalize(text)}.`;
+}
+
+function questionSubject(person: 'speaker' | 'addressee', finite: string): string {
+  const subject = SUBJECTS[person];
+  return subject === 'je' && vowel(finite) ? `j’${finite}` : words(subject, finite);
 }
 
 function realize(expression: Expression): string {
-  if (expression.kind === 'where') {
-    const place = LOCATIONS[expression.place];
-    return `Où ${place.plural ? 'sont' : 'est'} ${place.noun} ?`;
+  switch (expression.kind) {
+    case 'describe': return realizeDescription(expression);
+    case 'presence': return realizePresence(expression);
+    case 'ask_object': {
+      const verb = VERBS[expression.predicate];
+      const finite = questionSubject(expression.agent, form(verb.present, expression.agent));
+      const body = expression.predicate === 'need'
+        ? `De quoi est-ce que ${finite} besoin`
+        : `Qu’est-ce que ${finite}`;
+      return `${body} ?`;
+    }
+    case 'route': return `Comment est-ce que je vais ${DESTINATIONS[expression.place]} ?`;
+    case 'sequence': return expression.steps.map(realizeClause).join(' ');
+    case 'where': return `Où est ${LOCATIONS[expression.place]} ?`;
+    case 'price': return `Combien coûte ${noun(expression.thing, 1, false)} ?`;
+    case 'clause': return realizeClause(expression);
+    case 'ask_when': {
+      const statement = bare(realizeClause(expression.value)).replace(/^./u, (c) => c.toLocaleLowerCase());
+      return `Quand est-ce que ${statement} ?`;
+    }
+    case 'link': {
+      const linker = { and:'et', but:'mais', because:'parce que' }[expression.connection];
+      const second = bare(realizeClause(expression.second)).replace(/^./u, (c) => c.toLocaleLowerCase());
+      return `${bare(realizeClause(expression.first))}, ${linker} ${second}.`;
+    }
   }
-  if (expression.kind === 'price') {
-    return `Combien coûte ${nounPhrase(expression.thing)} ?`;
-  }
-
-  const analysis = analyze(expression);
-  const { event, modality, negative } = analysis;
-  const finite = selectForm(FINITE[modality ?? event.predicate], event.agent);
-  const prefix = event.predicate === 'help' && !modality ? recipientClitic(analysis) : '';
-  const finiteGroup = negative ? negateFinite(`${prefix}${finite}`) : `${prefix}${finite}`;
-  const clause = subject(analysis, words(finiteGroup, complement(analysis)));
-  let sentence = words(clause, timeWord(analysis.time, TIMES));
-
-  // est-ce que preserves ordinary word order, avoiding verb inversion at A1.
-  sentence = analysis.question ? `Est-ce que ${sentence}` : capitalize(sentence);
-  if (analysis.polite) sentence += ', s’il vous plaît';
-  return sentence + (analysis.question ? ' ?' : '.');
 }
 
 export const french: LanguageAdapter = {
   profile: {
-    code: 'fr',
-    name: 'French',
-    variety: 'Standard French · formal vous',
+    code:'fr', name:'French', variety:'Standard French · formal vous · minimal production grammar',
     features: [
-      'Simple statements use subject + verb + complement.',
-      'Prefix a statement with est-ce que for a predictable yes/no question.',
-      'Written negation uses ne/n’ before the verb and pas after it.',
-      'Je contracts to j’ before a vowel: j’ai, but je n’ai.',
-      'Needing something uses avoir besoin de, not a direct cognate of need.',
+      'A regular statement keeps subject + verb + complement; use est-ce que to ask questions.',
+      'Use passé composé (auxiliary + participle) for past events; short states use imparfait.',
+      'Use aller + infinitive for a near-future plan.',
+      'Use ne/n’ ... pas around the finite verb group for negative statements.',
+      'The printed masculine adjective and movement participles change agreement for a feminine speaker.',
     ],
   },
   realize,

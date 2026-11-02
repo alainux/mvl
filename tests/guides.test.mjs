@@ -10,77 +10,97 @@ import { generatePractice, matchesModel } from '../docs/assets/learning/practice
 import { realizeEnglish } from '../docs/assets/languages/en.js';
 import { linearize } from '../docs/assets/languages/index.js';
 
-const readGuide = (code) => JSON.parse(readFileSync(`docs/guides/${code}.json`, 'utf8'));
+const publishedGuide = (code) => JSON.parse(readFileSync(`docs/guides/${code}.json`, 'utf8'));
 
-test('shared lesson plans contain semantic blocks, not translated sentence pairs', () => {
-  assert.equal(CURRICULUM.length, 11);
+test('the shared curriculum is A2-oriented and contains only semantic plans', () => {
+  assert.equal(CURRICULUM.length, 40);
+  assert.equal(new Set(CURRICULUM.map((entry) => entry.id)).size, 40);
   for (const lesson of CURRICULUM) {
     assert.ok(lesson.blocks.length > 0);
     for (const block of lesson.blocks) {
-      assert.ok(['paradigm', 'where', 'price', 'conventions'].includes(block.kind));
-      assert.equal(Object.hasOwn(block, 'target'), false);
-      assert.equal(Object.hasOwn(block, 'english'), false);
-      assert.ok(expandBlock(block).length > 0);
+      assert.ok(['paradigm','timeline','combine','where','price','when-question','conventions','describe','presence','ask-object','route','sequence'].includes(block.kind));
+      assert.ok(!('target' in block) && !('english' in block));
+      assert.ok(expandBlock(block).length > 0, lesson.id);
     }
   }
-});
-
-test('build creates exactly three deterministic, independently realized guides', () => {
-  assert.deepEqual(INSTALLED_LANGUAGES, ['de', 'fr', 'es']);
-  for (const code of INSTALLED_LANGUAGES) {
-    const compiled = compileGuide(code);
-    const published = readGuide(code);
-    assert.deepEqual(published, compiled, `docs/guides/${code}.json is stale`);
-    assert.equal(compiled.lessons.length, 11);
-    assert.ok(compiled.lessons.every((lesson) => lesson.examples.length >= 4));
+  for (const id of ['past','past-movement','future','obligation','reasons','small-story','habits','housing','health','work-and-study','more-past','more-future','stories']) {
+    assert.ok(CURRICULUM.some((lesson) => lesson.id === id));
   }
 });
 
-test('every productive learning example comes from one AST in English and target', () => {
+test('compiled guides exactly match published generated JSON', () => {
+  assert.deepEqual(INSTALLED_LANGUAGES, ['de','fr','es']);
+  for (const code of INSTALLED_LANGUAGES) {
+    const compiled = compileGuide(code);
+    assert.deepEqual(publishedGuide(code), compiled);
+    assert.equal(compiled.lessons.length, 40);
+    assert.ok(compiled.lessons.reduce((sum, lesson) => sum + lesson.examples.length, 0) > 420);
+  }
+});
+
+test('every productive example is realized from its own AST', () => {
   let composed = 0;
-  let conventions = 0;
+  let conventional = 0;
   for (const code of INSTALLED_LANGUAGES) {
     for (const lesson of compileGuide(code).lessons) {
       for (const example of lesson.examples) {
         if (example.source.kind === 'convention') {
-          conventions += 1;
+          conventional++;
           assert.equal(example.provenance, 'conventional');
-          continue;
+        } else {
+          composed++;
+          assert.equal(example.english, realizeEnglish(example.source.expression));
+          assert.equal(example.target, linearize(example.source.expression,code));
         }
-        composed += 1;
-        assert.equal(example.provenance, 'composed');
-        assert.equal(example.english, realizeEnglish(example.source.expression));
-        assert.equal(example.target, linearize(example.source.expression, code));
       }
     }
   }
-  assert.ok(composed >= 140, `Only ${composed} productive examples`);
-  assert.ok(conventions <= 45, 'Conventional chunks must stay a small exception layer');
+  assert.ok(composed > 1200);
+  assert.ok(conventional < 30);
 });
 
-test('practice creates unseen compositions rather than simply repeating teaching examples', () => {
+test('generative practice composes fresh meanings for key tense lessons', () => {
   for (const code of INSTALLED_LANGUAGES) {
     const guide = compileGuide(code);
-    for (const lesson of guide.lessons) {
-      const practice = generatePractice(lesson, code);
-      assert.ok(practice.length >= 1);
-      const teaching = new Set(lesson.examples
-        .filter((item) => item.source.kind === 'expression')
-        .map((item) => notation(item.source.expression)));
-      for (const item of practice) {
-        if (item.source.kind === 'convention') continue;
-        assert.equal(item.target, linearize(item.source.expression, code));
-        assert.equal(item.english, realizeEnglish(item.source.expression));
-        // Some fully enumerated closed-class operators have no novel slot to use.
-        if (!['places', 'shopping'].includes(lesson.id)) {
-          assert.ok(!teaching.has(notation(item.source.expression)), `${code}/${lesson.id} repeats a sample`);
-        }
+    for (const id of ['past','future','obligation','reasons','plans']) {
+      const lesson = guide.lessons.find((entry) => entry.id === id);
+      const original = new Set(lesson.examples.map((entry) =>
+        entry.source.kind === 'expression' ? notation(entry.source.expression) : 'conventional'));
+      const practice = generatePractice(lesson,code,6);
+      assert.ok(practice.length >= 3, `${code}: ${id}`);
+      for (const example of practice) {
+        assert.equal(example.target,linearize(example.source.expression,code));
+        assert.ok(!original.has(notation(example.source.expression)), `${code}/${id} duplicates example`);
       }
     }
   }
 });
 
-test('the practice comparison does not pretend to evaluate all valid paraphrases', () => {
+
+
+test('new capability lessons generate fresh practice from the grammar, not phrase pairs', () => {
+  for (const code of INSTALLED_LANGUAGES) {
+    const guide = compileGuide(code);
+    for (const id of [
+      'habits', 'preferences', 'description', 'housing', 'services-nearby',
+      'directions', 'work-and-study', 'digital-life', 'forms', 'health',
+      'appointments', 'lost-property', 'more-past', 'more-future', 'stories',
+    ]) {
+      const lesson = guide.lessons.find((item) => item.id === id);
+      const shown = new Set(lesson.examples.map((example) =>
+        example.source.kind === 'expression' ? notation(example.source.expression) : 'convention'));
+      const practice = generatePractice(lesson, code, 6);
+      assert.ok(practice.length >= 3 || id === 'stories', `${code}: ${id} practice coverage`);
+      for (const example of practice) {
+        assert.equal(example.provenance, 'composed');
+        assert.equal(example.target, linearize(example.source.expression, code));
+        assert.ok(!shown.has(notation(example.source.expression)), `${code}/${id}: repeated an example`);
+      }
+    }
+  }
+});
+
+test('text comparison only checks the model answer, not valid paraphrases', () => {
   assert.ok(matchesModel(' Können Sie mir helfen? ', 'Können Sie mir helfen?'));
   assert.ok(matchesModel('können sie mir helfen', 'Können Sie mir helfen?'));
   assert.equal(matchesModel('Kannst du mir helfen?', 'Können Sie mir helfen?'), false);

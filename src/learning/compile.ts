@@ -4,6 +4,7 @@ import { languages } from '../languages/index.js';
 import { CURRICULUM } from './curriculum.js';
 import { expandBlock } from './expand.js';
 import { NOTES } from './notes.js';
+import { EXTENSION_NOTES } from './notes-everyday.js';
 import { ENGLISH_CONVENTIONS, ROUTINES } from './routines.js';
 import type { ExampleSource, GeneratedExample, GeneratedGuide } from './types.js';
 
@@ -36,6 +37,8 @@ export function compileGuide(code: LanguageProfile['code']): GeneratedGuide {
     language: language.profile,
     lessons: CURRICULUM.map((lesson) => {
       const sources = lesson.blocks.flatMap(expandBlock);
+      const notes = NOTES[code][lesson.id] ?? EXTENSION_NOTES[code][lesson.id];
+      if (!notes) throw new TypeError(`No teaching notes for ${code}/${lesson.id}`);
       const examples: GeneratedExample[] = sources.map((source, index) => ({
         id: `${lesson.id}-${index + 1}`,
         english: gloss(source),
@@ -46,10 +49,11 @@ export function compileGuide(code: LanguageProfile['code']): GeneratedGuide {
 
       return {
         id: lesson.id,
+        stage: lesson.stage,
         title: lesson.title,
         goal: lesson.goal,
         introduction: lesson.introduction,
-        notes: NOTES[code][lesson.id],
+        notes,
         examples,
       };
     }),

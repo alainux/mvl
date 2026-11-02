@@ -1,258 +1,255 @@
 import type {
-  Analysis,
-  BaseClause,
   BuilderSelection,
   Clause,
+  Connection,
+  Discourse,
+  DescribableThing, Description, Frequency, ObjectQuestion, ObjectQuestionPredicate,
+  Presence, PresencePlace, PresenceThing, Quality, RouteQuestion, Sequence,
   Event,
   Expression,
   LocatablePlace,
-  ModalClause,
+  LocationQuestion,
   Modality,
-  NegativeClause,
   Participant,
-  PolarityClause,
-  PoliteQuestion,
-  PredicateId,
   PricedThing,
-  Question,
-  SemanticArgument,
-  SentenceExpression,
+  PriceQuestion,
+  Quantity,
+  Tense,
   Time,
-  TimedClause,
+  TimeQuestion,
 } from './model.js';
-import { PREDICATES } from './vocabulary.js';
+import { COUNTABLE_THINGS, DESCRIPTION_QUALITIES, LOCATABLE_PLACES, OBJECT_QUESTION_PREDICATES, PREDICATES, PRESENCE_THINGS, type PredicateId, type SemanticArgument } from './vocabulary.js';
 
 function invalid(message: string): never {
   throw new TypeError(message);
 }
 
-function assertNever(value: never): never {
-  throw new TypeError(`Unexpected value: ${String(value)}`);
-}
+/** A deliberately small temporal system; contradictions are rejected. */
+const TIMES_BY_TENSE: Readonly<Record<Tense, readonly (Time | null)[]>> = {
+  present: [null, 'today', 'now', 'this_week'],
+  past: [null, 'yesterday', 'last_week', 'last_month'],
+  future: [null, 'tomorrow', 'next_week', 'next_month', 'soon', 'tonight'],
+};
 
-/**
- * Construct a well-typed event from potentially untrusted UI selections.
- * The static Event union protects authored code; these guards protect the UI.
- */
 export function event(
   predicate: PredicateId,
   agent: Participant,
   argument: SemanticArgument,
+  quantity: Quantity = 1,
 ): Event {
   const frame = PREDICATES[predicate] as (typeof PREDICATES)[PredicateId] | undefined;
-
   if (!frame) invalid(`Unknown predicate: ${predicate}`);
-  if (agent !== 'speaker' && agent !== 'addressee') {
+  if (!(['speaker', 'addressee', 'we', 'other'] as string[]).includes(agent)) {
     invalid(`Unknown participant: ${agent}`);
   }
-  if (!frame.allowedArguments.includes(argument)) {
-    invalid(
-      `${predicate} requires ${frame.argumentRole} in {${frame.allowedArguments.join(', ')}}`,
-    );
+  if (!(frame.allowedArguments as readonly string[]).includes(argument)) {
+    invalid(`${predicate} requires ${frame.argumentRole} in {${frame.allowedArguments.join(', ')}}`);
+  }
+  if (frame.argumentRole === 'person' && agent === argument) {
+    invalid('Self-directed help and calls are not in this learning profile');
+  }
+  if (quantity !== 1 && quantity !== 2) invalid('Quantity must be one or two');
+  if (quantity > 1 && !(COUNTABLE_THINGS as readonly string[]).includes(argument)) {
+    invalid(`Cannot count ${argument} in this profile`);
   }
 
-  switch (predicate) {
-    case 'need':
-      if (
-        argument === 'help' || argument === 'ticket' ||
-        argument === 'coffee' || argument === 'water'
-      ) {
-        return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
-      }
-      break;
+  // The only assertion in the model: a validated dynamic input becomes the
+  // frame-specific union. Internal authored code stays type-checked.
+  return Object.freeze({ kind: 'event', predicate, agent, argument, quantity }) as Event;
+}
 
-    case 'buy':
-    case 'would_like':
-      if (argument === 'ticket' || argument === 'coffee' || argument === 'water') {
-        return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
-      }
-      break;
+export function clause(action: Event): Clause {
+  return Object.freeze({
+    kind: 'clause', event: action, tense: 'present', modality: null,
+    negative: false, time: null, frequency: null, question: false, polite: false,
+  });
+}
 
-    case 'have':
-      if (argument === 'time' || argument === 'ticket') {
-        return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
-      }
-      break;
-
-    case 'understand':
-    case 'repeat':
-      if (argument === 'this') {
-        return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
-      }
-      break;
-
-    case 'help':
-      if (agent === argument) {
-        invalid('The helping agent and recipient must differ in this profile');
-      }
-      if (argument === 'speaker' || argument === 'addressee') {
-        return Object.freeze({ kind: 'event', predicate, agent, recipient: argument });
-      }
-      break;
-
-    case 'go':
-      if (
-        argument === 'home' || argument === 'station' ||
-        argument === 'bathroom' || argument === 'hotel'
-      ) {
-        return Object.freeze({ kind: 'event', predicate, agent, destination: argument });
-      }
-      break;
-
-    case 'speak':
-      if (
-        argument === 'german' || argument === 'french' ||
-        argument === 'spanish' || argument === 'english'
-      ) {
-        return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
-      }
-      break;
-
-    case 'pay':
-      if (argument === 'card' || argument === 'cash') {
-        return Object.freeze({ kind: 'event', predicate, agent, theme: argument });
-      }
-      break;
-
-    default:
-      return assertNever(predicate);
+export function inTense(value: Clause, tense: Tense): Clause {
+  if (!Object.hasOwn(TIMES_BY_TENSE, tense)) invalid(`Unknown tense: ${tense}`);
+  if (value.event.predicate === 'like' && tense !== 'present') invalid('Only present preferences are in this profile');
+  if (value.frequency !== null && tense !== 'present') invalid('Habit frequency requires the present tense');
+  if (value.time !== null && !TIMES_BY_TENSE[tense].includes(value.time)) {
+    invalid(`${value.time} is incompatible with ${tense}`);
   }
-
-  return invalid(`Invalid argument ${argument} for predicate ${predicate}`);
+  return Object.freeze({ ...value, tense });
 }
 
-export function modal(modality: Modality, value: Event): ModalClause {
-  if (!PREDICATES[value.predicate].allowedModalities.includes(modality)) {
-    invalid(`${modality} is not supported for ${value.predicate}`);
+export function modal(value: Clause, modality: Modality): Clause {
+  const frame = PREDICATES[value.event.predicate];
+  if (!(frame.allowedModalities as readonly string[]).includes(modality)) {
+    invalid(`${modality} is not supported for ${value.event.predicate}`);
   }
-  return Object.freeze({ kind: 'modal', modality, value });
+  return Object.freeze({ ...value, modality });
 }
 
-export function negate(value: BaseClause): NegativeClause {
-  return Object.freeze({ kind: 'not', value });
+export function negate(value: Clause): Clause {
+  return Object.freeze({ ...value, negative: true });
 }
 
-export function when(value: PolarityClause, time: Time): TimedClause {
-  if (time !== 'today' && time !== 'tomorrow') {
-    invalid(`Unknown time: ${time}`);
+export function when(value: Clause, time: Time): Clause {
+  if (value.frequency !== null) invalid('Choose a concrete time or a repeating habit, not both');
+  if (!TIMES_BY_TENSE[value.tense].includes(time)) {
+    invalid(`Time ${time} is incompatible with ${value.tense} tense`);
   }
-  return Object.freeze({ kind: 'when', value, time });
+  return Object.freeze({ ...value, time });
 }
 
-export function ask(value: Clause): Question {
-  return Object.freeze({ kind: 'ask', value });
+/** Recurring habits need a present action, not a completed or future event. */
+export function habit(value: Clause, frequency: Frequency): Clause {
+  if (value.tense !== 'present' || value.time !== null) {
+    invalid('Habit frequency requires a present statement without a date');
+  }
+  if (!['work', 'study', 'read', 'write', 'cook', 'sleep', 'take',
+        'drink', 'eat', 'wait', 'use', 'meet', 'go', 'speak'].includes(value.event.predicate)) {
+    invalid(`Recurring activity not supported for ${value.event.predicate}`);
+  }
+  return Object.freeze({ ...value, frequency });
 }
 
-export function please(value: Question): PoliteQuestion {
-  return Object.freeze({ kind: 'please', value });
+/** Productive noun–quality description with a constrained semantic domain. */
+export function describe(
+  thing: DescribableThing,
+  quality: Quality,
+  options: Partial<Pick<Description, 'tense' | 'negative' | 'question'>> = {},
+): Description {
+  const allowed = DESCRIPTION_QUALITIES[thing] as readonly Quality[] | undefined;
+  if (!allowed?.includes(quality)) invalid(`${thing} cannot be described as ${quality} in this profile`);
+  return Object.freeze({
+    kind: 'describe', thing, quality, tense: options.tense ?? 'present',
+    negative: options.negative ?? false, question: options.question ?? false,
+  });
 }
 
-export function where(place: LocatablePlace): Expression {
-  if (place !== 'station' && place !== 'bathroom' && place !== 'hotel') {
+/** There is / there are, optionally anchored at a familiar place. */
+export function presence(
+  thing: PresenceThing,
+  place: PresencePlace | null = null,
+  options: Partial<Pick<Presence, 'negative' | 'question'>> = {},
+): Presence {
+  if (!(PRESENCE_THINGS as readonly string[]).includes(thing)) invalid(`Unknown presence concept: ${thing}`);
+  if (place !== null && !(['here', 'station', 'hotel', 'airport', 'city_center'] as string[]).includes(place)) {
+    invalid(`Unknown presence location: ${place}`);
+  }
+  return Object.freeze({ kind: 'presence', thing, place, negative: options.negative ?? false, question: options.question ?? false });
+}
+
+/** Open questions have an unfilled semantic object slot. */
+export function askObject(predicate: ObjectQuestionPredicate, agent: ObjectQuestion['agent']): ObjectQuestion {
+  if (!(OBJECT_QUESTION_PREDICATES as readonly string[]).includes(predicate)) {
+    invalid(`Predicate does not accept an open-object question: ${predicate}`);
+  }
+  return Object.freeze({ kind: 'ask_object', predicate, agent });
+}
+
+export function howToGet(place: LocatablePlace): RouteQuestion {
+  if (!(LOCATABLE_PLACES as readonly string[]).includes(place)) invalid(`Unknown destination: ${place}`);
+  return Object.freeze({ kind: 'route', place });
+}
+
+/** Short independent sentences can form a narrative without subordinate syntax. */
+export function sequence(...steps: readonly Clause[]): Sequence {
+  if (steps.length < 2 || steps.length > 4 || steps.some((step) => step.question || step.polite)) {
+    invalid('A sequence requires two to four ordinary statements');
+  }
+  return Object.freeze({ kind: 'sequence', steps: Object.freeze([...steps]) });
+}
+
+export function ask(value: Clause): Clause {
+  return Object.freeze({ ...value, question: true });
+}
+
+export function please(value: Clause): Clause {
+  if (!value.question) invalid('PLEASE requires a question');
+  return Object.freeze({ ...value, polite: true });
+}
+
+/** Ask when an event happens without introducing a new event predicate. */
+export function askWhen(value: Clause): TimeQuestion {
+  if (value.time !== null || value.question || value.polite) {
+    invalid('WHEN questions require a statement without a time marker or question wrapper');
+  }
+  return Object.freeze({ kind: 'ask_when', value });
+}
+
+/** Short independent statements carry more meaning without subordinate syntax. */
+export function link(first: Clause, connection: Connection, second: Clause): Discourse {
+  if (first.question || second.question || first.polite || second.polite) {
+    invalid('Only statements can be joined in the minimal discourse profile');
+  }
+  return Object.freeze({ kind: 'link', connection, first, second });
+}
+
+export function where(place: LocatablePlace): LocationQuestion {
+  if (!(LOCATABLE_PLACES as readonly string[]).includes(place)) {
     invalid(`Unknown locatable place: ${place}`);
   }
   return Object.freeze({ kind: 'where', place });
 }
 
-export function price(thing: PricedThing): Expression {
-  if (thing !== 'ticket' && thing !== 'coffee') {
+export function price(thing: PricedThing): PriceQuestion {
+  if (!( ['ticket', 'coffee', 'book', 'room', 'computer', 'bag', 'apartment'] as string[]).includes(thing)) {
     invalid(`Unknown priced item: ${thing}`);
   }
   return Object.freeze({ kind: 'price', thing });
 }
 
 export const DEFAULT_SELECTION: Readonly<BuilderSelection> = Object.freeze({
-  predicate: 'help',
-  agent: 'addressee',
-  argument: 'speaker',
-  modal: 'can',
-  negative: false,
-  time: '',
-  question: true,
-  polite: true,
+  predicate: 'help', agent: 'addressee', argument: 'speaker', quantity: 1,
+  tense: 'present', modal: 'can', negative: false, time: '', frequency: '',
+  question: true, polite: true, reason: 'none',
 });
 
-/**
- * A teachable subset permits one canonical operator order. General arbitrary
- * nesting would require substantially larger grammar implementations.
- */
-export function makeTree(selection: BuilderSelection): SentenceExpression {
-  const action = event(selection.predicate, selection.agent, selection.argument);
-  const base: BaseClause = selection.modal ? modal(selection.modal, action) : action;
-  const withPolarity: PolarityClause = selection.negative ? negate(base) : base;
-  const clause: Clause = selection.time
-    ? when(withPolarity, selection.time)
-    : withPolarity;
+/** Build from semantic controls; no language-specific string operations. */
+export function makeTree(selection: BuilderSelection): Expression {
+  let result = clause(event(selection.predicate, selection.agent, selection.argument, selection.quantity));
+  result = inTense(result, selection.tense);
+  if (selection.modal) result = modal(result, selection.modal);
+  if (selection.negative) result = negate(result);
+  if (selection.time) result = when(result, selection.time);
+  if (selection.frequency) result = habit(result, selection.frequency);
+  if (selection.question) result = ask(result);
+  if (selection.polite) result = please(result);
 
-  if (selection.polite && !selection.question) invalid('PLEASE requires ASK');
-  if (!selection.question) return clause;
-
-  const question = ask(clause);
-  return selection.polite ? please(question) : question;
+  if (selection.reason !== 'none') {
+    if (result.question) invalid('A reason cannot be attached to a question');
+    const reason = selection.reason === 'no_time'
+      ? negate(clause(event('have', selection.agent, 'time')))
+      : clause(event('be', selection.agent, selection.reason));
+    return link(result, 'because', reason);
+  }
+  return result;
 }
 
-/** Flatten the bounded AST once; language adapters decide all surface forms. */
-export function analyze(expression: SentenceExpression): Analysis {
-  let current: SentenceExpression = expression;
-  let polite = false;
-  let question = false;
-  let time: Time | null = null;
-  let negative = false;
-  let modality: Modality | null = null;
-
-  if (current.kind === 'please') {
-    polite = true;
-    current = current.value;
-  }
-  if (current.kind === 'ask') {
-    question = true;
-    current = current.value;
-  }
-  if (current.kind === 'when') {
-    time = current.time;
-    current = current.value;
-  }
-  if (current.kind === 'not') {
-    negative = true;
-    current = current.value;
-  }
-  if (current.kind === 'modal') {
-    modality = current.modality;
-    current = current.value;
-  }
-  if (current.kind !== 'event') {
-    invalid('Malformed sentence AST: expected EVENT');
-  }
-
-  return Object.freeze({ event: current, modality, negative, time, question, polite });
-}
-
-export function eventArgument(value: Event): SemanticArgument {
-  if (value.predicate === 'help') return value.recipient;
-  if (value.predicate === 'go') return value.destination;
-  return value.theme;
-}
-
-/** Stable notation is useful for debugging, documentation, and AST comparisons. */
+/** Parenthesized, language-independent notation for teaching and debugging. */
 export function notation(expression: Expression): string {
   switch (expression.kind) {
-    case 'event':
-      return `EVENT(${expression.predicate}, ${expression.agent}, ${eventArgument(expression)})`;
-    case 'modal':
-      return `${expression.modality.toUpperCase()}(${notation(expression.value)})`;
-    case 'not':
-      return `NOT(${notation(expression.value)})`;
-    case 'when':
-      return `WHEN(${notation(expression.value)}, ${expression.time})`;
-    case 'ask':
-      return `ASK(${notation(expression.value)})`;
-    case 'please':
-      return `PLEASE(${notation(expression.value)})`;
-    case 'where':
-      return `WHERE(${expression.place})`;
-    case 'price':
-      return `PRICE(${expression.thing})`;
-    default:
-      return assertNever(expression);
+    case 'where': return `WHERE(${expression.place})`;
+    case 'route': return `HOW_TO_GET(${expression.place})`;
+    case 'ask_object': return `ASK_OBJECT(${expression.predicate}, ${expression.agent})`;
+    case 'presence': return `EXISTS(${expression.thing}, ${expression.place ?? 'unspecified'}, ${expression.negative}, ${expression.question})`;
+    case 'describe': return `DESCRIBE(${expression.thing}, ${expression.quality}, ${expression.tense}, ${expression.negative}, ${expression.question})`;
+    case 'sequence': return `SEQUENCE(${expression.steps.map(notation).join(', ')})`;
+    case 'price': return `PRICE(${expression.thing})`;
+    case 'ask_when': return `ASK_WHEN(${notation(expression.value)})`;
+    case 'link':
+      return `${expression.connection.toUpperCase()}(${notation(expression.first)}, ${notation(expression.second)})`;
+    case 'clause': {
+      const { event: action, modality, negative, tense, time, frequency, question, polite } = expression;
+      let text = `EVENT(${action.predicate}, ${action.agent}, ${action.argument}${action.quantity === 2 ? ', two' : ''})`;
+      if (modality) text = `${modality.toUpperCase()}(${text})`;
+      if (tense !== 'present') text = `${tense.toUpperCase()}(${text})`;
+      if (negative) text = `NOT(${text})`;
+      if (time) text = `WHEN(${text}, ${time})`;
+      if (frequency) text = `HABIT(${text}, ${frequency})`;
+      if (question) text = `ASK(${text})`;
+      if (polite) text = `PLEASE(${text})`;
+      return text;
+    }
   }
+}
+
+/** Downstream grammar adapters receive validated semantic clauses. */
+export function analyze(value: Clause): Clause {
+  return value;
 }

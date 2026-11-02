@@ -10,14 +10,24 @@ export const CAPABILITIES = {
 };
 const DEPENDENCIES = {
     EVENT: [],
+    PAST: ['EVENT'],
+    FUTURE: ['EVENT'],
     CAN: ['EVENT'],
     WANT: ['EVENT'],
+    MUST: ['EVENT'],
     NOT: ['EVENT'],
     WHEN: ['EVENT'],
     ASK: ['EVENT'],
     PLEASE: ['ASK'],
+    LINK: ['EVENT'],
     WHERE: [],
     PRICE: [],
+    FREQUENCY: ['EVENT'],
+    DESCRIBE: [],
+    EXISTS: [],
+    ASK_OBJECT: ['EVENT'],
+    HOW_TO_GET: [],
+    SEQUENCE: ['EVENT'],
 };
 /**
  * Calculate a dependency closure, not a claim about optimal learning effort.

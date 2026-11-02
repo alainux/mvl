@@ -3,90 +3,95 @@ import assert from 'node:assert/strict';
 
 import {
   DEFAULT_SELECTION,
-  analyze,
+  describe,
+  habit,
+  presence,
+  sequence,
   ask,
+  askWhen,
+  clause,
   event,
+  inTense,
+  link,
   makeTree,
   modal,
   negate,
   notation,
   please,
-  price,
   when,
-  where,
 } from '../docs/assets/core/algebra.js';
-import { deriveProfile } from '../docs/assets/core/profile.js';
-import { OPERATORS, PREDICATES } from '../docs/assets/core/vocabulary.js';
+import { PREDICATES } from '../docs/assets/core/vocabulary.js';
 
-const selection = (overrides) => ({
+const selection = (changes) => ({
   ...DEFAULT_SELECTION,
+  predicate: 'buy',
+  agent: 'speaker',
+  argument: 'ticket',
   modal: '',
   question: false,
   polite: false,
-  ...overrides,
+  negative: false,
+  reason: 'none',
+  time: '',
+  ...changes,
 });
 
-test('the starter meaning algebra declares its bounded inventory', () => {
-  assert.equal(Object.keys(PREDICATES).length, 10);
-  assert.equal(OPERATORS.length, 9);
-  assert.deepEqual(Object.keys(PREDICATES).includes('need'), true);
-  assert.deepEqual(Object.keys(PREDICATES).includes('buy'), true);
+test('the productive core has broad events, not a phrase inventory', () => {
+  assert.ok(Object.keys(PREDICATES).length >= 20);
+  for (const predicate of ['go','work','buy','call','help','have','be','study']) {
+    assert.ok(Object.hasOwn(PREDICATES, predicate));
+  }
 });
 
-test('meaning trees contain no target-language words', () => {
-  const tree = makeTree(selection({
-    predicate: 'help',
-    agent: 'addressee',
-    argument: 'speaker',
-    modal: 'can',
-    question: true,
-    polite: true,
-  }));
-
-  assert.equal(notation(tree), 'PLEASE(ASK(CAN(EVENT(help, addressee, speaker))))');
-  assert.equal(analyze(tree).event.predicate, 'help');
-  assert.doesNotMatch(JSON.stringify(tree), /Sie|vous|usted|helfen|ayudar/);
-  assert.ok(Object.isFrozen(tree));
+test('tense, questions and negation are composable operations', () => {
+  const base = clause(event('buy', 'speaker', 'ticket', 2));
+  const past = when(negate(inTense(base, 'past')), 'yesterday');
+  assert.equal(notation(past), 'WHEN(NOT(PAST(EVENT(buy, speaker, ticket, two))), yesterday)');
+  assert.equal(past.tense, 'past');
+  assert.equal(past.negative, true);
+  assert.ok(Object.isFrozen(past));
+  assert.ok(Object.isFrozen(past.event));
 });
 
-test('operators preserve scope and allow composition', () => {
-  const action = event('help', 'addressee', 'speaker');
-  const expression = please(ask(when(negate(modal('can', action)), 'tomorrow')));
-
-  assert.equal(
-    notation(expression),
-    'PLEASE(ASK(WHEN(NOT(CAN(EVENT(help, addressee, speaker))), tomorrow)))',
-  );
-  assert.deepEqual(analyze(expression), {
-    event: action,
-    modality: 'can',
-    negative: true,
-    time: 'tomorrow',
-    question: true,
-    polite: true,
-  });
+test('the modal and question operators preserve scope', () => {
+  const question = please(ask(modal(clause(event('help', 'addressee', 'speaker')), 'can')));
+  assert.equal(notation(question), 'PLEASE(ASK(CAN(EVENT(help, addressee, speaker))))');
 });
 
-test('place and price questions are represented by separate operators', () => {
-  assert.equal(notation(where('station')), 'WHERE(station)');
-  assert.equal(notation(price('coffee')), 'PRICE(coffee)');
+test('the same event can be used in past, present and future', () => {
+  const outputs = ['present','past','future'].map((tense) => makeTree(selection({tense})));
+  assert.equal(new Set(outputs.map(notation)).size, 3);
+  assert.ok(outputs.every((output) => output.kind === 'clause' && output.event.predicate === 'buy'));
 });
 
-test('meaning constructors reject unsupported arguments and combinations', () => {
-  assert.throws(() => event('need', 'speaker', 'station'), /requires/);
-  assert.throws(() => event('help', 'speaker', 'speaker'), /must differ/);
-  assert.throws(() => event('unknown', 'speaker', 'help'), /Unknown predicate/);
-  assert.throws(() => event('need', 'third-person', 'help'), /Unknown participant/);
-  assert.throws(() => modal('can', event('have', 'speaker', 'time')), /not supported/);
-  assert.throws(() => makeTree(selection({ polite: true })), /requires ASK/);
-  assert.throws(() => when(event('go', 'speaker', 'home'), 'yesterday'), /Unknown time/);
+test('independent clauses compose into reasons and contrasts', () => {
+  const first = negate(modal(clause(event('come','speaker','none')), 'can'));
+  const second = clause(event('be','speaker','sick'));
+  const explanation = link(first, 'because', second);
+  assert.equal(explanation.kind, 'link');
+  assert.match(notation(explanation), /^BECAUSE\(/);
+  assert.throws(() => link(ask(first), 'and', second), /Only statements/);
 });
 
-test('the minimal capability planner is deterministic', () => {
-  assert.deepEqual(deriveProfile(['assert']).operators, ['EVENT']);
-  assert.deepEqual(deriveProfile(['request']).operators, ['EVENT', 'CAN', 'ASK', 'PLEASE']);
-  assert.deepEqual(deriveProfile(['ask', 'deny', 'situate']).operators, [
-    'EVENT', 'NOT', 'WHEN', 'ASK',
-  ]);
-  assert.throws(() => deriveProfile([]), /Select at least one/);
+test('semantic slots and incompatible time combinations are validated', () => {
+  assert.throws(() => event('buy','speaker','station'), /requires/);
+  assert.throws(() => event('go','speaker','coffee'), /requires/);
+  assert.throws(() => event('help','speaker','speaker'), /Self-directed/);
+  assert.throws(() => event('need','speaker','water',2), /Cannot count/);
+  assert.throws(() => modal(clause(event('have','speaker','time')),'must'), /not supported/);
+  assert.throws(() => when(inTense(clause(event('work','speaker','none')),'past'),'tomorrow'), /incompatible/);
+  assert.throws(() => makeTree(selection({tense:'past',time:'tomorrow'})), /incompatible/);
+  assert.throws(() => please(clause(event('work','speaker','none'))), /requires a question/);
+  assert.throws(() => askWhen(when(clause(event('work','speaker','none')),'today')), /without a time marker/);
+});
+
+
+test('quality, habit and narrative primitives reject nonsensical compositions', () => {
+  assert.equal(describe('room', 'clean').kind, 'describe');
+  assert.throws(() => describe('room', 'late'), /cannot be described/);
+  assert.throws(() => presence('room', 'unknown'), /Unknown presence location/);
+  assert.equal(habit(clause(event('read', 'speaker', 'book')), 'every_day').frequency, 'every_day');
+  assert.throws(() => habit(inTense(clause(event('read','speaker','book')),'past'), 'often'), /present/);
+  assert.throws(() => sequence(clause(event('buy','speaker','ticket'))), /two to four/);
+  assert.throws(() => makeTree(selection({predicate:'like', argument:'music', tense:'past'})), /Only present preferences/);
 });

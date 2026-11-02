@@ -1,111 +1,119 @@
-# Minimum Viable Language
+# Minimum Viable Language (MVL)
 
-**Three practical language manuals, generated from one compositional language framework.**
+A **small, expressive subset of a real language**, taught through reusable rules
+instead of memorized conversations. The same semantic curriculum builds a German,
+French, and Spanish manual.
 
-MVL helps independent learners communicate with a deliberately small subset of
-standard German, French, or Spanish. The published application presents rules,
-worked examples, a sentence builder, active-recall practice, and a quick reference.
-It is a **learning product**; the language-engine specification lives separately
-in [FRAMEWORK.md](FRAMEWORK.md).
+**Live learner guides:** https://alainux.github.io/mvl/
 
-The learner-facing site is at **https://alainux.github.io/mvl/**.
+## What can you communicate?
 
-## What is generated?
+The curriculum works toward the **communicative scope of A2**: routine
+information exchange, daily needs, simple reports about the past, future plans,
+requests, personal circumstances, and short explanations. It does **not** award,
+measure, or guarantee CEFR A2. Reading and listening competence require further
+real-world practice.
 
-A lesson does not contain German, French, or Spanish translations. It specifies
-*meanings* such as “speaker needs one of these objects” and the operators permitted
-for that lesson. The compiler expands the meaning specifications into abstract
-syntax trees (ASTs). English prompts and target-language sentences are **both**
-realizations of those trees.
+The current guides have **40 progressive lessons and over 420 generated examples each**.
+The working subset includes:
 
-```text
-Shared learning goal
-   └── Lesson plan: NEED(speaker, [water, ticket, coffee])
-         └── Semantic AST: EVENT(need, speaker, ticket)
-               ├── English renderer → I need a ticket.
-               ├── German grammar   → Ich brauche ein Ticket.
-               ├── French grammar   → J’ai besoin d’un billet.
-               └── Spanish grammar  → Necesito un billete.
+- Present actions and states, negatives, yes/no and where/when/price questions.
+- Completed past events, past journeys, common past states and past modals.
+- Future plans, intentions, permission/ability and obligation.
+- People, objects, common places, two-item quantities, preferences, habits and brief reasons.
+- Descriptions (cheap, clean, open, ready), existence (there is / there are),
+  open-object questions, requests for directions and short multi-sentence stories.
+- Everyday domains: housing, services, work, shopping, food, healthcare,
+  appointments, paperwork, technology, travel and lost property.
+- Joining short independent clauses without needing complex subordination.
+
+### Minimality means choosing easy natural forms
+
+| Meaning | German | French | Spanish |
+| --- | --- | --- | --- |
+| Completed past | `haben/sein` + participle | `passé composé` | `pretérito indefinido` |
+| Future plan | present + future time | `aller` + infinitive | `ir a` + infinitive |
+| Need | `brauchen` + noun | `avoir besoin de` | `necesitar` |
+| Why / reason | two clauses + `denn` | two clauses + `parce que` | two clauses + `porque` |
+
+These are *representative grammar constructions*, not translated sentence entries
+used by the compiler. Where unavoidable, each language retains a few irregular
+forms and its own inflection rules. We do not pretend that one grammar applies to
+all languages.
+
+## How the guides are generated
+
+A shared curriculum describes events and **operators**, not translated phrases.
+For example, the meaning of a completed purchase is:
+
+```ts
+const purchase = inTense(clause(event('buy', 'speaker', 'ticket')), 'past');
 ```
 
-Changing the object triggers new morphology and word order from the grammar,
-not a translation lookup. The sentence builder composes the same ASTs live.
-Exercises derive additional valid combinations by changing slots and operators.
+The same expression is independently linearized into German, French, Spanish
+and English. Teaching examples and translation exercises are *generated* from
+these expressions. Changing the verb, object, person, polarity, tense or modal
+causes grammar rules to rebuild the sentence.
 
-**Intentional exception:** greetings, thanks, and a few conventional social
-formulas are stored whole because the starter grammar cannot derive them safely.
-They live only in `src/learning/routines.ts`, and are explicitly marked as
-`conventional` in generated output. Productive content is marked `composed`.
+Stored full sentences are limited to a small set of conventional social forms
+(`src/learning/routines.ts`). Every generated example has a provenance marker.
 
-## Development
+The site is a **learning manual**. Implementation details belong in
+[FRAMEWORK.md](FRAMEWORK.md), not on the learner's landing page.
 
-Node.js 20+ is required.
+## Code layout
+
+| Folder | Role |
+| --- | --- |
+| `src/core/model.ts` | Shared event, clause and discourse AST types |
+| `src/core/algebra.ts` | Typed constructors and semantic composition |
+| `src/core/vocabulary.ts` | Predicate frames and argument constraints |
+| `src/languages/de.ts` | German inflection and linearization |
+| `src/languages/fr.ts` | French inflection and linearization |
+| `src/languages/es.ts` | Spanish inflection and linearization |
+| `src/languages/en.ts` | English renderer for independently generated prompts |
+| `src/learning/curriculum.ts` and `curriculum-everyday.ts` | 40 shared lesson programs over typed meaning blocks |
+| `src/learning/notes.ts` and `notes-everyday.ts` | Human-authored, language-specific teaching explanations |
+| `src/learning/compile.ts` | Deterministic guide compiler |
+| `src/learning/practice.ts` | AST transformations to generate further exercises |
+| `src/ui/` | Learner UI, progress, search, practice and builder |
+| `docs/` | Built, checked-in GitHub Pages artifacts; never edit directly |
+
+## Develop, verify, publish
+
+Requires Node.js 20 or newer:
 
 ```bash
 npm install
-npm run check   # strict type check, compile three guides, run 32+ tests
-npm run dev     # serve the last compiled /docs at localhost:4174
+npm run check    # strict types, generation, tests
+npm run dev      # local server for the generated /docs
 ```
 
-`npm run build` compiles unminified TypeScript modules and generates:
-
-```text
-/docs/index.html
-/docs/assets/...
-/docs/guides/de.json
-/docs/guides/fr.json
-/docs/guides/es.json
-```
-
-`docs/` is a checked-in **build artifact**, not authored source. The frontend
-loads the compiled guides and uses the same core grammar to power its interactive
-builder and practice tools.
-
-### Publishing
-
-The repository uses GitHub Pages **Deploy from a branch → main → /docs**.
-There is no custom CI workflow. To release:
+To publish via GitHub Pages (`main:/docs`):
 
 ```bash
-npm run pages  # same as check; regenerates docs/ and verifies outputs
+npm run pages
 git add .
-git commit -m "Improve language guides"
+git commit -m "Improve the language guides"
 git push
 ```
 
-GitHub Pages then publishes the committed static output. This approach minimizes
-CI minutes, but reviewers must check that `docs/` matches `src/`.
+The build emits readable, unminified JavaScript modules and three generated
+`docs/guides/*.json` manuals. There is **no custom Actions CI pipeline**.
+GitHub's ordinary Pages publication workflow serves the committed static output.
 
-## Architecture
+## What remains outside this subset?
 
-| Path | Responsibility |
-| --- | --- |
-| `src/core/` | Typed AST, semantic roles, composable operators, capability profiles |
-| `src/languages/` | Independent grammatical realizers and English gloss generator |
-| `src/learning/curriculum.ts` | Shared learning goals and declarative semantic lesson plans |
-| `src/learning/expand.ts` | Expands lesson plans into ASTs |
-| `src/learning/compile.ts` | Creates per-language learner guides |
-| `src/learning/notes.ts` | Language-specific explanations; not translated phrase inventories |
-| `src/learning/practice.ts` | Derives unseen exercises from meaning-tree transformations |
-| `src/ui/` | Learner screens and interactive controls |
-| `scripts/build.mjs` | Reproducible generation of the static deployment |
-| `tests/` | Grammar regression tests, composition matrix, generation contracts |
+The grammar deliberately limits verb and noun inventories, regional register,
+complex subordinate clauses, rich adjectives, many prepositions, and nuanced
+aspect. French and Spanish speaker adjectives use a documented masculine default;
+other genders require corresponding agreement. Natural speakers can use many
+phrases not generated by these rules. This is a bounded, extensible pedagogical
+system, not a universal grammatical parser.
 
-Read [FRAMEWORK.md](FRAMEWORK.md) for the formal model and
-[CONTRIBUTING.md](CONTRIBUTING.md) for adding a language, operator, or lesson.
-
-## Scope and limitations
-
-This is a controlled **production subset**, not a CEFR certification or a
-complete grammar. Current coverage emphasizes requests, possession, questions,
-places, small transactions, time adverbs, and negation. The initial grammar
-supports first-person singular and formal second-person constructions, singular
-objects, and a few simple tense and register choices. It does not understand
-arbitrary user-written sentences or certify other valid phrasings.
-
-MVL deliberately prefers standard-language constructions where possible rather
-than inventing a new dialect. Minimality is about the learning surface, not a
-claim that human languages share one grammar.
+The curriculum follows the Council of Europe's A2 communicative descriptors
+(see references in [FRAMEWORK.md](FRAMEWORK.md)). Independent native-speaker
+review of language outputs is still needed as coverage expands.
 
 ## License
 

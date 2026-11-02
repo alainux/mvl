@@ -117,7 +117,7 @@ function renderHome(guides) {
     return `<section class="page home-page">
     <div class="eyebrow"><span class="eyebrow-line"></span>INDEPENDENT LANGUAGE STUDY</div>
     <h1>Learn the useful parts.<br /><em>Start communicating.</em></h1>
-    <p class="lead">A small set of correct, reusable sentence patterns. Clear explanations, examples, and hands-on practice. No illustrated worksheets or audio course.</p>
+    <p class="lead">A compact system for communicating about today, yesterday, and tomorrow. Clear explanations, examples, and hands-on practice. No illustrated worksheets or audio course.</p>
     <div class="section-heading"><h2>Choose your manual</h2><p>One practical learning path, with the grammar that each language actually needs.</p></div>
     <div class="language-grid">${['de', 'fr', 'es'].map((code) => renderLanguageCard(guides[code])).join('')}</div>
     <div class="principles">
@@ -140,7 +140,7 @@ function renderGuideOverview(model) {
       <span class="chapter-copy"><strong>${escape(lesson.title)}</strong><small>${escape(lesson.goal)}</small></span>
       <span class="chapter-arrow">${completed.has(lesson.id) ? '✓' : '↗'}</span>
     </a>`).join('');
-    const featured = model.lessons.find((lesson) => lesson.id === 'help')?.examples[1];
+    const featured = model.lessons.find((lesson) => lesson.id === 'ability')?.examples[1];
     return `<section class="page overview-page">
     <div class="eyebrow">THE PRACTICAL MANUAL · ${escape(model.language.variety.toUpperCase())}</div>
     <h1>Minimum Viable<br /><em>${escape(model.language.name)}.</em></h1>
@@ -153,7 +153,7 @@ function renderGuideOverview(model) {
     ${featured ? `<div class="sample-card"><span class="micro-label">A USEFUL PATTERN</span><strong lang="${code}">${escape(featured.target)}</strong><p>${escape(featured.english)}</p></div>` : ''}
     <div class="section-heading"><h2>Learning path</h2><p>Study in order, or open the rule you need.</p></div>
     <div class="chapter-list">${chapters}</div>
-    <aside class="aside-note"><strong>Small on purpose.</strong> These lessons teach a workable production subset, not the whole language. You can speak simply and gradually expand what you understand.</aside>
+    <aside class="aside-note"><strong>Small on purpose.</strong> These lessons teach a productive A2-oriented subset, not the whole language. You can speak simply and gradually expand what you understand.</aside>
   </section>`;
 }
 function renderExample(example, code) {
@@ -256,19 +256,42 @@ function renderBuilder() {
     return `<section class="page builder-page">
     <div class="eyebrow">INTERACTIVE PRACTICE · CHANGE ONE RULE AT A TIME</div>
     <h1>Sentence<br /><em>builder.</em></h1>
-    <p class="lead">Choose an action, who does it, and the information you want to express. Change a setting and see the resulting sentence immediately.</p>
+    <p class="lead">Build an action, describe an object, ask what is available, or request information. Change a single meaning block and watch the grammar adapt.</p>
     <div class="builder-layout">
       <section class="builder-controls">
         <div class="panel-title"><span>01</span><h2>Compose the meaning</h2></div>
         <div class="builder-form">
-          ${selectControl('builder-predicate', 'Action')}
-          ${selectControl('builder-agent', 'Who is doing it?')}
-          ${selectControl('builder-argument', 'Object or destination')}
-          ${selectControl('builder-modal', 'Ability or intention')}
-          ${selectControl('builder-time', 'When?')}
-          <div class="check-row"><label><input type="checkbox" id="builder-negative" /> Say it negatively</label></div>
-          <div class="check-row"><label><input type="checkbox" id="builder-question" /> Ask as a question</label></div>
-          <div class="check-row"><label><input type="checkbox" id="builder-polite" /> Add a polite request</label></div>
+          ${selectControl('builder-mode', 'What do you want to communicate?')}
+          <div id="builder-action-fields" class="builder-mode-fields">
+            ${selectControl('builder-predicate', 'Action')}
+            ${selectControl('builder-agent', 'Who is doing it?')}
+            ${selectControl('builder-argument', 'Object or destination')}
+            ${selectControl('builder-modal', 'Ability, intention or obligation')}
+            ${selectControl('builder-tense', 'When does it happen?')}
+            ${selectControl('builder-quantity', 'How many?')}
+            ${selectControl('builder-time', 'Time marker')}
+            ${selectControl('builder-frequency', 'How often?')}
+            ${selectControl('builder-reason', 'Explain why (optional)')}
+          </div>
+          <div id="builder-description-fields" class="builder-mode-fields" hidden>
+            ${selectControl('builder-description-thing', 'Thing to describe')}
+            ${selectControl('builder-description-quality', 'Quality')}
+            ${selectControl('builder-description-tense', 'Present or past state')}
+          </div>
+          <div id="builder-presence-fields" class="builder-mode-fields" hidden>
+            ${selectControl('builder-presence-thing', 'What may be available?')}
+            ${selectControl('builder-presence-place', 'Where?')}
+          </div>
+          <div id="builder-object-fields" class="builder-mode-fields" hidden>
+            ${selectControl('builder-object-predicate', 'Which action?')}
+            ${selectControl('builder-object-agent', 'Who do you ask about?')}
+          </div>
+          <div id="builder-route-fields" class="builder-mode-fields" hidden>
+            ${selectControl('builder-route-place', 'Destination')}
+          </div>
+          <div class="check-row" id="builder-negative-field"><label><input type="checkbox" id="builder-negative" /> Say it negatively</label></div>
+          <div class="check-row" id="builder-question-field"><label><input type="checkbox" id="builder-question" /> Ask as a yes/no question</label></div>
+          <div class="check-row" id="builder-polite-field"><label><input type="checkbox" id="builder-polite" /> Add a polite request</label></div>
         </div>
         <div class="builder-hint">Only combinations supported by this compact grammar are offered. The language determines the word order and endings.</div>
       </section>

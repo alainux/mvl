@@ -27,14 +27,24 @@ export const CAPABILITIES: Readonly<Record<CapabilityId, Capability>> = {
 
 const DEPENDENCIES: Readonly<Record<OperatorId, readonly OperatorId[]>> = {
   EVENT: [],
+  PAST: ['EVENT'],
+  FUTURE: ['EVENT'],
   CAN: ['EVENT'],
   WANT: ['EVENT'],
+  MUST: ['EVENT'],
   NOT: ['EVENT'],
   WHEN: ['EVENT'],
   ASK: ['EVENT'],
   PLEASE: ['ASK'],
+  LINK: ['EVENT'],
   WHERE: [],
   PRICE: [],
+  FREQUENCY: ['EVENT'],
+  DESCRIBE: [],
+  EXISTS: [],
+  ASK_OBJECT: ['EVENT'],
+  HOW_TO_GET: [],
+  SEQUENCE: ['EVENT'],
 };
 
 export interface DerivedProfile {

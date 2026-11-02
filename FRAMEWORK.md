@@ -1,73 +1,91 @@
-# MVL framework specification
+# MVL: framework specification
 
-This is the **developer-facing specification**. The published app is intended to
-teach German, French, and Spanish. Its normal navigation does not ask learners
-to learn this meta-model.
+This document is for implementers. The generated website is a **language
+learning tool**, not an interface to the semantic engine itself.
 
-## 1. Design goals
+## 1. Desired result
 
-1. Represent a small, high-utility **communicative meaning** independently of
-   any target-language word order.
-2. Compose meaning from typed reusable operators rather than treating each
-   sentence as a key in a phrase dictionary.
-3. Let each natural language make its own grammatical decisions.
-4. Generate learner manuals (lessons, examples, and drills) from shared goals
-   while allowing **authored, language-specific teaching explanations**.
-5. Fail visibly when an operation falls outside the implemented subset.
-6. Keep the source readable and outputs reproducible, without a hosted backend.
+An MVL implementation is a **minimal but expressive production grammar** that
+covers a declared set of communicative capabilities with as few independent
+constructions as reasonably possible. A small tourist phrase inventory fails
+this requirement: it cannot freely report yesterday's events, express a plan,
+or explain a problem.
 
-## 2. Meaning algebra
+The initial profile is **A2-oriented** and operationalizes portions of the
+Council of Europe's descriptors: exchanging routine information, describing
+one's circumstances, talking about past activity, and discussing plans. It is
+not an official CEFR specification or an assessment of a learner's ability.
 
-### Types
+References:
+- [Council of Europe: CEFR levels](https://www.coe.int/en/web/common-European-framework-reference-languages/table-1-cefr-3.3-common-reference-levels-global-scale)
+- [CEFR Companion Volume](https://www.coe.int/en/web/education/-/common-european-framework-of-reference-for-languages-learning-teaching-assessment-14)
+- [Goethe-Institut: Perfekt for spoken German](https://lernplattform.goethe.de/pluginfile.php/1534641/mod_folder/content/0/DTonlineA2_K10_GR-RM_Rueckschau_EN.pdf)
 
-The starter uses disjoint semantic types such as `Participant`, `Thing`,
-`Place`, `Time`, `PredicateId`, and `Modality`.
+The architecture draws inspiration from construction-based approaches and from
+the abstract-syntax / concrete-syntax separation in
+[Grammatical Framework](https://www.grammaticalframework.org/), without
+attempting to implement all of GF.
 
-The `Event` discriminated union enforces predicate-specific argument roles.
-For example:
+## 2. Core algebra
+
+The shared meaning types are located in `src/core/model.ts`:
+
+- `Event` — a typed predicate, agent, argument and optional two-item quantity.
+- `Clause` — an event plus tense, modality, polarity, time, frequency, question and politeness.
+- `Discourse` — two clauses joined by `and`, `but` or `because`.
+- `LocationQuestion`, `PriceQuestion`, `TimeQuestion` — specialized questions.
+- `Description` — a constrained noun–quality predication.
+- `Presence` — an existence statement or question anchored in a place.
+- `ObjectQuestion`, `RouteQuestion` — ask for an unknown object or directions.
+- `Sequence` — a short narrative composed from independent clauses.
+
+Typed constructors in `src/core/algebra.ts` form legal expressions:
 
 ```ts
-// The helper is a participant and the receiver must be another participant.
-type HelpEvent = Readonly<{
-  kind: 'event';
-  predicate: 'help';
-  agent: Participant;
-  recipient: Participant;
-}>;
+const bought = when(
+  inTense(clause(event('buy', 'speaker', 'ticket')), 'past'),
+  'yesterday',
+);
+
+const cannotCome = negate(
+  modal(clause(event('come', 'speaker', 'none')), 'can'),
+);
+
+const reason = clause(event('be', 'speaker', 'sick'));
+const explanation = link(cannotCome, 'because', reason);
 ```
 
-A `go` event accepts destinations, not objects that one can purchase; a `buy`
-event accepts countable or mass items, not a location. Constructor runtime checks
-protect the browser interface from invalid user-generated selections.
+These examples are **semantic programs**; they contain no inflected words in a
+target language. The constructors validate semantic roles, countability and
+incompatible time/tense combinations. They reject unimplemented compositions
+rather than silently fall back to machine translation.
 
-### Operators
+### Operator contract
 
-| Operator | Input | Meaning |
-| --- | --- | --- |
-| `EVENT` | predicate + participant + typed argument | Situation |
-| `CAN` | event | Ability or permission |
-| `WANT` | event | Intention |
-| `NOT` | clause | Negation |
-| `WHEN` | clause + time | Temporal qualification |
-| `ASK` | clause | Yes/no question |
-| `PLEASE` | question | Courteous request |
-| `WHERE` | place | Location question |
-| `PRICE` | purchasable thing | Cost question |
+| Operation | Purpose |
+| --- | --- |
+| `event(...)` | Create an event with semantic role restrictions |
+| `inTense(..., 'past'/'present'/'future')` | Report, describe or plan |
+| `when(..., time)` | Add a time anchor consistent with tense |
+| `modal(..., 'can'/'want'/'must')` | Ability, intention and obligation |
+| `negate(...)` | Deny a clause or its nominal content |
+| `ask(...)` / `askWhen(...)` | Request confirmation or timing |
+| `please(...)` | Add politeness to a request |
+| `link(a, connection, b)` | Build a brief explanation or contrast |
+| `where(place)` / `price(thing)` | Ask common location and price questions |
+| `habit(clause, frequency)` | Talk about routines |
+| `describe(thing, quality)` | Predication with agreement where required |
+| `presence(thing, place)` | Ask or say that something exists |
+| `askObject(predicate, agent)` | Open question about the unknown object |
+| `howToGet(place)` | Ask for directions |
+| `sequence(...clauses)` | Tell a short, compositional story |
 
-Composition is constrained. `PLEASE` accepts a question; an unsupported modal
-for a predicate is rejected. Explicit AST nesting preserves operator scope.
+> Type safety is a programming contract, not a linguistic correctness proof.
+> Linguistic outputs must still be reviewed and regression-tested.
 
-```text
-PLEASE(ASK(CAN(EVENT(help, addressee, speaker))))
-```
+## 3. Concrete language realizers
 
-The target grammar receives this tree, not a literal English sentence. The
-language adapters may flatten the supported operator order into a typed
-`Analysis` structure before realizing surface forms.
-
-## 3. Language adapters
-
-A language adapter implements:
+Each of `de`, `fr`, `es` implements:
 
 ```ts
 interface LanguageAdapter {
@@ -76,116 +94,69 @@ interface LanguageAdapter {
 }
 ```
 
-The German adapter has forms for case-marked noun phrases and dative recipients.
-French has obligatory clitic positioning, article elision, and one predictable
-`est-ce que` question pattern. Spanish has formal second-person conjugations,
-pronoun placement, and inverted written question punctuation. English is a
-**fourth renderer** used only to generate learning prompts from the same AST.
+Shared *meanings* do not entail shared *morphology*:
 
-Adapters may share trivial helpers (whitespace, casing) but cannot share rules
-that are actually language-specific. Lexical entries may store lemmas, gender,
-countability, or irregular morphology. They must not store a full translation of
-every teachable utterance.
+- German: V2/main-clause question order; accusative/dative noun and recipient
+  forms; `Perfekt` with `haben` or `sein`; preterite of common states/modals;
+  present plus a future adverb; simple reasons with `denn`.
+- French: `est-ce que` questions; subject elision and object clitics;
+  `passé composé` for completed actions, simple `imparfait` for past states;
+  `aller + infinitive` for future plans; `ne ... pas` negation.
+- Spanish: formal `usted` conjugations; object clitics; `pretérito indefinido`
+  for completed events and simple imperfect past states; near future
+  `ir a + infinitive`; sentence negation using `no`.
 
-## 4. Generation pipeline
+Lemmas, gender, irregular verb forms, past participles and prepositional
+preferences are *necessary lexical data*. Complete translated phrases are not.
 
-### Shared curriculum
+## 4. Generating lessons
 
-`src/learning/curriculum.ts` declares goals and `LessonBlock` programs.
-A `paradigm` block specifies a predicate, person, compatible arguments, and
-optional operator settings. `expandBlock` enumerates these inputs into valid
-ASTs. Location and price blocks construct typed questions directly.
+`src/learning/curriculum.ts` and `curriculum-everyday.ts` contain 40
+language-neutral lessons over
+semantically typed `LessonBlock`s, including:
 
-**No productive lesson block contains a `target` or `english` sentence.**
+- `paradigm`: substitute compatible objects, people, quantities or operators.
+- `timeline`: vary present/past/future while keeping the action constant.
+- `combine`: compose two independently realized clauses.
+- `where`, `price`, `when-question`, `ask-object`, `route`: generate questions.
+- `describe`, `presence`: compose noun–property and existential propositions.
+- `sequence`: combine short independent clauses into a story.
+- `conventions`: a small explicitly marked store of social formulas.
 
-### Language-local explanation
+`src/learning/expand.ts` executes these programs to produce ASTs, and
+`src/learning/compile.ts` independently realizes every AST into an English
+prompt and a target-language output. The human-authored notes in
+`src/learning/notes.ts` and `notes-everyday.ts` explain language-specific grammar.
 
-`src/learning/notes.ts` contains each language's recipe, explanation, detail,
-and caution. These explanations are **authored** because an explanation of
-German verb-second or French negation is not just a translation of an abstract
-rule. It is pedagogical content, not a phrase lookup engine.
+The learning application provides a manual, quick reference, sentence builder,
+practice generated from new AST transformations, progress tracking and notes.
 
-### Compilation
+## 5. What does minimal mean?
 
-`compileGuide(code)` expands each lesson block and calls two realizers for each
-productive AST: `realizeEnglish(expression)` and
-`linearize(expression, code)`. The build script writes the resulting guides to
-`docs/guides/{de,fr,es}.json`. Learner pages load these artifacts.
+Minimality is **not the number of lines of code**, vocabulary size alone, or the
+number of memorized phrases. It is a practical trade-off between:
 
-### Practice
+1. **Communicative coverage:** how many useful intentions can be expressed?
+2. **Grammar cost:** how many independent inflections and exceptions must be
+   learned to express those intentions?
+3. **Composability:** can learned rules combine to express something novel?
+4. **Naturalness:** can an ordinary native speaker understand the resulting
+   standard-language utterance without learning a special dialect?
+5. **Reliability:** will the chosen short construction remain correct in the
+   domain for which it is taught?
 
-`generatePractice` transforms a teaching AST by changing a valid semantic slot
-or an operator, avoiding already-shown ASTs where possible. It then realizes
-**both** its English prompt and the target-language model form from the new tree.
-No practice answer dictionary exists. A few closed-class patterns, and the
-conventional social formulas, cannot produce distinct unseen combinations.
+These are distinct measures, not a solved optimization problem. Claims of A2
+coverage require real learner trials, native-speaker review, and reception
+(reading/listening) evaluation beyond what tests can establish.
 
-## 5. Conventional language is not an anti-pattern
+## 6. Quality and extension
 
-A very small number of social formulas have lexicalized meanings which are not
-compositional in this starter grammar: greeting, thanks, polite social repair.
-These are stored in the separate `routines.ts` map and tagged
-`provenance: 'conventional'` when compiled. They should remain a modest exception
-rather than an alternative implementation of the curriculum.
+`npm run check` runs strict TypeScript compilation, rebuilds generated guides,
+then tests their provenance, representative grammatical outputs, invalid
+semantic operations and thousands of supported combinations.
 
-To add an expression, first ask whether it can be composed from an existing
-meaning, a new operator, or a new lexical entry. Only preserve it as a whole
-chunk if its conventional structure truly falls outside the grammar's scope.
+When adding a language or semantic operator, implement it in *every installed
+adapter*, update the curriculum, add native-reviewed golden tests, and regenerate
+`docs/`. Do not patch output strings for individual examples in the lesson data.
 
-## 6. Quality gates
-
-The local check command runs strict TypeScript checking, builds every guide,
-and executes automated tests:
-
-- Constructor and AST scope tests.
-- Grammar regression cases for German, French, and Spanish.
-- A matrix of supported argument/operator/person combinations.
-- A contract proving every productive example is exactly the result of a
-  shared AST rendered into English and the target language.
-- A comparison proving each checked-in JSON guide matches a fresh compiler run.
-- Practice checks that new combinations use semantic transformations.
-
-Golden surface strings in tests are **assertions only**, not production data.
-The browser never imports them to generate an utterance.
-
-A comprehensive grammar review by native speakers remains valuable; tests
-cover established intended forms, not all possible meanings or dialects.
-
-## 7. Minimality and coverage
-
-Minimality is a design optimization with a moving target. More rules can unlock
-further communicative tasks but also impose teaching overhead. MVL's starting
-scope privileges practical production:
-
-- ask for help;
-- say what one needs or has;
-- ask a yes/no question;
-- navigate common places;
-- buy or pay for common items;
-- add a time and negate a statement.
-
-The current model is intentionally not an unrestricted interlingua. Languages
-have distinctions that cannot always be cleanly erased: German noun case,
-French partitives, Spanish subject omission, politeness, or aspect. The grammar
-adapter must retain whichever distinction makes a supported construction
-natural and intelligible. Support is narrower than general A1, and is not a
-claim of CEFR proficiency.
-
-## 8. Precedents and research direction
-
-The architecture draws on several established ideas without claiming to
-implement any one framework fully:
-
-- **Grammatical Framework (GF):** abstract syntax separated from language-specific
-  concrete syntax. <https://www.grammaticalframework.org/>
-- **Construction Grammar:** reusable form–meaning pairings rather than isolated
-  grammatical facts. <https://www.constructiongrammar.org/>
-- **Council of Europe Threshold Level / CEFR:** communicative functions and
-  observable can-do goals rather than a grammar-only syllabus.
-  <https://www.coe.int/en/web/common-european-framework-reference-languages>
-- **Basic English:** the idea of a deliberately restricted productive inventory,
-  while acknowledging that its English-specific choices cannot be generalized.
-
-Future work includes grammar coverage metrics, independent language review,
-more systematic lexical features, alternative politeness registers, and an
-explicit optimization model for learning burden versus communicative reach.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution contract.

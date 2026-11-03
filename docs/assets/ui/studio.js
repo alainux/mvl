@@ -13,8 +13,8 @@ import { CONCEPTS, DESCRIPTION_QUALITIES, LOCATABLE_PLACES, OBJECT_QUESTION_PRED
 import { realizeEnglish } from '../languages/en.js';
 import { linearize } from '../languages/index.js';
 import { escapeHtml as escape, required } from './dom.js';
-import { MISSIONS, RECIPES, applyRecipe, availableOperator, clauseFromSelection, editCompositeClause, isCompositeField, initialStudio, isPresent, operatorApplied, matchesMission, missionAnswer, normalizeStudio, startMission, studioExpression, toggleOperator, } from './studio-model.js';
-import { ruleFor } from './studio-rules.js';
+import { MISSIONS, RECIPES, applyRecipe, allowedArgumentsFor, availableOperator, clauseFromSelection, editCompositeClause, isCompositeField, initialStudio, isPresent, operatorApplied, matchesMission, missionAnswer, normalizeStudio, startMission, studioExpression, toggleOperator, } from './studio-model.js';
+import { grammarSteps, ruleFor } from './studio-rules.js';
 import { traceSurfaceOrder } from './surface-order.js';
 export const REMIX_STORAGE_KEY = 'mvl:studio:remix';
 const SUBJECT_CHOICES = [
@@ -209,8 +209,7 @@ function choices(state, slot) {
     switch (slot) {
         case 'agent': return SUBJECT_CHOICES;
         case 'predicate': return Object.entries(PREDICATES).map(([value, frame]) => ({ value, label: frame.description }));
-        case 'argument': return PREDICATES[action.predicate].allowedArguments
-            .filter((id) => !(PREDICATES[action.predicate].argumentRole === 'person' && id === action.agent))
+        case 'argument': return allowedArgumentsFor(action.predicate, action.agent)
             .map((id) => ({ value: id, label: concept(id) }));
         case 'quantity': return [{ value: '1', label: 'One' }, { value: '2', label: 'Two' }];
         case 'tense': return action.predicate === 'like'
@@ -509,15 +508,18 @@ export function initializeStudio(code) {
     let activeMission = null;
     let missionRevealed = false;
     let status = '';
+    let adjustmentMessage = '';
     let priorOutput = null;
     let lastChange = '';
     const canvas = required('#studio-blocks');
+    const adjustment = required('#studio-adjustment');
     const palette = required('#studio-palette');
     const inspector = required('#studio-inspector-body');
     const recipes = required('#studio-recipes-list');
     const missions = required('#studio-missions');
     const result = required('#studio-result');
     const orderedWords = required('#studio-order-words');
+    const structure = required('#studio-structure');
     const orderedHint = required('#studio-order-hint');
     const orderedLanguage = required('#studio-order-language');
     const orderedComparison = required('#studio-order-comparison');
@@ -547,6 +549,8 @@ export function initializeStudio(code) {
         const blocks = visualBlocks(state);
         const markup = blocks.map((block, index) => `${index > 0 ? '<span class="studio-join" aria-hidden="true">⊕</span>' : ''}${blockMarkup(block, activeSlot)}`).join('');
         canvas.innerHTML = `${markup}<p class="studio-canvas-caption">${blocks.length} meaning ingredients · ⊕ means “combine meanings”, not “put these words in this order”</p>`;
+        adjustment.textContent = adjustmentMessage;
+        adjustment.hidden = !adjustmentMessage;
     }
     function renderPalette() {
         const paletteHeading = document.querySelector('.studio-add-header');
@@ -575,7 +579,6 @@ export function initializeStudio(code) {
         const selection = clauseAt(state, index);
         if (!selection)
             return '<p>This statement is not available.</p>';
-        const frame = PREDICATES[selection.predicate];
         const field = (key, label, choices, value) => `
       <label class="studio-composite-field">${escape(label)}
         <select data-composite-index="${index}" data-composite-field="${key}">
@@ -583,8 +586,7 @@ export function initializeStudio(code) {
         </select>
       </label>`;
         const predicateChoices = Object.entries(PREDICATES).map(([value, predicate]) => ({ value, label: predicate.description }));
-        const argumentChoices = frame.allowedArguments
-            .filter((argument) => !(frame.argumentRole === 'person' && argument === selection.agent))
+        const argumentChoices = allowedArgumentsFor(selection.predicate, selection.agent)
             .map((value) => ({ value, label: concept(value) }));
         const tenseChoices = [
             { value: 'present', label: 'Present' },
@@ -656,6 +658,7 @@ export function initializeStudio(code) {
             priorOutput = null;
         }
         lastChange = label;
+        adjustmentMessage = '';
     }
     function renderResult() {
         try {
@@ -675,6 +678,9 @@ export function initializeStudio(code) {
                 // Some slots have no alternative in a particular construction.
             }
             const tokens = traceSurfaceOrder(current, comparison);
+            structure.innerHTML = grammarSteps(state, code)
+                .map((step) => '<span class="studio-structure-step"><strong>' + escape(step.role) +
+                '</strong><small>' + escape(step.explanation) + '</small></span>').join('');
             orderedLanguage.textContent = { de: '· German', fr: '· French', es: '· Spanish' }[code];
             orderedWords.lang = code;
             orderedWords.innerHTML = tokens.map((token) => `
@@ -709,6 +715,7 @@ export function initializeStudio(code) {
             result.textContent = 'This combination is not supported.';
             meaning.textContent = '';
             orderedWords.textContent = '';
+            structure.textContent = '';
             orderedComparison.textContent = '';
             orderedHint.textContent = 'This combination could not be realized.';
             copy.disabled = true;
@@ -751,6 +758,8 @@ export function initializeStudio(code) {
         saveState(code, state);
     }
     function applyChoice(slot, value) {
+        const oldArgument = state.action.argument;
+        const oldModal = state.action.modal;
         rememberBefore(`Edit ${slot}`);
         if (slot === 'time') {
             const next = structuredClone(state);
@@ -762,6 +771,12 @@ export function initializeStudio(code) {
         else {
             state = setSlot(state, slot, value);
             activeSlot = slot;
+        }
+        if (slot === 'predicate' || slot === 'agent') {
+            if (oldArgument !== state.action.argument)
+                adjustmentMessage = 'This subject/action cannot use the previous object; it was changed to ' + concept(state.action.argument) + '.';
+            else if (oldModal && !state.action.modal)
+                adjustmentMessage = 'The previous modal does not fit this verb, so it was removed.';
         }
         recipeId = null;
         status = '';
@@ -897,9 +912,7 @@ export function initializeStudio(code) {
     required('#studio-swap').addEventListener('click', () => {
         rememberBefore('Swap vocabulary');
         if (state.pattern === 'action') {
-            const frame = PREDICATES[state.action.predicate];
-            const valid = frame.allowedArguments
-                .filter((id) => !(frame.argumentRole === 'person' && id === state.action.agent));
+            const valid = allowedArgumentsFor(state.action.predicate, state.action.agent);
             const nextIndex = (valid.indexOf(state.action.argument) + 1) % valid.length;
             const nextArgument = valid[nextIndex];
             if (nextArgument)
@@ -932,8 +945,7 @@ export function initializeStudio(code) {
             const index = isClauseSlot(activeSlot) ? Number(activeSlot.slice(-1)) : 0;
             const current = clauseAt(state, index);
             if (current) {
-                const frame = PREDICATES[current.predicate];
-                const available = frame.allowedArguments;
+                const available = allowedArgumentsFor(current.predicate, current.agent);
                 const replacement = available[(available.indexOf(current.argument) + 1) % available.length];
                 if (replacement)
                     editCompositeStep(index, 'argument', replacement);

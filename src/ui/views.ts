@@ -1,4 +1,4 @@
-import { PREDICATES, CONCEPTS } from '../core/vocabulary.js';
+import { CONCEPTS } from '../core/vocabulary.js';
 import { generatePractice } from '../learning/practice.js';
 import type {
   GeneratedExample,
@@ -10,7 +10,7 @@ import { escapeHtml as escape } from './dom.js';
 import { href, type Code, type Route } from './router.js';
 import { completedLessons, getLanguage } from './state.js';
 import { renderStudio } from './studio-view.js';
-import { fromExpression } from './studio-model.js';
+import { fromExpression, allowedArgumentsFor } from './studio-model.js';
 
 const LANGUAGE_NAMES: Readonly<Record<Code, string>> = {
   de: 'German',
@@ -194,8 +194,7 @@ function renderSubstitution(lesson: GeneratedLesson, code: Code): string {
   if (!source || source.source.kind !== 'expression' || !source.source.selection) return '';
 
   const selection = source.source.selection;
-  const available = PREDICATES[selection.predicate].allowedArguments
-    .filter((argument) => selection.predicate !== 'help' || selection.agent !== argument);
+  const available = allowedArgumentsFor(selection.predicate, selection.agent);
   if (available.length <= 1) return '';
 
   const options = available.map((argument) => `
@@ -316,14 +315,17 @@ function renderPractice(model: GeneratedGuide, state: PracticeViewState): string
       <div class="practice-controls">
         <button id="practice-check" class="button primary">Check against model</button>
         <button id="practice-reveal" class="button secondary">Show answer</button>
+        <button id="practice-hint" class="button secondary" aria-expanded="false">Grammar hint</button>
       </div>
+      <p id="practice-hint-content" class="practice-hint" role="status" hidden></p>
       <div class="practice-feedback" id="practice-feedback" ${state.revealed ? '' : 'hidden'}>
         <span id="practice-feedback-title">${state.feedback === 'matched' ? 'Matches the model' : 'Model answer'}</span>
         <strong id="practice-model-answer" lang="${model.language.code}">${escape(exercise.target)}</strong>
         <p>${state.feedback === 'matched'
           ? 'Your response matches the model form.'
-          : 'Compare your answer with this form. Other valid ways to say it may exist.'}</p>
+          : 'Not an exact model match. Your answer may still be valid; compare the grammar and try again.'}</p>
       </div>
+      ${exercise.source.kind === 'expression' ? '<button id="practice-remix" class="button secondary">Inspect as editable blocks ↗</button>' : ''}
       <button id="practice-next" class="button secondary practice-next" ${state.revealed ? '' : 'disabled'}>Next prompt →</button>
     </div>
     <aside class="aside-note">This is a writing exercise, not an automated grammar examiner. It compares your input with one model sentence; it cannot judge every valid alternative.</aside>

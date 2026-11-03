@@ -34,6 +34,7 @@ import {
   MISSIONS,
   RECIPES,
   applyRecipe,
+  allowedArgumentsFor,
   availableOperator,
   clauseFromSelection,
   editCompositeClause,
@@ -52,7 +53,7 @@ import {
   type StudioSlot,
   type StudioState,
 } from './studio-model.js';
-import { ruleFor } from './studio-rules.js';
+import { grammarSteps, ruleFor } from './studio-rules.js';
 import { traceSurfaceOrder } from './surface-order.js';
 
 export const REMIX_STORAGE_KEY = 'mvl:studio:remix';
@@ -264,8 +265,7 @@ function choices(state: StudioState, slot: StudioSlot): readonly Choice[] {
   switch (slot) {
     case 'agent': return SUBJECT_CHOICES;
     case 'predicate': return Object.entries(PREDICATES).map(([value, frame]) => ({ value, label: frame.description }));
-    case 'argument': return (PREDICATES[action.predicate].allowedArguments as readonly SemanticArgument[])
-      .filter((id) => !(PREDICATES[action.predicate].argumentRole === 'person' && id === action.agent))
+    case 'argument': return allowedArgumentsFor(action.predicate, action.agent)
       .map((id) => ({ value: id, label: concept(id) }));
     case 'quantity': return [{ value: '1', label: 'One' }, { value: '2', label: 'Two' }];
     case 'tense': return action.predicate === 'like'
@@ -487,16 +487,19 @@ export function initializeStudio(code: Code): void {
   let activeMission: Mission | null = null;
   let missionRevealed = false;
   let status = '';
+  let adjustmentMessage = '';
   let priorOutput: string | null = null;
   let lastChange = '';
 
   const canvas = required<HTMLElement>('#studio-blocks');
+  const adjustment = required<HTMLElement>('#studio-adjustment');
   const palette = required<HTMLElement>('#studio-palette');
   const inspector = required<HTMLElement>('#studio-inspector-body');
   const recipes = required<HTMLElement>('#studio-recipes-list');
   const missions = required<HTMLElement>('#studio-missions');
   const result = required<HTMLElement>('#studio-result');
   const orderedWords = required<HTMLElement>('#studio-order-words');
+  const structure = required<HTMLElement>('#studio-structure');
   const orderedHint = required<HTMLElement>('#studio-order-hint');
   const orderedLanguage = required<HTMLElement>('#studio-order-language');
   const orderedComparison = required<HTMLElement>('#studio-order-comparison');
@@ -528,6 +531,8 @@ export function initializeStudio(code: Code): void {
     const blocks = visualBlocks(state);
     const markup = blocks.map((block, index) => `${index > 0 ? '<span class="studio-join" aria-hidden="true">⊕</span>' : ''}${blockMarkup(block, activeSlot)}`).join('');
     canvas.innerHTML = `${markup}<p class="studio-canvas-caption">${blocks.length} meaning ingredients · ⊕ means “combine meanings”, not “put these words in this order”</p>`;
+    adjustment.textContent = adjustmentMessage;
+    adjustment.hidden = !adjustmentMessage;
   }
 
   function renderPalette(): void {
@@ -556,7 +561,6 @@ export function initializeStudio(code: Code): void {
     const index = Number(slot.slice(-1));
     const selection = clauseAt(state, index);
     if (!selection) return '<p>This statement is not available.</p>';
-    const frame = PREDICATES[selection.predicate];
     const field = (key: string, label: string, choices: readonly Choice[], value: string): string => `
       <label class="studio-composite-field">${escape(label)}
         <select data-composite-index="${index}" data-composite-field="${key}">
@@ -564,8 +568,7 @@ export function initializeStudio(code: Code): void {
         </select>
       </label>`;
     const predicateChoices = Object.entries(PREDICATES).map(([value, predicate]) => ({ value, label: predicate.description }));
-    const argumentChoices = (frame.allowedArguments as readonly SemanticArgument[])
-      .filter((argument) => !(frame.argumentRole === 'person' && argument === selection.agent))
+    const argumentChoices = allowedArgumentsFor(selection.predicate, selection.agent)
       .map((value) => ({ value, label: concept(value) }));
     const tenseChoices: readonly Choice[] = [
       { value: 'present', label: 'Present' },
@@ -634,6 +637,7 @@ export function initializeStudio(code: Code): void {
     try { priorOutput = linearize(studioExpression(state), code); }
     catch { priorOutput = null; }
     lastChange = label;
+    adjustmentMessage = '';
   }
 
   function renderResult(): void {
@@ -653,6 +657,9 @@ export function initializeStudio(code: Code): void {
         // Some slots have no alternative in a particular construction.
       }
       const tokens = traceSurfaceOrder(current, comparison);
+      structure.innerHTML = grammarSteps(state, code)
+        .map((step) => '<span class="studio-structure-step"><strong>' + escape(step.role) +
+          '</strong><small>' + escape(step.explanation) + '</small></span>').join('');
       orderedLanguage.textContent = ({ de: '· German', fr: '· French', es: '· Spanish' } as const)[code];
       orderedWords.lang = code;
       orderedWords.innerHTML = tokens.map((token) => `
@@ -687,6 +694,7 @@ export function initializeStudio(code: Code): void {
       result.textContent = 'This combination is not supported.';
       meaning.textContent = '';
       orderedWords.textContent = '';
+      structure.textContent = '';
       orderedComparison.textContent = '';
       orderedHint.textContent = 'This combination could not be realized.';
       copy.disabled = true;
@@ -730,6 +738,8 @@ export function initializeStudio(code: Code): void {
   }
 
   function applyChoice(slot: StudioSlot | 'time', value: string): void {
+    const oldArgument = state.action.argument;
+    const oldModal = state.action.modal;
     rememberBefore(`Edit ${slot}`);
     if (slot === 'time') {
       const next = structuredClone(state);
@@ -739,6 +749,12 @@ export function initializeStudio(code: Code): void {
     } else {
       state = setSlot(state, slot, value);
       activeSlot = slot;
+    }
+    if (slot === 'predicate' || slot === 'agent') {
+      if (oldArgument !== state.action.argument)
+        adjustmentMessage = 'This subject/action cannot use the previous object; it was changed to ' + concept(state.action.argument) + '.';
+      else if (oldModal && !state.action.modal)
+        adjustmentMessage = 'The previous modal does not fit this verb, so it was removed.';
     }
     recipeId = null;
     status = '';
@@ -866,9 +882,7 @@ export function initializeStudio(code: Code): void {
   required<HTMLButtonElement>('#studio-swap').addEventListener('click', () => {
     rememberBefore('Swap vocabulary');
     if (state.pattern === 'action') {
-      const frame = PREDICATES[state.action.predicate];
-      const valid = (frame.allowedArguments as readonly SemanticArgument[])
-        .filter((id) => !(frame.argumentRole === 'person' && id === state.action.agent));
+      const valid = allowedArgumentsFor(state.action.predicate, state.action.agent);
       const nextIndex = (valid.indexOf(state.action.argument) + 1) % valid.length;
       const nextArgument = valid[nextIndex];
       if (nextArgument) state = setSlot(state, 'argument', nextArgument);
@@ -893,8 +907,7 @@ export function initializeStudio(code: Code): void {
       const index = isClauseSlot(activeSlot) ? Number(activeSlot.slice(-1)) : 0;
       const current = clauseAt(state, index);
       if (current) {
-        const frame = PREDICATES[current.predicate];
-        const available = frame.allowedArguments as readonly SemanticArgument[];
+        const available = allowedArgumentsFor(current.predicate, current.agent);
         const replacement = available[(available.indexOf(current.argument) + 1) % available.length];
         if (replacement) editCompositeStep(index, 'argument', replacement);
       }

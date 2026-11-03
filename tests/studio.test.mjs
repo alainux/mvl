@@ -195,3 +195,72 @@ test('a story keeps its independent tenses when just one step is edited', async 
     assert.notEqual(linearize(studioExpression(loaded), code), linearize(studioExpression(edited), code));
   }
 });
+
+test('remixing reason clauses never drops negation, time, or other modifiers', async () => {
+  const { clause, event, link } = await import('../docs/assets/core/algebra.js');
+  const main = clause(event('come', 'speaker', 'none'));
+  const busy = clause(event('be', 'speaker', 'busy'));
+  const noTime = { ...clause(event('have', 'speaker', 'time')), negative: true };
+  const secondClauses = [
+    busy,
+    noTime,
+    { ...busy, negative: true },  // "because I am not busy"
+    { ...busy, time: 'today' },
+    { ...busy, tense: 'past', time: 'yesterday' },
+    { ...noTime, time: 'today' },
+    { ...busy, event: { ...busy.event, agent: 'we' } },
+  ];
+  for (const second of secondClauses) {
+    const original = link(main, 'because', second);
+    const editable = fromExpression(original);
+    assert.ok(editable);
+    assert.deepEqual(studioExpression(editable), original,
+      'semantic import/export must preserve the entire reason clause');
+    for (const code of codes) {
+      assert.equal(linearize(studioExpression(editable), code), linearize(original, code));
+    }
+  }
+});
+
+test('all offered person arguments are legal for the grammar engine', async () => {
+  const { allowedArgumentsFor } = await import('../docs/assets/ui/studio-model.js');
+  const { PREDICATES } = await import('../docs/assets/core/vocabulary.js');
+  const { event } = await import('../docs/assets/core/algebra.js');
+  for (const [predicate, frame] of Object.entries(PREDICATES)) {
+    for (const agent of ['speaker', 'addressee', 'we', 'other']) {
+      const visible = allowedArgumentsFor(predicate, agent);
+      assert.ok(visible.length > 0, `${predicate}/${agent} needs a viable argument`);
+      for (const argument of visible) {
+        assert.doesNotThrow(() => event(predicate, agent, argument));
+      }
+      for (const argument of frame.allowedArguments) {
+        if (visible.includes(argument)) continue;
+        assert.throws(() => event(predicate, agent, argument),
+          /Self-directed/, `${predicate}/${agent}/${argument} cannot be offered`);
+      }
+    }
+  }
+});
+
+test('tense teaching matches irregular past and future polite requests', async () => {
+  const { grammarSteps, ruleFor } = await import('../docs/assets/ui/studio-rules.js');
+  const simplePast = fromExpression(makeTree({
+    ...initialStudio().action, predicate: 'be', agent: 'speaker', argument: 'ready', tense: 'past', time: 'yesterday',
+  }));
+  assert.match(ruleFor(simplePast, 'de', 'tense'), /war/);
+  assert.ok(!grammarSteps(simplePast, 'de').some((part) => part.explanation === 'Past participle'));
+
+  const completed = fromExpression(makeTree({
+    ...initialStudio().action, predicate: 'buy', agent: 'speaker', argument: 'ticket', tense: 'past', time: 'yesterday',
+  }));
+  assert.match(ruleFor(completed, 'de', 'tense'), /participle/);
+  assert.ok(grammarSteps(completed, 'de').some((part) => part.explanation === 'Past participle'));
+
+  const politeFuture = fromExpression(makeTree({
+    ...initialStudio().action, predicate: 'would_like', agent: 'speaker', argument: 'coffee',
+    tense: 'future', time: 'tomorrow',
+  }));
+  assert.match(ruleFor(politeFuture, 'fr', 'tense'), /voudrais/);
+  assert.match(ruleFor(politeFuture, 'es', 'tense'), /quisiera/);
+  assert.ok(!grammarSteps(politeFuture, 'fr').some((part) => part.role === 'FUTURE'));
+});

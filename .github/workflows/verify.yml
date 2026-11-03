@@ -1,0 +1,32 @@
+name: Verify MVL
+
+on:
+  push:
+    branches: [main, "fix/**"]
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+      - run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Commit generated Pages output
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/fix/')
+        run: |
+          git add docs
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "Synchronize compiled Pages assets [skip ci]"
+            git push origin HEAD:"${GITHUB_REF_NAME}"
+          fi
+      - name: Verify generated assets
+        run: git diff --exit-code -- docs

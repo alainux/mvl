@@ -134,8 +134,8 @@ git push
 ```
 
 The build emits readable, unminified JavaScript modules and three generated
-`docs/guides/*.json` manuals. There is **no custom Actions CI pipeline**.
-GitHub's ordinary Pages publication workflow serves the committed static output.
+`docs/guides/*.json` manuals. A GitHub Actions workflow verifies TypeScript, guide compilation, and regression tests on pushes and pull requests.
+GitHub Pages serves the checked-in static `/docs` output.
 
 ## What remains outside this subset?
 

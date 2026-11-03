@@ -59,7 +59,7 @@ export function renderQuest(guide, lesson, session) {
     const editable = expr ? fromExpression(expr) : null;
     const why = editable ? ruleFor(editable, code, focus) :
         'This is a conventional expression. Remember it as a useful whole.';
-    const steps = rounds.map((_, i) => `<span class="quest-step ${i < session.round ? 'done' : i === session.round ? 'active' : ''}"
+    const steps = rounds.map((_, i) => `<span class="quest-step ${i < session.round || (i === session.round && session.phase === 'won') ? 'done' : i === session.round ? 'active' : ''}"
     aria-label="Encounter ${i + 1}"></span>`).join('');
     const slots = Array.from({ length: round.expected.length }, (_, i) => {
         const tileId = session.selected[i];
@@ -106,6 +106,7 @@ export function renderQuest(guide, lesson, session) {
         ${session.phase === 'won' ? `<div class="quest-won-panel">
           <span class="quest-won-icon" aria-hidden="true">✓</span>
           <div><span class="game-kicker">GATE OPENED!</span><strong lang="${code}">${esc(round.target)}</strong>
+            <p class="quest-story-beat">✦ ${['The first seal lights up.', 'The path begins to glow.', 'Another lock clicks open.', 'The final lantern shines.', 'The guardian steps aside.'][session.round] ?? 'A new path opens.'}</p>
             <p>${esc(why)}</p></div>
           <button id="quest-next" class="game-primary">${round.boss ? 'Claim your stars →' : 'Next encounter →'}</button>
         </div>` : ''}

@@ -6,25 +6,57 @@ export function renderStudio(): string {
   return `<section class="page studio-page" id="studio" aria-labelledby="studio-title">
     <div class="studio-heading">
       <a class="game-back" id="studio-back" href="#de/start">← Back to levels</a>
-      <div class="eyebrow"><span class="eyebrow-line"></span> MODE 01 · FALLING-BLOCK BUILDER</div>
-      <h1 id="studio-title">Drop blocks.<br /><em>Build a sentence.</em></h1>
-      <p class="lead">A real falling-block game. Steer shapes over WHO, ACTION, THING, WHEN and POWER. Every successful lock changes the sentence in your target language.</p>
+      <div class="eyebrow"><span class="eyebrow-line"></span> MODE 01 · GRAMMAR PUZZLES</div>
+      <h1 id="studio-title">Build meaning.<br /><em>See language click.</em></h1>
+      <p class="lead">Like a block puzzle: only compatible pieces fit. Solve a sentence blueprint, then see how German, French or Spanish puts your meaning into words.</p>
       <div class="studio-steps" aria-label="How to play">
-        <span><b>01</b> Move & rotate</span>
-        <span><b>02</b> Hit the matching lane</span>
-        <span><b>03</b> Clear lines for combos</span>
+        <span><b>01</b> Choose a blueprint</span>
+        <span><b>02</b> Snap compatible pieces</span>
+        <span><b>03</b> Build the target sentence</span>
       </div>
     </div>
 
-    <section class="studio-arcade" aria-label="Sentence Stack arcade">
-      <div id="studio-stack" class="stack-machine"></div>
-      <div class="studio-arcade-caption">
-        <span><b>★</b> Every lock runs through the actual grammar engine.</span>
-        <span>Prefer experimenting? The open-ended building blocks lab is below ↓</span>
+    <section class="snap-game" id="snap-game" aria-label="Sentence builder game">
+      <header class="snap-header">
+        <div><span class="snap-kicker">▦ THE SENTENCE MACHINE / BUILD MODE</span>
+          <h2>Make the pieces fit.</h2>
+          <p>Pick a socket, then snap in a compatible meaning piece. The grammar engine assembles the real sentence.</p>
+        </div>
+        <div class="snap-score"><span>BLUEPRINTS CLEARED</span><strong id="snap-cleared">0 / 4</strong></div>
+      </header>
+      <div class="snap-missions">
+        <div class="snap-overline"><strong>CHOOSE A BLUEPRINT</strong><span>4 challenges · each build teaches a new move</span></div>
+        <div class="snap-mission-grid" id="snap-mission-grid" role="group" aria-label="Sentence blueprints"></div>
+      </div>
+      <div class="snap-objective" id="snap-objective" role="status" aria-live="polite"></div>
+      <div class="snap-play-surface">
+        <div class="snap-section-caption"><strong>01 / SENTENCE SOCKETS</strong><span>Tap to select · or drop a compatible piece</span></div>
+        <div class="snap-sockets" id="snap-sockets" aria-label="Typed sentence building sockets"></div>
+        <p class="snap-explanation">These sockets represent <strong>meaning</strong>, not spoken word order. The engine below handles conjugation and rearranging words.</p>
+        <div class="snap-tray">
+          <div class="snap-section-caption"><strong>02 / PIECE TRAY</strong><span id="snap-tray-title">Choose a block to edit</span></div>
+          <label for="snap-filter" class="visually-hidden">Find a compatible piece</label>
+          <input id="snap-filter" class="snap-filter" type="search" placeholder="Find a word or block…" autocomplete="off">
+          <div id="snap-pieces" class="snap-pieces" role="group" aria-label="Compatible meaning pieces"></div>
+          <p class="snap-tray-note">Every piece here fits the selected slot. Tap to snap it in, or drag to a matching socket.</p>
+        </div>
+      </div>
+      <div class="snap-result">
+        <div class="snap-section-caption"><strong>03 / THE LANGUAGE ENGINE</strong><span class="snap-live-indicator">● LIVE</span></div>
+        <strong class="snap-sentence" id="snap-sentence" aria-live="polite" aria-atomic="true"></strong>
+        <p id="snap-meaning" class="snap-meaning"></p>
+        <p id="snap-feedback" class="snap-feedback" role="status" aria-live="polite"></p>
+        <div class="snap-actions">
+          <button type="button" id="snap-next" class="game-primary" hidden>Next blueprint →</button>
+          <button type="button" id="snap-free" class="snap-secondary">Free build</button>
+          <button type="button" id="snap-lab" class="snap-secondary">Explore grammar ↗</button>
+        </div>
       </div>
     </section>
 
-        <section class="studio-recipes" aria-labelledby="studio-recipes-title">
+    <details class="studio-workshop" id="studio-workshop">
+      <summary><strong>Open the grammar workshop</strong><span>Worked examples, advanced sentence patterns and deep editing ↗</span></summary>
+          <section class="studio-recipes" aria-labelledby="studio-recipes-title">
       <div class="studio-section-head">
         <div><span class="micro-label">REMIX A LEVEL</span><h2 id="studio-recipes-title">Load a prebuilt combo</h2></div>
         <button class="studio-text-button" id="studio-show-recipes" aria-expanded="false">Show all patterns ↓</button>
@@ -90,5 +122,6 @@ export function renderStudio(): string {
         <div id="studio-inspector-body"></div>
       </aside>
     </div>
+    </details>
   </section>`;
 }

@@ -21,9 +21,15 @@ The campaign is now a playable puzzle instead of a progression screen around a t
 - **Earn stars and open chapters:** Completing all encounters earns 1–3 stars
   based on hints and mistakes, saves your best score, and unlocks the next level.
   Replay improves stars without endlessly farming level-clear XP.
-- **Learn the moves:** Every level still exposes editable, pre-configured
-  examples in the free block builder. Fast response drills and spaced memory
-  cards remain available as optional training rather than the level gate.
+- **Snap grammar pieces:** The builder is a semantic puzzle, not falling
+  Tetris shapes. Choose a blueprint, pick a typed socket (WHO, ACTION,
+  OBJECT, WHEN or POWER), and tap or drag a compatible block into place.
+  Every move updates the language engine and the real target sentence.
+  Solve the target meaning to clear a blueprint and earn XP.
+- **Fill missing words:** Drills show a sentence with exactly one word
+  blanked out. Type the missing word and press Enter to check; optional
+  progressive hints reveal its length and initial letters. There is no
+  timer or multiple-choice grid. Spaced memory cards remain available.
 
 Progress, stars, XP, and card review intervals are saved on your device. The
 campaign uses no countdown timer. Keyboard users can press 1–9 to place blocks,
@@ -71,9 +77,10 @@ all languages.
 
 ## Learn through visual composition
 
-The learner chooses German, French or Spanish and opens the **Block studio**.
-It is a small semantic editor with directly manipulable, keyboard-accessible
-building blocks:
+The learner chooses German, French or Spanish and opens the **Block builder**.
+The main interface is a snapping puzzle of role-compatible meaning blocks,
+with blueprint goals and live sentence feedback. The advanced grammar workshop
+retains the full semantic editor for complex examples and patterns:
 
 1. **Inspect:** each block has a role (WHO, ACTION, OBJECT, TIME, MODAL, WHY),
    valid alternatives and one brief explanation of how it works.

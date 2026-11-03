@@ -2,7 +2,7 @@ name: Verify MVL
 
 on:
   push:
-    branches: [main, "fix/**"]
+    branches: [main, "fix/**", "feature/**"]
   pull_request:
 
 permissions:
@@ -21,7 +21,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - name: Commit generated Pages output
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/heads/fix/')
+        if: github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/fix/') || startsWith(github.ref, 'refs/heads/feature/'))
         run: |
           git add docs
           if ! git diff --cached --quiet; then

@@ -8,6 +8,9 @@
 import {
   DEFAULT_SELECTION,
   askObject,
+  askWhen,
+  link,
+  sequence,
   describe,
   howToGet,
   makeTree,
@@ -17,6 +20,8 @@ import {
 } from '../core/algebra.js';
 import type {
   BuilderSelection,
+  Clause,
+  Connection,
   DescribableThing,
   Expression,
   LocatablePlace,
@@ -35,7 +40,9 @@ import {
   type SemanticArgument,
 } from '../core/vocabulary.js';
 
-export type StudioPattern = 'action' | 'description' | 'presence' | 'ask-object' | 'route' | 'where' | 'price';
+export type StudioPattern =
+  | 'action' | 'description' | 'presence' | 'ask-object' | 'route' | 'where' | 'price'
+  | 'ask-when' | 'link' | 'sequence';
 
 export type StudioSlot =
   | 'agent' | 'predicate' | 'argument' | 'quantity'
@@ -43,6 +50,8 @@ export type StudioSlot =
   | 'frequency' | 'reason'
   | 'descriptionThing' | 'quality' | 'descriptionTense'
   | 'presenceThing' | 'presencePlace'
+  | 'whenPrompt' | 'connection'
+  | 'clause0' | 'clause1' | 'clause2' | 'clause3'
   | 'objectPredicate' | 'objectAgent' | 'routePlace' | 'wherePlace' | 'priceThing';
 
 export type StudioOperator =
@@ -66,6 +75,10 @@ export interface StudioState {
   routePlace: LocatablePlace;
   wherePlace: LocatablePlace;
   priceThing: PricedThing;
+  /** Multi-clause programs preserve independent events and their operators. */
+  connection: Connection;
+  secondAction: BuilderSelection;
+  steps: BuilderSelection[];
 }
 
 export interface Recipe {
@@ -103,6 +116,21 @@ export const RECIPES: readonly Recipe[] = [
     start: { wherePlace: 'pharmacy' } },
   { id: 'price', title: 'Ask the price', intent: 'PRICE + THING', pattern: 'price',
     start: { priceThing: 'ticket' } },
+  { id: 'when', title: 'Ask when something happens', intent: 'WHEN + ACTION', pattern: 'ask-when',
+    start: {}, action: { predicate: 'return', agent: 'addressee', argument: 'none', modal: '', question: false, polite: false } },
+  { id: 'connect', title: 'Connect two statements', intent: 'STATEMENT + BUT + STATEMENT', pattern: 'link',
+    start: { connection: 'but', secondAction: { ...DEFAULT_SELECTION,
+      predicate: 'have', agent: 'speaker', argument: 'money', modal: '',
+      negative: true, question: false, polite: false } },
+    action: { predicate: 'need', agent: 'speaker', argument: 'ticket', modal: '', question: false, polite: false } },
+  { id: 'story', title: 'Tell a three-step story', intent: 'ACTION + ACTION + ACTION', pattern: 'sequence',
+    start: { steps: [
+      { ...DEFAULT_SELECTION, predicate: 'work', agent: 'speaker', argument: 'none', modal: '',
+        tense: 'past', time: 'yesterday', question: false, polite: false },
+      { ...DEFAULT_SELECTION, predicate: 'be', agent: 'speaker', argument: 'tired', modal: '', question: false, polite: false },
+      { ...DEFAULT_SELECTION, predicate: 'sleep', agent: 'speaker', argument: 'none', modal: '',
+        tense: 'future', time: 'tonight', question: false, polite: false },
+    ] }, action: { predicate: 'work', agent: 'speaker', argument: 'none', modal: '', question: false, polite: false } },
 ];
 
 export interface Mission {
@@ -157,6 +185,15 @@ export function initialStudio(): StudioState {
     presenceNegative: false, presenceQuestion: false,
     objectPredicate: 'need', objectAgent: 'addressee', routePlace: 'station',
     wherePlace: 'pharmacy', priceThing: 'ticket',
+    connection: 'and',
+    secondAction: { ...DEFAULT_SELECTION, predicate: 'work', agent: 'speaker', argument: 'none',
+      modal: '', question: false, polite: false },
+    steps: [
+      { ...DEFAULT_SELECTION, predicate: 'work', agent: 'speaker', argument: 'none',
+        modal: '', question: false, polite: false },
+      { ...DEFAULT_SELECTION, predicate: 'sleep', agent: 'speaker', argument: 'none',
+        modal: '', question: false, polite: false },
+    ],
   };
 }
 
@@ -220,12 +257,90 @@ export function normalizeStudio(state: StudioState): StudioState {
   if (!(DESCRIPTION_QUALITIES[next.descriptionThing] as readonly Quality[]).includes(next.quality)) {
     next.quality = DESCRIPTION_QUALITIES[next.descriptionThing][0];
   }
+  if (next.pattern === 'ask-when') {
+    selection.time = '';
+    selection.frequency = '';
+    selection.question = false;
+    selection.polite = false;
+    selection.reason = 'none';
+  }
+
+  if (next.pattern === 'link' || next.pattern === 'sequence') {
+    // Child clauses use the same validation as ordinary sentence blocks.
+    // A story can change each action independently without modifying others.
+    const normalizeChild = (child: BuilderSelection): BuilderSelection => {
+      const safe = normalizeStudio({ ...initialStudio(), pattern: 'action',
+        action: { ...child, question: false, polite: false, reason: 'none' } });
+      return safe.action;
+    };
+    next.action = normalizeChild(next.action);
+    next.secondAction = normalizeChild(next.secondAction);
+    next.steps = next.steps.map(normalizeChild);
+  }
   return next;
+}
+
+/** Fields exposed by the inspector for one statement inside a narrative. */
+export type CompositeField = 'agent' | 'predicate' | 'argument' | 'tense' | 'time' | 'negative';
+
+export function isCompositeField(value: string): value is CompositeField {
+  return ['agent', 'predicate', 'argument', 'tense', 'time', 'negative'].includes(value);
+}
+
+/**
+ * Edit one child of a multi-clause expression. The other children are copied
+ * unchanged, and the usual predicate-frame rules validate the edited child.
+ */
+export function editCompositeClause(
+  state: StudioState,
+  index: number,
+  field: CompositeField,
+  value: string,
+): StudioState {
+  if (state.pattern !== 'link' && state.pattern !== 'sequence') {
+    throw new TypeError('Composite editing requires a connected statement or story');
+  }
+  const next = structuredClone(state);
+  const current = next.pattern === 'link'
+    ? index === 0 ? next.action : index === 1 ? next.secondAction : undefined
+    : next.steps[index];
+  if (!current) throw new RangeError(`Unknown statement ${index + 1}`);
+  const edited = { ...current };
+  switch (field) {
+    case 'agent': edited.agent = value as BuilderSelection['agent']; break;
+    case 'predicate': edited.predicate = value as PredicateId; break;
+    case 'argument': edited.argument = value as SemanticArgument; break;
+    case 'tense':
+      edited.tense = value as Tense;
+      edited.time = '';
+      edited.frequency = '';
+      break;
+    case 'time': edited.time = value as BuilderSelection['time']; break;
+    case 'negative': edited.negative = value === 'true'; break;
+  }
+  if (next.pattern === 'link') {
+    if (index === 0) next.action = edited;
+    else next.secondAction = edited;
+  } else {
+    next.steps[index] = edited;
+  }
+  return normalizeStudio(next);
+}
+
+/** Reuse the core compiler's validation for every sentence inside a larger tree. */
+export function clauseFromSelection(selection: BuilderSelection): Clause {
+  const expression = makeTree({ ...selection, question: false, polite: false, reason: 'none' });
+  if (expression.kind !== 'clause') throw new TypeError('Expected a simple statement');
+  return expression;
 }
 
 export function studioExpression(state: StudioState): Expression {
   switch (state.pattern) {
     case 'action': return makeTree(state.action);
+    case 'ask-when': return askWhen(clauseFromSelection({ ...state.action, time: '', frequency: '' }));
+    case 'link': return link(clauseFromSelection(state.action), state.connection,
+      clauseFromSelection(state.secondAction));
+    case 'sequence': return sequence(...state.steps.map(clauseFromSelection));
     case 'description': return describe(state.descriptionThing, state.quality, {
       tense: state.descriptionTense, negative: state.descriptionNegative, question: state.descriptionQuestion,
     });
@@ -331,25 +446,37 @@ export function startMission(state: StudioState, mission: Mission): StudioState 
     action: { ...initialStudio().action, ...mission.start } });
 }
 
-/** Rehydrate an authored/generated lesson example into its editable slots. */
+/** Recover an editable action from a semantic clause without losing its operators. */
+function fromClause(value: Clause): BuilderSelection {
+  return {
+    ...initialStudio().action,
+    predicate: value.event.predicate,
+    agent: value.event.agent,
+    argument: value.event.argument,
+    quantity: value.event.quantity,
+    tense: value.tense,
+    modal: value.modality ?? '',
+    negative: value.negative,
+    time: value.time ?? '',
+    frequency: value.frequency ?? '',
+    question: value.question,
+    polite: value.polite,
+    reason: 'none',
+  };
+}
+
+/**
+ * Import *all* productive lesson expressions as editable programs. This is a
+ * structural inverse of studioExpression, not an attempt to parse sentences.
+ * Conventional greetings have no AST and are deliberately excluded.
+ */
 export function fromExpression(expression: Expression): StudioState | null {
   const base = initialStudio();
   switch (expression.kind) {
-    case 'clause': return normalizeStudio({ ...base, action: {
-      ...base.action,
-      predicate: expression.event.predicate,
-      agent: expression.event.agent,
-      argument: expression.event.argument,
-      quantity: expression.event.quantity,
-      tense: expression.tense,
-      modal: expression.modality ?? '',
-      negative: expression.negative,
-      time: expression.time ?? '',
-      frequency: expression.frequency ?? '',
-      question: expression.question,
-      polite: expression.polite,
-      reason: 'none',
-    } });
+    case 'clause': return normalizeStudio({ ...base, pattern: 'action', action: fromClause(expression) });
+    case 'ask_when': return normalizeStudio({ ...base, pattern: 'ask-when', action: fromClause(expression.value) });
+    case 'sequence': return normalizeStudio({ ...base, pattern: 'sequence',
+      steps: expression.steps.map(fromClause) });
     case 'describe': return { ...base, pattern: 'description', descriptionThing: expression.thing,
       quality: expression.quality, descriptionTense: expression.tense,
       descriptionNegative: expression.negative, descriptionQuestion: expression.question };
@@ -362,26 +489,26 @@ export function fromExpression(expression: Expression): StudioState | null {
     case 'where': return { ...base, pattern: 'where', wherePlace: expression.place };
     case 'price': return { ...base, pattern: 'price', priceThing: expression.thing };
     case 'link': {
-      // A two-clause lesson may use AND/BUT or an arbitrary reason. The visual
-      // studio currently models only a small WHY operator, so never silently
-      // drop a second clause when importing a lesson example.
-      if (expression.connection !== 'because') return null;
-      const first = fromExpression(expression.first);
-      if (!first) return null;
-      const second = expression.second;
-      if (second.event.agent !== expression.first.event.agent || second.tense !== 'present') return null;
-      const reason = second.event.predicate === 'have' && second.event.argument === 'time' && second.negative
-        ? 'no_time'
-        : second.event.predicate === 'be' && ['sick', 'busy'].includes(second.event.argument)
-          ? second.event.argument as 'sick' | 'busy' : null;
-      if (reason === null) return null;
-      first.action.reason = reason;
-      return normalizeStudio(first);
+      // Common short reasons are also available as a single WHY operator.
+      if (expression.connection === 'because') {
+        const second = expression.second;
+        if (second.event.agent === expression.first.event.agent && second.tense === 'present') {
+          const reason = second.event.predicate === 'have' && second.event.argument === 'time' && second.negative
+            ? 'no_time'
+            : second.event.predicate === 'be' && ['sick', 'busy'].includes(second.event.argument)
+              ? second.event.argument as 'sick' | 'busy' : null;
+          if (reason !== null) return normalizeStudio({ ...base, pattern: 'action', action: {
+            ...fromClause(expression.first), reason,
+          } });
+        }
+      }
+      return normalizeStudio({ ...base, pattern: 'link', connection: expression.connection,
+        action: fromClause(expression.first), secondAction: fromClause(expression.second) });
     }
-    default: return null;
   }
 }
 
+/** Construct a challenge answer from the same semantics as the editor. */
 export function missionAnswer(mission: Mission): Expression {
   return studioExpression(normalizeStudio({
     ...initialStudio(), pattern: 'action',

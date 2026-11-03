@@ -13,7 +13,8 @@
     "test": "node --test tests/*.test.mjs",
     "check": "npm run typecheck && npm run build && npm test",
     "dev": "node scripts/serve.mjs",
-    "pages": "npm run check"
+    "pages": "npm run check",
+    "review:export": "npm run build && node scripts/export-linguistic-review.mjs"
   },
   "devDependencies": {
     "typescript": "5.8.3"

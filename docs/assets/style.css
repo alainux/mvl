@@ -2203,3 +2203,12 @@ input[type='checkbox'] {
   .studio-order { padding: 13px; }
   .studio-order-word { font-size: 13px; padding: 6px 9px; }
 }
+
+/* A connected story remains editable as ordinary semantic sentences. */
+.studio-composite-fields { display: grid; gap: 12px; padding-top: 12px; }
+.studio-composite-field { display: grid; gap: 5px; font-size: 12px; font-weight: 700; color: var(--muted); }
+.studio-composite-field select { width: 100%; max-width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--paper); color: var(--ink); font: inherit; font-size: 13px; }
+.studio-sequence-controls { display: flex; flex-wrap: wrap; gap: 12px; padding: 16px 0 4px; }
+.studio-order-comparison { margin-top: 7px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+
+.studio-readonly-block { cursor: default; min-height: 95px; }

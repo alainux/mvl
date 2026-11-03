@@ -12,8 +12,8 @@ import {
 
 const codes = ['de', 'fr', 'es'];
 
-test('all twelve semantic patterns produce sentences in German, French, and Spanish', () => {
-  assert.equal(RECIPES.length, 12);
+test('all fifteen semantic patterns produce sentences in German, French, and Spanish', () => {
+  assert.equal(RECIPES.length, 15);
   for (const recipe of RECIPES) {
     const state = applyRecipe(initialStudio(), recipe);
     const expression = studioExpression(state);
@@ -127,4 +127,71 @@ test('surface contrast covers split operators and reordering without phrase dict
   const moved = traceSurfaceOrder('Kann ich morgen kommen?', 'Ich kann morgen kommen.');
   assert.deepEqual(moved.map((word) => word.text), ['Kann', 'ich', 'morgen', 'kommen?']);
   assert.ok(moved.some((word) => word.affected));
+});
+
+test('all productive lessons, including stories and open time questions, are editable without loss', async () => {
+  const { compileGuide } = await import('../docs/assets/learning/compile.js');
+  const { notation } = await import('../docs/assets/core/algebra.js');
+  const guide = compileGuide('de');
+  let checked = 0;
+  const variants = new Set();
+  for (const lesson of guide.lessons) {
+    for (const example of lesson.examples) {
+      if (example.source.kind !== 'expression') continue;
+      variants.add(example.source.expression.kind);
+      const editable = fromExpression(example.source.expression);
+      assert.ok(editable, `${lesson.id}/${example.id} must load into editable blocks`);
+      assert.equal(notation(studioExpression(editable)), notation(example.source.expression),
+        `${lesson.id}/${example.id} should retain the entire meaning tree`);
+      for (const code of codes) {
+        assert.equal(linearize(studioExpression(editable), code),
+          linearize(example.source.expression, code), `${lesson.id}/${example.id}/${code}`);
+      }
+      checked++;
+    }
+  }
+  for (const kind of ['clause', 'sequence', 'link', 'ask_when', 'price', 'describe', 'presence']) {
+    assert.ok(variants.has(kind), `Missing ${kind} coverage`);
+  }
+  assert.ok(checked >= 420, `${checked} productive examples reviewed`);
+});
+
+test('editing one connected statement preserves the other statement', async () => {
+  const { link, clause, event } = await import('../docs/assets/core/algebra.js');
+  const { editCompositeClause, isCompositeField } = await import('../docs/assets/ui/studio-model.js');
+  const original = link(clause(event('need', 'speaker', 'ticket')), 'but',
+    { ...clause(event('have', 'speaker', 'money')), negative: true });
+  const initial = fromExpression(original);
+  assert.equal(initial.pattern, 'link');
+  const edited = editCompositeClause(initial, 1, 'negative', 'false');
+  assert.equal(edited.action.predicate, 'need');
+  assert.equal(edited.secondAction.predicate, 'have');
+  assert.equal(edited.secondAction.negative, false);
+  assert.equal(studioExpression(edited).kind, 'link');
+  assert.ok(isCompositeField('tense'));
+  assert.equal(isCompositeField('execute'), false);
+  for (const code of codes) {
+    assert.notEqual(linearize(studioExpression(edited), code), linearize(original, code));
+  }
+  assert.equal(initial.secondAction.negative, true, 'original model is not mutated');
+  assert.throws(() => editCompositeClause(initial, 6, 'agent', 'speaker'), RangeError);
+});
+
+test('a story keeps its independent tenses when just one step is edited', async () => {
+  const { sequence, clause, event } = await import('../docs/assets/core/algebra.js');
+  const { editCompositeClause } = await import('../docs/assets/ui/studio-model.js');
+  const story = sequence({ ...clause(event('work', 'speaker', 'none')), tense: 'past', time: 'yesterday' },
+    clause(event('be', 'speaker', 'tired')),
+    { ...clause(event('sleep', 'speaker', 'none')), tense: 'future', time: 'tonight' });
+  const loaded = fromExpression(story);
+  assert.equal(loaded.pattern, 'sequence');
+  assert.equal(loaded.steps.length, 3);
+  const edited = editCompositeClause(loaded, 1, 'negative', 'true');
+  assert.equal(edited.steps[0].tense, 'past');
+  assert.equal(edited.steps[1].negative, true);
+  assert.equal(edited.steps[2].tense, 'future');
+  assert.equal(edited.steps[2].time, 'tonight');
+  for (const code of codes) {
+    assert.notEqual(linearize(studioExpression(loaded), code), linearize(studioExpression(edited), code));
+  }
 });

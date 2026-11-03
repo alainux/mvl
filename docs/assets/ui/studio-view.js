@@ -42,6 +42,7 @@ export function renderStudio() {
             </div>
             <div class="studio-order-words" id="studio-order-words" aria-live="polite" aria-atomic="true"></div>
             <p class="studio-order-hint" id="studio-order-hint"></p>
+            <p class="studio-order-comparison" id="studio-order-comparison"></p>
           </div>
           <div class="studio-add-header"><span class="micro-label">ADD AN OPERATOR</span><span>Optional blocks</span></div>
           <div class="studio-palette" id="studio-palette" aria-label="Available operators"></div>

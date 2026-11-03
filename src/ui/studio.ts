@@ -12,6 +12,7 @@ import { notation } from '../core/algebra.js';
 import type {
   BuilderSelection,
   LanguageProfile,
+  Connection,
   PresencePlace,
   Quality,
   Tense,
@@ -34,6 +35,9 @@ import {
   RECIPES,
   applyRecipe,
   availableOperator,
+  clauseFromSelection,
+  editCompositeClause,
+  isCompositeField,
   initialStudio,
   isPresent,
   operatorApplied,
@@ -140,13 +144,49 @@ const SLOT_EXPLANATIONS: Readonly<Partial<Record<StudioSlot, string>>> = {
   routePlace: 'Choose the destination. The directions construction stays the same.',
   wherePlace: 'The same location question works with many places.',
   priceThing: 'Ask how much an item costs without memorizing a separate question.',
+  whenPrompt: 'Ask WHEN about an event. German, French and Spanish each place their question word differently.',
+  connection: 'Connect two independent statements with and, but, or because.',
+  clause0: 'First statement in a connected idea or story. Edit its grammar without changing the other statements.',
+  clause1: 'Second statement in a connected idea or story. Edit its subject, action, object and time.',
+  clause2: 'Third statement. Each event has an independent tense and participants.',
+  clause3: 'Fourth statement. Keep narratives short to communicate clearly.',
 };
 
 function concept(id: string): string {
   return CONCEPTS[id as SemanticArgument] ?? id.replaceAll('_', ' ');
 }
 
+/** Visual stories are editable semantic clauses, not pretranslated sentence text. */
+function isClauseSlot(value: StudioSlot): value is 'clause0' | 'clause1' | 'clause2' | 'clause3' {
+  return /^clause[0-3]$/u.test(value);
+}
+
+function clauseAt(state: StudioState, index: number): BuilderSelection | null {
+  if (state.pattern === 'link') return index === 0 ? state.action : index === 1 ? state.secondAction : null;
+  if (state.pattern === 'sequence') return state.steps[index] ?? null;
+  return null;
+}
+
+function clausePreview(selection: BuilderSelection): string {
+  return realizeEnglish(clauseFromSelection(selection));
+}
+
 function visualBlocks(state: StudioState): readonly VisualBlock[] {
+  if (state.pattern === 'link') {
+    return [
+      { slot: 'clause0', title: 'STATEMENT 1', value: clausePreview(state.action), tone: 'action' },
+      { slot: 'connection', title: 'CONNECTOR', value: state.connection.toUpperCase(), tone: 'operator' },
+      { slot: 'clause1', title: 'STATEMENT 2', value: clausePreview(state.secondAction), tone: 'action' },
+    ];
+  }
+  if (state.pattern === 'sequence') {
+    return state.steps.map((step, index) => ({
+      slot: `clause${index}` as StudioSlot,
+      title: `STEP ${index + 1}`,
+      value: clausePreview(step),
+      tone: 'action' as const,
+    }));
+  }
   if (state.pattern === 'description') {
     return [
       { slot: 'descriptionThing', title: 'THING', value: concept(state.descriptionThing), tone: 'object' },
@@ -189,10 +229,13 @@ function visualBlocks(state: StudioState): readonly VisualBlock[] {
 
   const { action } = state;
   const result: VisualBlock[] = [
+    ...(state.pattern === 'ask-when' ? [{ slot: 'whenPrompt', title: 'QUESTION', value: 'WHEN?', tone: 'question' } as const] : []),
     { slot: 'agent', title: 'WHO', value: SUBJECT_CHOICES.find((item) => item.value === action.agent)?.label ?? 'I', tone: 'person' },
     { slot: 'predicate', title: 'ACTION', value: PREDICATES[action.predicate].description, tone: 'action' },
     { slot: 'argument', title: 'OBJECT / PLACE', value: concept(action.argument), tone: 'object' },
   ];
+  if (state.pattern === 'ask-when') result.push({ slot: 'tense', title: 'TENSE',
+    value: action.tense, tone: 'time' });
   if (isPresent(state, 'quantity')) result.push({ slot: 'quantity', title: 'COUNT', value: 'two', tone: 'object', optional: true });
   if (isPresent(state, 'tense')) result.push({ slot: 'tense', title: 'TIME', value:
     `${action.tense}${action.time ? ` · ${concept(action.time)}` : ''}`, tone: 'time', optional: true });
@@ -206,6 +249,8 @@ function visualBlocks(state: StudioState): readonly VisualBlock[] {
 }
 
 function blockMarkup(block: VisualBlock, selected: StudioSlot): string {
+  if (block.slot === 'whenPrompt') return `<span class="studio-block is-question studio-readonly-block" aria-label="Question operator: when">
+    <span class="studio-block-type">QUESTION</span><strong>WHEN?</strong></span>`;
   return `<button type="button" data-slot="${block.slot}" class="studio-block is-${block.tone} ${selected === block.slot ? 'is-selected' : ''}"
     aria-pressed="${selected === block.slot}" aria-label="Edit ${escape(block.title.toLowerCase())}: ${escape(block.value)}">
     <span class="studio-block-type">${escape(block.title)}</span>
@@ -249,6 +294,10 @@ function choices(state: StudioState, slot: StudioSlot): readonly Choice[] {
     case 'objectPredicate': return OBJECT_QUESTION_PREDICATES.map((value) => ({ value, label: PREDICATES[value].description }));
     case 'objectAgent': return SUBJECT_CHOICES.filter(({ value }) => value === 'speaker' || value === 'addressee');
     case 'routePlace': case 'wherePlace': return LOCATABLE_PLACES.map((value) => ({ value, label: concept(value) }));
+    case 'whenPrompt': case 'clause0': case 'clause1': case 'clause2': case 'clause3': return [];
+    case 'connection': return [
+      { value: 'and', label: 'And' }, { value: 'but', label: 'But' }, { value: 'because', label: 'Because' },
+    ];
     case 'priceThing': return ['ticket', 'coffee', 'book', 'room', 'computer', 'bag', 'apartment']
       .map((value) => ({ value, label: concept(value) }));
   }
@@ -276,6 +325,8 @@ function currentValue(state: StudioState, slot: StudioSlot): string {
     case 'routePlace': return state.routePlace;
     case 'wherePlace': return state.wherePlace;
     case 'priceThing': return state.priceThing;
+    case 'connection': return state.connection;
+    case 'whenPrompt': case 'clause0': case 'clause1': case 'clause2': case 'clause3': return '';
   }
 }
 
@@ -328,6 +379,8 @@ function setSlot(state: StudioState, slot: StudioSlot, value: string): StudioSta
     case 'routePlace': next.routePlace = value as StudioState['routePlace']; break;
     case 'wherePlace': next.wherePlace = value as StudioState['wherePlace']; break;
     case 'priceThing': next.priceThing = value as StudioState['priceThing']; break;
+    case 'connection': next.connection = value as Connection; break;
+    case 'whenPrompt': case 'clause0': case 'clause1': case 'clause2': case 'clause3': break;
   }
   return normalizeStudio(next);
 }
@@ -340,6 +393,19 @@ function setSlot(state: StudioState, slot: StudioSlot, value: string): StudioSta
  * realizer, so the highlighted surface words come from grammar, not a lookup.
  */
 function contrastForSlot(state: StudioState, slot: StudioSlot): StudioState | null {
+  if (isClauseSlot(slot)) {
+    const index = Number(slot.slice(-1));
+    const existing = clauseAt(state, index);
+    if (!existing) return null;
+    const alternate = { ...existing, negative: !existing.negative };
+    const next = structuredClone(state);
+    if (state.pattern === 'link') {
+      if (index === 0) next.action = alternate;
+      else next.secondAction = alternate;
+    } else if (state.pattern === 'sequence') next.steps[index] = alternate;
+    return normalizeStudio(next);
+  }
+  if (slot === 'whenPrompt') return null;
   if (slot === 'descriptionTense') {
     return setSlot(state, slot, state.descriptionTense === 'past' ? 'present' : 'past');
   }
@@ -367,7 +433,8 @@ function removeSlot(state: StudioState, slot: StudioSlot): StudioState {
 function isState(value: unknown): value is StudioState {
   if (!value || typeof value !== 'object') return false;
   const record = value as Record<string, unknown>;
-  return ['action', 'description', 'presence', 'ask-object', 'route', 'where', 'price'].includes(String(record['pattern']))
+  return ['action', 'description', 'presence', 'ask-object', 'route', 'where', 'price',
+      'ask-when', 'link', 'sequence'].includes(String(record['pattern']))
     && typeof record['action'] === 'object' && record['action'] !== null
     && typeof (record['action'] as Record<string, unknown>)['predicate'] === 'string';
 }
@@ -378,12 +445,12 @@ function readState(code: Code): StudioState {
     if (remix) {
       sessionStorage.removeItem(REMIX_STORAGE_KEY);
       const parsed: unknown = JSON.parse(remix);
-      if (isState(parsed)) return normalizeStudio(parsed);
+      if (isState(parsed)) return normalizeStudio({ ...initialStudio(), ...parsed });
     }
     const saved = localStorage.getItem(`mvl:studio:${code}`) ?? localStorage.getItem('mvl:studio:last');
     if (saved) {
       const parsed: unknown = JSON.parse(saved);
-      if (isState(parsed)) return normalizeStudio(parsed);
+      if (isState(parsed)) return normalizeStudio({ ...initialStudio(), ...parsed });
     }
   } catch { /* Storage can be disabled, or the saved model might be outdated. */ }
   return initialStudio();
@@ -406,6 +473,8 @@ function defaultSlot(state: StudioState): StudioSlot {
     case 'route': return 'routePlace';
     case 'where': return 'wherePlace';
     case 'price': return 'priceThing';
+    case 'ask-when': return 'predicate';
+    case 'link': case 'sequence': return 'clause0';
   }
 }
 
@@ -430,6 +499,7 @@ export function initializeStudio(code: Code): void {
   const orderedWords = required<HTMLElement>('#studio-order-words');
   const orderedHint = required<HTMLElement>('#studio-order-hint');
   const orderedLanguage = required<HTMLElement>('#studio-order-language');
+  const orderedComparison = required<HTMLElement>('#studio-order-comparison');
   const delta = required<HTMLElement>('#studio-delta');
   const meaning = required<HTMLElement>('#studio-english');
   const note = required<HTMLElement>('#studio-grammar-note');
@@ -461,6 +531,14 @@ export function initializeStudio(code: Code): void {
   }
 
   function renderPalette(): void {
+    const paletteHeading = document.querySelector<HTMLElement>('.studio-add-header');
+    if (paletteHeading) paletteHeading.firstElementChild!.textContent =
+      state.pattern === 'link' || state.pattern === 'sequence' || state.pattern === 'ask-when'
+        ? 'EDIT THE COMPONENTS ABOVE' : 'ADD AN OPERATOR';
+    if (state.pattern === 'link' || state.pattern === 'sequence' || state.pattern === 'ask-when') {
+      palette.innerHTML = '<p class="studio-order-comparison">Each statement is a complete building block. Select it above to change its subject, action, time or negation.</p>';
+      return;
+    }
     palette.innerHTML = OPERATOR_ORDER.map((operator) => {
       const meta = OPERATOR_LABELS[operator];
       const supported = availableOperator(state, operator);
@@ -473,6 +551,47 @@ export function initializeStudio(code: Code): void {
     }).join('');
   }
 
+  /** An editable inspector for a complete statement nested inside a story. */
+  function renderCompositeInspector(slot: StudioSlot): string {
+    const index = Number(slot.slice(-1));
+    const selection = clauseAt(state, index);
+    if (!selection) return '<p>This statement is not available.</p>';
+    const frame = PREDICATES[selection.predicate];
+    const field = (key: string, label: string, choices: readonly Choice[], value: string): string => `
+      <label class="studio-composite-field">${escape(label)}
+        <select data-composite-index="${index}" data-composite-field="${key}">
+          ${choices.map((choice) => `<option value="${escape(choice.value)}" ${choice.value === value ? 'selected' : ''}>${escape(choice.label)}</option>`).join('')}
+        </select>
+      </label>`;
+    const predicateChoices = Object.entries(PREDICATES).map(([value, predicate]) => ({ value, label: predicate.description }));
+    const argumentChoices = (frame.allowedArguments as readonly SemanticArgument[])
+      .filter((argument) => !(frame.argumentRole === 'person' && argument === selection.agent))
+      .map((value) => ({ value, label: concept(value) }));
+    const tenseChoices: readonly Choice[] = [
+      { value: 'present', label: 'Present' },
+      { value: 'past', label: 'Completed past' },
+      { value: 'future', label: 'Future / plan' },
+    ];
+    return `<div class="studio-inspector-identity">
+      <span class="studio-inspector-type is-action">STEP ${index + 1}</span>
+      <h2 id="studio-inspector-title">Edit this statement</h2>
+      <p>The other statements stay unchanged. Each step has its own subject, action, time and negation.</p>
+    </div>
+    <div class="studio-composite-fields">
+      ${field('agent', 'Who?', SUBJECT_CHOICES, selection.agent)}
+      ${field('predicate', 'Action', predicateChoices, selection.predicate)}
+      ${field('argument', 'Object / place', argumentChoices, selection.argument)}
+      ${field('tense', 'When?', tenseChoices, selection.tense)}
+      ${field('time', 'Time expression', TIME_CHOICES[selection.tense], selection.time)}
+      ${field('negative', 'Negation', [{ value: 'false', label: 'Yes / positive' }, { value: 'true', label: 'No / negative' }], String(selection.negative))}
+    </div>
+    <div class="studio-inspector-tip"><strong>WHY IT WORKS</strong><p>${escape(ruleFor(state, code, slot))}</p></div>
+    ${state.pattern === 'sequence' ? `<div class="studio-sequence-controls">
+      ${state.steps.length < 4 ? '<button type="button" data-add-step="true" class="studio-text-button">+ Add step</button>' : ''}
+      ${state.steps.length > 2 ? `<button type="button" data-remove-step="${index}" class="studio-text-button">− Remove this step</button>` : ''}
+    </div>` : ''}`;
+  }
+
   function renderInspector(): void {
     const block = visualBlocks(state).find((item) => item.slot === activeSlot);
     if (!block) {
@@ -480,6 +599,10 @@ export function initializeStudio(code: Code): void {
     }
     const current = visualBlocks(state).find((item) => item.slot === activeSlot);
     if (!current) return;
+    if (isClauseSlot(activeSlot) && (state.pattern === 'link' || state.pattern === 'sequence')) {
+      inspector.innerHTML = renderCompositeInspector(activeSlot);
+      return;
+    }
     const options = choices(state, activeSlot);
     const selected = currentValue(state, activeSlot);
     const long = options.length > 12;
@@ -538,8 +661,11 @@ export function initializeStudio(code: Code): void {
       const selectedBlock = visualBlocks(state).find((block) => block.slot === activeSlot);
       const affectedCount = tokens.filter((token) => token.affected).length;
       orderedHint.textContent = affectedCount > 0 && selectedBlock
-        ? `Highlighted: words affected by ${selectedBlock.value}. Select another meaning block to inspect its effect.`
-        : 'These words are in the order you would say them. Select a meaning block to inspect what it changes.';
+        ? isClauseSlot(activeSlot)
+          ? 'Highlighted words would change if you negated this statement. This comparison is not a full grammatical parse.'
+          : `Highlighted words differ when you change ${selectedBlock.value}. This comparison is not a full grammatical parse.`
+        : 'These words are in spoken order. Select an editable meaning block to compare another possible sentence.';
+      orderedComparison.textContent = comparison === null ? '' : `Compare with: ${comparison}`;
       delta.hidden = !(priorOutput && priorOutput !== current);
       if (!delta.hidden && priorOutput) {
         required<HTMLElement>('#studio-delta-content').innerHTML = `
@@ -561,6 +687,7 @@ export function initializeStudio(code: Code): void {
       result.textContent = 'This combination is not supported.';
       meaning.textContent = '';
       orderedWords.textContent = '';
+      orderedComparison.textContent = '';
       orderedHint.textContent = 'This combination could not be realized.';
       copy.disabled = true;
       error.textContent = cause instanceof Error ? cause.message : 'Unsupported grammar combination.';
@@ -618,6 +745,14 @@ export function initializeStudio(code: Code): void {
     render();
   }
 
+  function editCompositeStep(index: number, field: string, value: string): void {
+    if (!isCompositeField(field) || !clauseAt(state, index)) return;
+    rememberBefore(`Edit step ${index + 1}`);
+    state = editCompositeClause(state, index, field, value);
+    recipeId = null;
+    render();
+  }
+
   const studio = required<HTMLElement>('#studio');
   studio.addEventListener('click', (event: MouseEvent) => {
     if (!(event.target instanceof Element)) return;
@@ -648,6 +783,22 @@ export function initializeStudio(code: Code): void {
         ? 'descriptionTense' : OPERATOR_LABELS[op].slot;
       recipeId = null;
       status = '';
+      render();
+      return;
+    }
+
+    if (trigger.dataset['addStep'] && state.pattern === 'sequence' && state.steps.length < 4) {
+      rememberBefore('Add a story step');
+      state = normalizeStudio({ ...state, steps: [...state.steps, { ...initialStudio().secondAction }] });
+      activeSlot = `clause${state.steps.length - 1}` as StudioSlot;
+      render();
+      return;
+    }
+    const removeStep = trigger.dataset['removeStep'];
+    if (removeStep !== undefined && state.pattern === 'sequence' && state.steps.length > 2) {
+      rememberBefore('Remove a story step');
+      state = normalizeStudio({ ...state, steps: state.steps.filter((_, index) => index !== Number(removeStep)) });
+      activeSlot = 'clause0';
       render();
       return;
     }
@@ -688,6 +839,13 @@ export function initializeStudio(code: Code): void {
     }
   });
 
+  studio.addEventListener('change', (event: Event) => {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+    const { compositeIndex, compositeField } = event.target.dataset;
+    if (compositeIndex === undefined || !compositeField) return;
+    editCompositeStep(Number(compositeIndex), compositeField, event.target.value);
+  });
+
   studio.addEventListener('input', (event: Event) => {
     if (!(event.target instanceof HTMLInputElement) || event.target.id !== 'studio-option-filter') return;
     const filter = event.target.value.trim().toLowerCase();
@@ -725,6 +883,21 @@ export function initializeStudio(code: Code): void {
       const nextThing = PRESENCE_THINGS[nextIndex];
       if (nextThing) state = setSlot(state, 'presenceThing', nextThing);
       activeSlot = 'presenceThing';
+    } else if (state.pattern === 'ask-when') {
+      const frame = PREDICATES[state.action.predicate];
+      const valid = frame.allowedArguments as readonly SemanticArgument[];
+      const replacement = valid[(valid.indexOf(state.action.argument) + 1) % valid.length];
+      if (replacement) state = setSlot(state, 'argument', replacement);
+      activeSlot = 'argument';
+    } else if (state.pattern === 'link' || state.pattern === 'sequence') {
+      const index = isClauseSlot(activeSlot) ? Number(activeSlot.slice(-1)) : 0;
+      const current = clauseAt(state, index);
+      if (current) {
+        const frame = PREDICATES[current.predicate];
+        const available = frame.allowedArguments as readonly SemanticArgument[];
+        const replacement = available[(available.indexOf(current.argument) + 1) % available.length];
+        if (replacement) editCompositeStep(index, 'argument', replacement);
+      }
     } else { activeSlot = defaultSlot(state); }
     recipeId = null;
     render();

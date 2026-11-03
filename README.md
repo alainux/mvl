@@ -59,10 +59,11 @@ building blocks:
    other installed languages.
 4. **Practice:** four build missions start from incomplete meaning configurations
    and check the **whole semantic state**, not a memorized translation string.
-5. **Remix:** compatible worked examples in the 40-lesson guide open directly in
+5. **Remix:** all productive worked examples in the 40-lesson guide open directly in
    the block studio with their meaning tree restored for editing.
 
-The studio also models descriptions, existence, open-object questions, prices,
+The studio can now edit WHEN questions, joined independent clauses, and short
+stories with separately editable events. It also models descriptions, existence, open-object questions, prices,
 locations and routes. Operators which do not type-check for a chosen action are
 unavailable rather than producing ungrammatical combinations. Drag-and-drop is
 not required: every block is a button, including on touch devices.
@@ -107,8 +108,8 @@ The site is a **learning manual**. Implementation details belong in
 | `src/learning/notes.ts` and `notes-everyday.ts` | Human-authored, language-specific teaching explanations |
 | `src/learning/compile.ts` | Deterministic guide compiler |
 | `src/learning/practice.ts` | AST transformations to generate further exercises |
-| `src/ui/studio-model.ts` | Meaning-only recipe, mission and block editor model
-| `src/ui/studio.ts` and `studio-view.ts` | Accessible visual composition studio and interactions
+| `src/ui/studio-model.ts` | Meaning-only recipe, mission and block editor model |
+| `src/ui/studio.ts` and `studio-view.ts` | Accessible visual composition studio and interactions |
 | `src/ui/` | Learner UI, progress, search, lessons and practice |
 | `docs/` | Built, checked-in GitHub Pages artifacts; never edit directly |
 
@@ -120,6 +121,7 @@ Requires Node.js 20 or newer:
 npm install
 npm run check    # strict types, generation, tests
 npm run dev      # local server for the generated /docs
+npm run review:export  # compile a human review worksheet (not deployed)
 ```
 
 To publish via GitHub Pages (`main:/docs`):
@@ -146,7 +148,8 @@ system, not a universal grammatical parser.
 
 The curriculum follows the Council of Europe's A2 communicative descriptors
 (see references in [FRAMEWORK.md](FRAMEWORK.md)). Independent native-speaker
-review of language outputs is still needed as coverage expands.
+review of language outputs is still needed as coverage expands. For a reviewer-ready
+export and quality criteria, see [LINGUISTIC_REVIEW.md](LINGUISTIC_REVIEW.md).
 
 ## License
 

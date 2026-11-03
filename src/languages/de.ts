@@ -202,8 +202,16 @@ function complement(action: Event, negativeNoun: boolean): string {
     case 'look_for': case 'lose': case 'read': case 'write': case 'use':
     case 'open': case 'close': case 'fill_out': case 'sign':
     case 'reserve': case 'cancel': case 'meet': case 'like':
-      if (predicate === 'use' && argument === 'internet') return 'das Internet';
-      if (predicate === 'would_like' && argument === 'bill') return 'die Rechnung';
+      // These definite phrases need explicit handling; kein/keine is not
+      // interchangeable with negating a definite object.
+      // Eating already implies food in this minimal predicate frame.
+      if (predicate === 'eat' && argument === 'food') return '';
+      if (predicate === 'use' && argument === 'internet') {
+        return negativeNoun ? 'das Internet nicht' : 'das Internet';
+      }
+      if (predicate === 'would_like' && argument === 'bill' && quantity === 1 && !negativeNoun) {
+        return 'die Rechnung';
+      }
       if (predicate === 'like' && argument === 'coffee') return negativeNoun ? 'keinen Kaffee' : 'Kaffee';
       return noun(argument, 'acc', quantity, negativeNoun);
     case 'understand': case 'repeat':
@@ -231,7 +239,8 @@ function realizeClause(value: Clause): string {
   const subject = SUBJECTS[person];
   const nominalNegation = ['need','have','would_like','buy','drink','eat','take','find','send','speak','study',
     'look_for','lose','read','write','use','open','close','fill_out','sign',
-    'reserve','cancel','meet','like'].includes(action.predicate);
+    'reserve','cancel','meet','like'].includes(action.predicate)
+    && !(action.predicate === 'eat' && action.argument === 'food');
   const complementText = complement(action, negative && nominalNegation);
   const negativeWord = negative && !nominalNegation ? 'nicht' : '';
   const temporal = timeWord(value.time ?? (tense === 'future' ? 'soon' : null), TIMES);

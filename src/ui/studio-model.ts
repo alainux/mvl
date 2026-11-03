@@ -175,8 +175,10 @@ const HABITUAL = new Set<PredicateId>([
   'drink', 'eat', 'wait', 'use', 'meet', 'go', 'speak',
 ]);
 
-export function canCount(argument: SemanticArgument): boolean {
-  return (COUNTABLE_THINGS as readonly string[]).includes(argument);
+/** Only object-taking predicates can receive a numeric quantity block. */
+export function canCount(predicate: PredicateId, argument: SemanticArgument): boolean {
+  return PREDICATES[predicate].argumentRole === 'thing' && predicate !== 'like'
+    && (COUNTABLE_THINGS as readonly string[]).includes(argument);
 }
 
 /**
@@ -188,11 +190,15 @@ export function normalizeStudio(state: StudioState): StudioState {
   const selection = next.action;
   const frame = PREDICATES[selection.predicate];
   const argumentsForFrame = (frame.allowedArguments as readonly SemanticArgument[])
-    .filter((id) => !(frame.argumentRole === 'person' && id === selection.agent));
+    .filter((id) => !(frame.argumentRole === 'person' && (
+      id === selection.agent ||
+      (selection.agent === 'we' && id === 'speaker') ||
+      (selection.agent === 'speaker' && id === 'we')
+    )));
   if (!argumentsForFrame.includes(selection.argument)) {
     selection.argument = argumentsForFrame[0] ?? selection.argument;
   }
-  if (!canCount(selection.argument)) selection.quantity = 1;
+  if (!canCount(selection.predicate, selection.argument)) selection.quantity = 1;
   if (selection.modal && !(frame.allowedModalities as readonly string[]).includes(selection.modal)) {
     selection.modal = '';
   }
@@ -247,7 +253,7 @@ export function availableOperator(state: StudioState, operator: StudioOperator):
     case 'polite': return selection.agent === 'addressee';
     case 'frequency': return HABITUAL.has(selection.predicate) && selection.tense === 'present';
     case 'reason': return !selection.question;
-    case 'quantity': return canCount(selection.argument);
+    case 'quantity': return canCount(selection.predicate, selection.argument);
   }
 }
 

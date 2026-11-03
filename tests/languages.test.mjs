@@ -154,7 +154,9 @@ test('broad combinatorial audit produces complete, punctuated sentences', () => 
   for (const [predicate,frame] of Object.entries(PREDICATES)) {
     for (const argument of frame.allowedArguments) {
       for (const agent of ['speaker','addressee','we','other']) {
-        if (['help','call'].includes(predicate) && argument === agent) continue;
+        if (['help','call'].includes(predicate) && (argument === agent ||
+          (agent === 'we' && argument === 'speaker') ||
+          (agent === 'speaker' && argument === 'we'))) continue;
         for (const tense of ['present','past','future']) {
           for (const negative of [false,true]) {
             for (const modality of ['', ...frame.allowedModalities]) {

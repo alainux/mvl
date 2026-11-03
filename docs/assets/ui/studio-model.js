@@ -91,8 +91,10 @@ const HABITUAL = new Set([
     'work', 'study', 'read', 'write', 'cook', 'sleep', 'take',
     'drink', 'eat', 'wait', 'use', 'meet', 'go', 'speak',
 ]);
-export function canCount(argument) {
-    return COUNTABLE_THINGS.includes(argument);
+/** Only object-taking predicates can receive a numeric quantity block. */
+export function canCount(predicate, argument) {
+    return PREDICATES[predicate].argumentRole === 'thing' && predicate !== 'like'
+        && COUNTABLE_THINGS.includes(argument);
 }
 /**
  * Normalization removes now-incompatible blocks after an edit. It does not
@@ -103,11 +105,13 @@ export function normalizeStudio(state) {
     const selection = next.action;
     const frame = PREDICATES[selection.predicate];
     const argumentsForFrame = frame.allowedArguments
-        .filter((id) => !(frame.argumentRole === 'person' && id === selection.agent));
+        .filter((id) => !(frame.argumentRole === 'person' && (id === selection.agent ||
+        (selection.agent === 'we' && id === 'speaker') ||
+        (selection.agent === 'speaker' && id === 'we'))));
     if (!argumentsForFrame.includes(selection.argument)) {
         selection.argument = argumentsForFrame[0] ?? selection.argument;
     }
-    if (!canCount(selection.argument))
+    if (!canCount(selection.predicate, selection.argument))
         selection.quantity = 1;
     if (selection.modal && !frame.allowedModalities.includes(selection.modal)) {
         selection.modal = '';
@@ -173,7 +177,7 @@ export function availableOperator(state, operator) {
         case 'polite': return selection.agent === 'addressee';
         case 'frequency': return HABITUAL.has(selection.predicate) && selection.tense === 'present';
         case 'reason': return !selection.question;
-        case 'quantity': return canCount(selection.argument);
+        case 'quantity': return canCount(selection.predicate, selection.argument);
     }
 }
 /** Palette clicks are AST operations. An active optional block toggles off. */

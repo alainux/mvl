@@ -2349,8 +2349,8 @@
         },
         {
           "id": "routines-5",
-          "english": "We eat food.",
-          "target": "Nous mangeons de la nourriture.",
+          "english": "We eat.",
+          "target": "Nous mangeons.",
           "source": {
             "kind": "expression",
             "expression": {
@@ -3569,8 +3569,8 @@
         },
         {
           "id": "past-4",
-          "english": "We ate food yesterday.",
-          "target": "Nous avons mangé de la nourriture hier.",
+          "english": "We ate yesterday.",
+          "target": "Nous avons mangé hier.",
           "source": {
             "kind": "expression",
             "expression": {

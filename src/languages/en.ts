@@ -122,6 +122,8 @@ function complement(action: Event): string {
     case 'read': case 'write': case 'use': case 'open': case 'close':
     case 'fill_out': case 'sign': case 'reserve': case 'cancel':
     case 'meet': case 'like': case 'wait_for': {
+      // Eating already implies food in this minimal predicate frame.
+      if (predicate === 'eat' && argument === 'food') return '';
       if (argument === 'this') return 'this';
       if (predicate === 'like' && argument === 'coffee') return 'coffee';
       if (predicate === 'understand' && argument === 'information') return 'the information';
@@ -139,6 +141,17 @@ function complement(action: Event): string {
     case 'come': case 'work': case 'wait': case 'arrive':
     case 'cook': case 'sleep': case 'leave': case 'return': return '';
   }
+}
+
+/** Apply simple-present third-person inflection to the *head* of a verb phrase. */
+function thirdPersonPresent(phrase: string): string {
+  const [head, ...rest] = phrase.split(' ');
+  if (!head) return phrase;
+  const finite = head === 'have' ? 'has'
+    : /[^aeiou]y$/u.test(head) ? `${head.slice(0, -1)}ies`
+    : /(?:s|sh|ch|x|z|o)$/u.test(head) ? `${head}es`
+    : `${head}s`;
+  return [finite, ...rest].join(' ');
 }
 
 function realizeClause(value: Clause): string {
@@ -159,22 +172,27 @@ function realizeClause(value: Clause): string {
           ? modality === 'can' ? 'could not' : modality === 'want' ? 'did not want to' : 'did not have to'
           : finite, base);
     } else {
-      const finite = { can:'can', want:'want to', must:'have to' }[modality];
+      const isThird = action.agent === 'other';
+      const finite = modality === 'can' ? 'can'
+        : modality === 'want' ? (isThird ? 'wants to' : 'want to')
+        : (isThird ? 'has to' : 'have to');
+      const auxiliary = isThird ? 'Does' : 'Do';
+      const negativeAuxiliary = isThird ? 'does not' : 'do not';
       result = question
-        ? words(modality === 'want' || modality === 'must' ? 'Do' : 'Can', person,
+        ? words(modality === 'can' ? 'Can' : auxiliary, person,
             negative ? 'not' : '', modality === 'want' ? 'want to' : modality === 'must' ? 'have to' : '', base)
         : words(person, negative
-          ? modality === 'can' ? 'cannot' : modality === 'want' ? 'do not want to' : 'do not have to'
+          ? modality === 'can' ? 'cannot' : modality === 'want' ? `${negativeAuxiliary} want to` : `${negativeAuxiliary} have to`
           : finite, base);
     }
   } else if (action.predicate === 'be') {
-    const be = tense === 'past' ? (action.agent === 'we' ? 'were' : 'was')
+    const be = tense === 'past' ? (action.agent === 'we' || action.agent === 'addressee' ? 'were' : 'was')
       : tense === 'future' ? 'will be'
       : action.agent === 'speaker' ? 'am' : action.agent === 'we' ? 'are' : action.agent === 'addressee' ? 'are' : 'is';
-    result = question && tense !== 'future'
-      ? words(be, person, negative ? 'not' : '', object)
-      : tense === 'future' && negative
-        ? words(person, 'will not be', object)
+    result = tense === 'future'
+      ? question ? words('Will', person, negative ? 'not' : '', 'be', object)
+        : words(person, negative ? 'will not be' : 'will be', object)
+      : question ? words(be, person, negative ? 'not' : '', object)
         : words(person, be, negative ? 'not' : '', object);
   } else if (action.predicate === 'would_like' && tense === 'present') {
     result = question
@@ -189,12 +207,10 @@ function realizeClause(value: Clause): string {
       ? words('Did', person, negative ? 'not' : '', main.base, object)
       : words(person, negative ? 'did not' : '', negative ? main.base : main.past, object);
   } else {
-    const verb = action.agent === 'other'
-      ? main.base.endsWith('y') ? `${main.base.slice(0, -1)}ies` : `${main.base}s`
-      : main.base;
+    const verb = action.agent === 'other' ? thirdPersonPresent(main.base) : main.base;
     result = question
       ? words(action.agent === 'other' ? 'Does' : 'Do', person, negative ? 'not' : '', main.base, object)
-      : words(person, negative ? 'do not' : '', negative ? main.base : verb, object);
+      : words(person, negative ? (action.agent === 'other' ? 'does not' : 'do not') : '', negative ? main.base : verb, object);
   }
 
   const frequency = value.frequency ? FREQUENCIES[value.frequency] : '';
@@ -233,7 +249,11 @@ function realizePresence(value: Presence): string {
   if (!item) throw new TypeError(`Missing English presence noun: ${value.thing}`);
   const place = value.place === null ? '' : PRESENCE_PLACES[value.place];
   const group = words(item, place);
-  if (value.question) return `Is there ${group}?`;
+  if (value.question) {
+    return value.negative
+      ? `Is there no ${item.replace(/^(a|an) /u, '')}${place ? ` ${place}` : ''}?`
+      : `Is there ${group}?`;
+  }
   return `There ${value.negative ? 'is no' : 'is'} ${value.negative ? item.replace(/^(a|an) /u, '') : item}${place ? ` ${place}` : ''}.`;
 }
 

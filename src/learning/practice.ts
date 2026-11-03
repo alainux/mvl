@@ -245,6 +245,7 @@ export function matchesModel(answer: string, target: string): boolean {
     .normalize('NFC')
     .trim()
     .toLocaleLowerCase()
+    .replace(/[’‘ʼ]/gu, "'")
     .replace(/[.!?¿\s]+$/gu, '')
     .replace(/\s+/gu, ' ');
 

@@ -45,12 +45,19 @@ export function event(
   if (!(frame.allowedArguments as readonly string[]).includes(argument)) {
     invalid(`${predicate} requires ${frame.argumentRole} in {${frame.allowedArguments.join(', ')}}`);
   }
-  if (frame.argumentRole === 'person' && agent === argument) {
+  if (frame.argumentRole === 'person' && (
+    agent === argument ||
+    (agent === 'we' && argument === 'speaker') ||
+    (agent === 'speaker' && argument === 'we')
+  )) {
     invalid('Self-directed help and calls are not in this learning profile');
   }
   if (quantity !== 1 && quantity !== 2) invalid('Quantity must be one or two');
-  if (quantity > 1 && !(COUNTABLE_THINGS as readonly string[]).includes(argument)) {
-    invalid(`Cannot count ${argument} in this profile`);
+  if (quantity > 1 && (
+    frame.argumentRole !== 'thing' || predicate === 'like' ||
+    !(COUNTABLE_THINGS as readonly string[]).includes(argument)
+  )) {
+    invalid(`Cannot count ${argument} for ${predicate} in this profile`);
   }
 
   // The only assertion in the model: a validated dynamic input becomes the

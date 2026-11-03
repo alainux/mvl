@@ -199,11 +199,14 @@ function complement(action, negative) {
         case 'sign':
         case 'reserve':
         case 'cancel':
+            // Eating already implies food in this minimal predicate frame.
+            if (predicate === 'eat' && argument === 'food')
+                return '';
             if (predicate === 'use' && argument === 'internet')
                 return 'internet';
-            if (predicate === 'would_like' && argument === 'bill')
+            if (predicate === 'would_like' && argument === 'bill' && quantity === 1)
                 return 'la cuenta';
-            if (predicate === 'look_for' && argument === 'job')
+            if (predicate === 'look_for' && argument === 'job' && quantity === 1)
                 return 'trabajo';
             return noun(argument, quantity, negative);
         case 'understand':

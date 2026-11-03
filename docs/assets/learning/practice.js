@@ -186,6 +186,7 @@ export function matchesModel(answer, target) {
         .normalize('NFC')
         .trim()
         .toLocaleLowerCase()
+        .replace(/[’‘ʼ]/gu, "'")
         .replace(/[.!?¿\s]+$/gu, '')
         .replace(/\s+/gu, ' ');
     return normalize(answer) === normalize(target);

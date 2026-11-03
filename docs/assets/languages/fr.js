@@ -230,9 +230,12 @@ function complement(action, negativeNoun) {
         case 'reserve':
         case 'cancel':
         case 'meet':
+            // Eating already implies food in this minimal predicate frame.
+            if (predicate === 'eat' && argument === 'food')
+                return '';
             if (predicate === 'use' && argument === 'internet')
                 return 'Internet';
-            if (predicate === 'would_like' && argument === 'bill')
+            if (predicate === 'would_like' && argument === 'bill' && quantity === 1)
                 return 'l’addition';
             return noun(argument, quantity, negativeNoun);
         case 'understand':
@@ -280,7 +283,15 @@ function realizeClause(value) {
         'fill_out', 'sign', 'reserve', 'cancel', 'meet'].includes(action.predicate);
     const object = complement(action, nominalNegation);
     let text;
-    if (modality) {
+    if (modality === 'must' && negative) {
+        // Ne pas devoir often conveys prohibition. Lack of obligation is better
+        // expressed with ne pas avoir besoin de + infinitive.
+        const infinitive = pronoun ? attachClitic(pronoun, verb.infinitive) : verb.infinitive;
+        const actionPhrase = elide('d', infinitive);
+        const finite = finiteGroup(person, form(HAVE, person), true);
+        text = words(finite, tense === 'past' ? 'eu' : '', 'besoin', actionPhrase, object, temporal);
+    }
+    else if (modality) {
         const m = MODALS[modality];
         const finite = tense === 'past'
             ? form(HAVE, person)

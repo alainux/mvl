@@ -222,10 +222,14 @@ test('incompatible pieces cannot be dropped into unrelated sentence slots', asyn
   await page.locator('[data-snap-slot="agent"]').click();
   const before = await page.locator('#snap-sentence').textContent();
   const piece = page.locator('[data-snap-for="agent"][data-snap-value="we"]');
-  await piece.dragTo(page.locator('[data-snap-slot="predicate"]'));
+  // Dispatch native drag data directly: mobile emulation has touch drag
+  // semantics, while the game supports taps for touch devices.
+  const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
+  await piece.dispatchEvent('dragstart', { dataTransfer });
+  await page.locator('[data-snap-slot="predicate"]').dispatchEvent('drop', { dataTransfer });
   await expect(page.locator('#snap-feedback')).toContainText('does not fit');
   await expect(page.locator('#snap-sentence')).toHaveText(before);
-  await piece.dragTo(page.locator('[data-snap-slot="agent"]'));
+  await page.locator('[data-snap-slot="agent"]').dispatchEvent('drop', { dataTransfer });
   await expect(page.locator('#snap-sentence')).not.toHaveText(before);
 });
 
@@ -234,6 +238,7 @@ test('snap builder preserves the advanced grammar lab for more complex patterns'
   await expect(page.locator('#studio-workshop')).not.toHaveAttribute('open');
   await page.locator('#snap-lab').click();
   await expect(page.locator('#studio-workshop')).toHaveAttribute('open', '');
+  await page.locator('#studio-show-recipes').click();
   await page.locator('[data-recipe="connect"]').click();
   await expect(page.locator('#snap-sockets .snap-socket')).toHaveCount(3);
   await expect(page.locator('#snap-sentence')).toContainText('aber');

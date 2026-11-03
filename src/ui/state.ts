@@ -131,3 +131,44 @@ export function dueCardCount(code: LanguageCode, ids: readonly string[], now = D
   const recalls = cardRecalls(code);
   return ids.filter((id) => !recalls[id] || recalls[id].due <= now).length;
 }
+
+
+/** A level clear can earn 1–3 stars. Replay improves the best score without
+ * printing free XP on every visit. Old "studied" progress is still respected. */
+export interface QuestRecord {
+  readonly stars: number;
+  readonly score: number;
+  readonly clears: number;
+}
+export function questRecords(code: LanguageCode): Readonly<Record<string, QuestRecord>> {
+  try {
+    const decoded: unknown = JSON.parse(read('mvl:quest:records:' + code) ?? '{}');
+    if (!decoded || typeof decoded !== 'object' || Array.isArray(decoded)) return {};
+    const result: Record<string, QuestRecord> = {};
+    for (const [key, raw] of Object.entries(decoded)) {
+      if (!raw || typeof raw !== 'object') continue;
+      const row = raw as Record<string, unknown>;
+      if (typeof row['stars'] !== 'number' || typeof row['score'] !== 'number') continue;
+      result[key] = {
+        stars: Math.min(3, Math.max(0, Math.round(row['stars']))),
+        score: Math.max(0, row['score']),
+        clears: typeof row['clears'] === 'number' ? Math.max(0, row['clears']) : 1,
+      };
+    }
+    return result;
+  } catch { return {}; }
+}
+export function recordQuestVictory(code: LanguageCode, id: LessonId, stars: number, score: number): number {
+  const records = { ...questRecords(code) };
+  const existing = records[id];
+  const nextStars = Math.max(existing?.stars ?? 0, Math.min(3, Math.max(1, stars)));
+  records[id] = {
+    stars: nextStars, score: Math.max(existing?.score ?? 0, score),
+    clears: (existing?.clears ?? 0) + 1,
+  };
+  write('mvl:quest:records:' + code, JSON.stringify(records));
+  const bonus = !existing ? 70 + 20 * nextStars : 20 * (nextStars - existing.stars);
+  if (bonus > 0) awardXP(code, bonus);
+  setLessonCompleted(code, id, true);
+  return bonus;
+}

@@ -16,6 +16,8 @@ import { escapeHtml as escape, required } from './dom.js';
 import { MISSIONS, RECIPES, applyRecipe, allowedArgumentsFor, availableOperator, clauseFromSelection, editCompositeClause, isCompositeField, initialStudio, isPresent, operatorApplied, matchesMission, missionAnswer, normalizeStudio, startMission, studioExpression, toggleOperator, } from './studio-model.js';
 import { grammarSteps, ruleFor } from './studio-rules.js';
 import { traceSurfaceOrder } from './surface-order.js';
+import { mountSentenceStack } from './stack-game.js';
+import { awardXP } from './state.js';
 export const REMIX_STORAGE_KEY = 'mvl:studio:remix';
 const SUBJECT_CHOICES = [
     { value: 'speaker', label: 'I' },
@@ -500,7 +502,7 @@ function defaultSlot(state) {
     }
 }
 /** A screen instance stays mounted until the hash route changes. */
-export function initializeStudio(code) {
+export function initializeStudio(code, signal) {
     let state = readState(code);
     let activeSlot = defaultSlot(state);
     let recipeId = null;
@@ -966,5 +968,96 @@ export function initializeStudio(code) {
             copy.textContent = 'Copy unavailable';
         }
     });
+    // Arcade shapes carry semantic values, not pretranslated phrases. A valid
+    // lock goes through setSlot/normalizeStudio and the same language realizer
+    // as the freeplay lab. The stack does not replace the open-ended editor.
+    let stackPieceNumber = 0;
+    function chooseStack(items) {
+        if (!items.length)
+            throw new Error('No valid grammar block choices');
+        return items[(stackPieceNumber++ + Math.floor(Math.random() * items.length)) % items.length];
+    }
+    function makeStackPiece(lane) {
+        const sample = state.pattern === 'action'
+            ? state : normalizeStudio({ ...state, pattern: 'action' });
+        if (lane === 'agent') {
+            const options = choices(sample, 'agent').filter((item) => item.value !== sample.action.agent);
+            const item = chooseStack(options.length ? options : choices(sample, 'agent'));
+            return { lane, slot: 'agent', value: item.value, label: item.label.toUpperCase(), detail: 'Change the speaker', symbol: '●' };
+        }
+        if (lane === 'predicate') {
+            const actionIds = ['need', 'have', 'buy', 'go', 'work', 'study', 'speak', 'help', 'come', 'read', 'eat', 'drink'];
+            const options = choices(sample, 'predicate').filter((item) => actionIds.includes(item.value) && item.value !== sample.action.predicate);
+            const item = chooseStack(options.length ? options : choices(sample, 'predicate'));
+            return { lane, slot: 'predicate', value: item.value, label: item.label.toUpperCase(),
+                detail: 'Swap the main action', symbol: '◆' };
+        }
+        if (lane === 'argument') {
+            const all = choices(sample, 'argument');
+            const options = all.filter((item) => item.value !== sample.action.argument);
+            const item = chooseStack(options.length ? options : all);
+            return { lane, slot: 'argument', value: item.value, label: item.label.toUpperCase(),
+                detail: 'Change what the action affects', symbol: '▣' };
+        }
+        if (lane === 'tense') {
+            const timeOptions = [
+                { value: 'present', label: 'RIGHT NOW' },
+                { value: 'past', label: 'YESTERDAY' },
+                { value: 'future', label: 'TOMORROW' },
+            ].filter((item) => item.value !== sample.action.tense &&
+                choices(sample, 'tense').some((choice) => choice.value === item.value));
+            const choicesForTime = timeOptions.length ? timeOptions : [{ value: 'present', label: 'RIGHT NOW' }];
+            const item = chooseStack(choicesForTime);
+            return { lane, slot: 'tense', value: item.value, label: item.label,
+                detail: 'Change the timeline', symbol: '◷' };
+        }
+        const powers = [
+            { operator: 'negative', slot: 'negative', value: 'true', label: 'NOT' },
+            { operator: 'question', slot: 'question', value: 'true', label: 'QUESTION?' },
+            { operator: 'polite', slot: 'polite', value: 'true', label: 'PLEASE' },
+            { operator: 'can', slot: 'modal', value: 'can', label: 'CAN' },
+            { operator: 'must', slot: 'modal', value: 'must', label: 'MUST' },
+            { operator: 'want', slot: 'modal', value: 'want', label: 'WANT' },
+        ].filter((item) => availableOperator(sample, item.operator));
+        const unused = powers.filter((item) => !operatorApplied(sample, item.operator));
+        const item = chooseStack(unused.length ? unused : powers);
+        return { lane, slot: item.slot, value: item.value, label: item.label,
+            detail: 'Add a grammar power-up', symbol: '✦' };
+    }
+    mountSentenceStack(required('#studio-stack'), {
+        makePiece: makeStackPiece,
+        initialSentence: () => {
+            try {
+                return { sentence: linearize(studioExpression(state), code),
+                    meaning: realizeEnglish(studioExpression(state)) };
+            }
+            catch {
+                return { sentence: '', meaning: '' };
+            }
+        },
+        onCharge: (piece) => {
+            rememberBefore('Stack: ' + piece.label);
+            if (state.pattern !== 'action')
+                state = normalizeStudio({ ...state, pattern: 'action' });
+            state = setSlot(state, piece.slot, piece.value);
+            if (piece.slot === 'tense') {
+                const time = piece.value === 'past' ? 'yesterday' : piece.value === 'future' ? 'tomorrow' : '';
+                state = normalizeStudio({ ...state, action: { ...state.action,
+                        time: time } });
+            }
+            recipeId = null;
+            activeMission = null;
+            activeSlot = piece.slot;
+            render();
+            return { sentence: result.textContent ?? '', meaning: meaning.textContent ?? '' };
+        },
+        onClear: (lines) => {
+            const xp = awardXP(code, lines * 10);
+            const header = document.querySelector('.game-top-score');
+            if (header)
+                header.textContent = '✦ ' + xp.xp + ' XP';
+        },
+        storageKey: 'mvl:stack:best:' + code,
+    }, signal);
     render();
 }

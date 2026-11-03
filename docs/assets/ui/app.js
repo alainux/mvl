@@ -21,7 +21,8 @@ function chosenLesson(model, requested) {
 }
 function newDrill(key, mode = 'pick') {
     return { key, index: 0, score: 0, streak: 0, best: 0,
-        mode, answered: false, chosen: null, correct: false, bonus: 0 };
+        mode, answered: false, chosen: null, correct: false, bonus: 0,
+        questionStartedAt: Date.now(), lastGain: 0, remainingAtAnswer: mode === 'pick' ? 14 : 22 };
 }
 function newCards(code, lesson) {
     const recalls = cardRecalls(code);
@@ -138,6 +139,8 @@ function initializeDrill(runtime, code, lesson) {
     const session = runtime.drill;
     if (!session)
         return;
+    const signal = activeListeners.signal;
+    const roundIndex = session.index;
     const restart = document.querySelector('#drill-restart');
     if (restart) {
         restart.addEventListener('click', () => {
@@ -155,38 +158,47 @@ function initializeDrill(runtime, code, lesson) {
             const mode = button.dataset['drillMode'];
             if (mode !== 'pick' && mode !== 'type')
                 return;
-            runtime.drill = { ...runtime.drill, mode };
+            runtime.drill = { ...runtime.drill, mode, questionStartedAt: Date.now(),
+                remainingAtAnswer: mode === 'pick' ? 14 : 22 };
             render(runtime);
+            if (mode === 'type')
+                document.querySelector('#drill-input')?.focus();
         });
     });
-    const question = deck[session.index];
+    const question = deck[roundIndex];
     if (!question)
         throw new Error('Missing current drill question');
     const expectedSentence = question.target;
-    function answer(input) {
-        const state = runtime.drill;
-        if (!state || state.answered)
-            return;
-        const correct = state.mode === 'pick' ? input === expectedSentence : matchesModel(input, expectedSentence);
-        const streak = correct ? state.streak + 1 : 0;
-        if (correct)
-            awardXP(code, 10, true, streak);
-        runtime.drill = { ...state, answered: true, chosen: input, correct,
-            score: state.score + Number(correct), streak, best: Math.max(state.best, streak) };
-        render(runtime);
-        document.querySelector('#drill-next')?.focus();
-    }
+    const seconds = session.mode === 'pick' ? 14 : 22;
     function next() {
         const state = runtime.drill;
-        if (!state?.answered)
+        if (!state?.answered || state.index !== roundIndex)
             return;
-        // Drills train recall and earn XP, but only the active assembly quest
-        // opens the next chapter. Multiple-choice alone is not mastery.
-        runtime.drill = { ...state, index: state.index + 1,
+        // Speed drills are for retrieval; the sentence quest is the mastery gate.
+        runtime.drill = { ...state, index: state.index + 1, lastGain: 0,
+            questionStartedAt: Date.now(), remainingAtAnswer: state.mode === 'pick' ? 14 : 22,
             answered: false, chosen: null, correct: false };
         render(runtime);
-        const focus = runtime.drill.mode === 'type' ? '#drill-input' : '[data-drill-option="0"]';
-        document.querySelector(focus)?.focus();
+        document.querySelector(state.mode === 'type' ? '#drill-input' : '[data-drill-option="0"]')?.focus();
+    }
+    function answer(input) {
+        const state = runtime.drill;
+        if (!state || state.answered || state.index !== roundIndex)
+            return;
+        const remaining = Math.max(0, seconds - (Date.now() - state.questionStartedAt) / 1000);
+        const timedOut = remaining <= 0;
+        const attempted = timedOut ? '' : input;
+        const correct = !timedOut && (state.mode === 'pick'
+            ? attempted === expectedSentence : matchesModel(attempted, expectedSentence));
+        const streak = correct ? state.streak + 1 : 0;
+        const speedBonus = correct ? Math.ceil(remaining) * 2 + Math.min(4, streak - 1) * 3 : 0;
+        const gain = correct ? 10 + speedBonus : 0;
+        if (correct)
+            awardXP(code, gain, true, streak);
+        runtime.drill = { ...state, answered: true, chosen: attempted || null, correct,
+            score: state.score + Number(correct), streak, best: Math.max(state.best, streak),
+            bonus: state.bonus + speedBonus, lastGain: gain, remainingAtAnswer: remaining };
+        render(runtime);
     }
     document.querySelectorAll('[data-drill-option]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -205,6 +217,48 @@ function initializeDrill(runtime, code, lesson) {
             input.focus();
     });
     document.querySelector('#drill-next')?.addEventListener('click', next);
+    if (session.answered) {
+        // Briefly reveal both the right answer and the semantic contrast, then
+        // keep the flow moving. Enter/Next allows an immediate manual skip.
+        const pending = setTimeout(next, session.correct ? 1350 : 1900);
+        signal.addEventListener('abort', () => clearTimeout(pending), { once: true });
+    }
+    else {
+        const clock = document.querySelector('#drill-clock');
+        const fill = document.querySelector('#drill-clock-fill');
+        const track = document.querySelector('.rush-time-track');
+        const frame = document.querySelector('.rush-frame');
+        function updateClock() {
+            const state = runtime.drill;
+            if (document.hidden || signal.aborted || !state || state.answered || state.index !== roundIndex)
+                return;
+            const remaining = Math.max(0, seconds - (Date.now() - state.questionStartedAt) / 1000);
+            if (clock)
+                clock.textContent = remaining.toFixed(1);
+            if (fill)
+                fill.style.width = remaining / seconds * 100 + '%';
+            if (track)
+                track.setAttribute('aria-valuenow', String(Math.ceil(remaining)));
+            frame?.classList.toggle('rush-urgent', remaining < 5);
+            if (remaining <= 0)
+                answer('');
+        }
+        const timer = setInterval(updateClock, 100);
+        signal.addEventListener('abort', () => clearInterval(timer), { once: true });
+        let hiddenSince = null;
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden)
+                hiddenSince = Date.now();
+            else if (hiddenSince !== null) {
+                const state = runtime.drill;
+                if (state && !state.answered && state.index === roundIndex)
+                    runtime.drill = { ...state, questionStartedAt: state.questionStartedAt + Date.now() - hiddenSince };
+                hiddenSince = null;
+                updateClock();
+            }
+        }, { signal });
+        updateClock();
+    }
     document.addEventListener('keydown', (event) => {
         if (event.altKey || event.metaKey || event.ctrlKey || event.repeat)
             return;
@@ -223,7 +277,7 @@ function initializeDrill(runtime, code, lesson) {
                 answer(option);
             }
         }
-    }, { signal: activeListeners.signal });
+    }, { signal });
 }
 function initializeCards(runtime, code) {
     const session = runtime.cards;
@@ -299,7 +353,7 @@ function render(runtime) {
         + ' · MVL Language Game';
     initializeHeader(runtime, route);
     if (route.page === 'builder') {
-        initializeStudio(code);
+        initializeStudio(code, activeListeners.signal);
         const back = document.querySelector('#studio-back');
         if (back) {
             try {

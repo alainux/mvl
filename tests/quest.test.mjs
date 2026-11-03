@@ -70,9 +70,11 @@ test('a wrong answer costs one heart and can be repaired without losing chosen b
 
   game = removeQuestTile(game, 0);
   assert.equal(game.selected.length, 0);
-  const correct = round.tiles.find(t => t.word === round.expected[0]);
-  assert.ok(correct);
-  game = addQuestTile(game, round, correct.id);
+  for (const word of round.expected) {
+    const correct = round.tiles.find(t => t.word === word && !game.selected.includes(t.id));
+    assert.ok(correct);
+    game = addQuestTile(game, round, correct.id);
+  }
   game = checkQuest(game, round);
   assert.equal(game.phase, 'won');
   assert.equal(questStars(game), 2);

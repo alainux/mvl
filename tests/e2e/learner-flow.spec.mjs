@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { compileGuide } from '../../docs/assets/learning/compile.js';
 import { drillQuestions } from '../../docs/assets/ui/game-model.js';
+import { clozeFor } from '../../docs/assets/ui/drill-cloze.js';
 import { questRounds } from '../../docs/assets/ui/quest-model.js';
 
 const guide = compileGuide('de');
@@ -16,21 +17,22 @@ test('the level map leads to editable examples in the builder', async ({ page })
   await page.locator('a.game-level-node').first().click();
   await expect(page.locator('.game-level-page > .game-example-grid')).toBeVisible();
   await page.locator('[data-remix-example="first-words-7"]').click();
-  await expect(page.locator('#studio-result')).toContainText('Ich habe eine Frage.');
+  await expect(page.locator('#snap-sentence')).toContainText('Ich habe eine Frage.');
+  await page.locator('#snap-lab').click();
   await expect(page.locator('#studio-structure')).toBeVisible();
   await expect(page.locator('#studio-back')).toHaveAttribute('href', '#de/lesson/first-words');
 });
 
-test('a quick drill earns XP but does not unlock the next quest', async ({ page }) => {
+test('a one-word cloze drill earns XP but does not unlock the next quest', async ({ page }) => {
   await page.goto('/#de/practice/first-words');
-  for (const [index, question] of deck.entries()) {
-    await expect(page.locator('.game-prompt')).toContainText(question.english);
-    const option = question.options.indexOf(question.target);
-    await page.locator('[data-drill-option="' + option + '"]').click();
-    await expect(page.locator('.game-answer-feedback.is-correct')).toBeVisible();
-    // The next question now arrives automatically, like a real rapid-fire drill.
-    if (index + 1 < deck.length)
-      await expect(page.locator('.game-prompt')).toContainText(deck[index + 1].english, { timeout: 6000 });
+  for (const [i, question] of deck.entries()) {
+    const cloze = clozeFor(question.target, i, 'de');
+    await expect(page.locator('.cloze-translation')).toContainText(question.english);
+    await expect(page.locator('.cloze-target .cloze-blank')).toContainText('······');
+    await page.locator('#drill-input').fill(cloze.word);
+    await page.locator('#drill-check').click();
+    await expect(page.locator('.cloze-feedback.is-correct')).toBeVisible();
+    await page.locator('#drill-next').click();
   }
   await expect(page.locator('.game-round-end h1')).toHaveText('Drill conquered!');
   await page.goto('/#de/start');
@@ -38,34 +40,45 @@ test('a quick drill earns XP but does not unlock the next quest', async ({ page 
   await expect(page.locator('.game-top-score')).toContainText('XP');
 });
 
-test('clicks and keyboard shortcuts grade the selected option and explain mistakes', async ({ page }) => {
+test('wrong missing word shows the full target phrase; Enter moves to the next gap', async ({ page }) => {
   await page.goto('/#de/practice/first-words');
-  const firstQuestion = deck[0];
-  const wrongIndex = (firstQuestion.options.indexOf(firstQuestion.target) + 1) % 4;
-  await page.locator('[data-drill-option="' + wrongIndex + '"]').click();
-  await expect(page.locator('.game-answer-feedback.is-wrong')).toBeVisible();
-  await expect(page.locator('[data-drill-option="' + wrongIndex + '"]')).toHaveClass(/is-wrong/);
-  await expect(page.locator('[data-drill-option="' + firstQuestion.options.indexOf(firstQuestion.target) + '"]')).toHaveClass(/is-correct/);
-  await expect(page.locator('.game-feedback-choice')).toContainText(firstQuestion.optionMeanings[wrongIndex]);
-  await expect(page.locator('.game-drill-meter')).toContainText('0 correct');
+  await expect(page.locator('#drill-input')).toBeFocused();
+  await page.locator('#drill-input').fill('thiscannotbetheword');
   await page.keyboard.press('Enter');
-  const secondQuestion = deck[1];
-  const correctIndex = secondQuestion.options.indexOf(secondQuestion.target);
-  await page.keyboard.press(String(correctIndex + 1));
-  await expect(page.locator('.game-answer-feedback.is-correct')).toBeVisible();
-  await expect(page.locator('[data-drill-option="' + correctIndex + '"]')).toHaveClass(/is-correct/);
-  await expect(page.locator('.game-drill-meter')).toContainText('1 correct');
+  await expect(page.locator('.cloze-feedback.is-wrong')).toBeVisible();
+  await expect(page.locator('.cloze-complete')).toHaveText(deck[0].target);
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.cloze-translation')).toContainText(deck[1].english);
+  await page.locator('#drill-input').fill(clozeFor(deck[1].target, 1, 'de').word);
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.cloze-feedback.is-correct')).toBeVisible();
+  await expect(page.locator('.cloze-meter')).toContainText('1 correct');
 });
 
-test('typing mode gives more time and checks exact model answers', async ({ page }) => {
+test('hints are optional, progressive and preserve the typed input', async ({ page }) => {
   await page.goto('/#de/practice/first-words');
-  await page.locator('[data-drill-mode="type"]').click();
-  await page.locator('#drill-input').fill(deck[0].target);
-  await page.locator('#drill-type-form button').click();
-  await expect(page.locator('.game-answer-feedback.is-correct')).toBeVisible();
-  await expect(page.locator('.game-drill-shortcut')).toContainText('22 SECONDS PER QUESTION');
+  await expect(page.locator('.cloze-footnote')).toContainText('No countdown');
+  await page.locator('#drill-input').fill('guess');
+  await page.locator('#drill-hint').click();
+  const hint = clozeFor(deck[0].target, 0, 'de');
+  await expect(page.locator('#drill-hint-message')).toContainText('starts with');
+  await expect(page.locator('#drill-hint-message')).toContainText(String(hint.length));
+  await expect(page.locator('#drill-input')).toHaveValue('guess');
+  await page.locator('#drill-hint').click();
+  await expect(page.locator('#drill-hint')).toBeDisabled();
+  await page.locator('#drill-input').fill(hint.word);
   await page.keyboard.press('Enter');
-  await expect(page.locator('.game-prompt')).toContainText(deck[1].english);
+  await expect(page.locator('.cloze-feedback.is-correct')).toContainText('+4 XP');
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.cloze-translation')).toContainText(deck[1].english);
+});
+
+test('skip reveals the missing word without giving free XP', async ({ page }) => {
+  await page.goto('/#de/practice/first-words');
+  await page.locator('#drill-reveal').click();
+  await expect(page.locator('.cloze-feedback.is-wrong')).toBeVisible();
+  await expect(page.locator('.cloze-complete')).toHaveText(deck[0].target);
+  await expect(page.locator('.cloze-session-stat')).toContainText('0 XP');
 });
 
 test('memory cards flip and remember a review interval on this device', async ({ page }) => {
@@ -87,7 +100,7 @@ test('mobile navigation links to the new modes', async ({ page }, testInfo) => {
   await page.locator('#menu-toggle').click();
   await expect(page.locator('body')).toHaveClass(/nav-open/);
   await page.locator('nav[aria-label="Study tools"] a[href="#de/practice"]').click();
-  await expect(page.locator('.game-answer-grid')).toBeVisible();
+  await expect(page.locator('#drill-input')).toBeVisible();
   await expect(page.locator('body')).not.toHaveClass(/nav-open/);
   await page.locator('#menu-toggle').click();
   await page.locator('nav[aria-label="Study tools"] a[href="#de/cards"]').click();
@@ -97,7 +110,7 @@ test('mobile navigation links to the new modes', async ({ page }, testInfo) => {
 test('a locked deep link cannot mismatch drill prompts with answer validation', async ({ page }) => {
   await page.goto('/#de/practice/independent-life');
   await expect(page.locator('#drill-lesson')).toHaveValue('first-words');
-  await expect(page.locator('.game-prompt')).toContainText(deck[0].english);
+  await expect(page.locator('.cloze-translation')).toContainText(deck[0].english);
 });
 
 test('game modes fit a narrow phone without horizontal scrolling', async ({ page }, testInfo) => {
@@ -183,39 +196,51 @@ test('the root URL starts an actual sentence puzzle rather than a course menu', 
   await expect(page.locator('#quest-check')).toBeDisabled();
 });
 
-test('sentence stack has real falling shapes and charges the grammar when a shape lands on its lane', async ({ page }) => {
+
+test('snap builder uses compatible grammar sockets and can clear a semantic blueprint', async ({ page }) => {
   await page.goto('/#de/builder');
-  await expect(page.locator('#studio-stack .stack-start')).toBeVisible();
-  const before = await page.locator('#studio-result').textContent();
-  await page.locator('#studio-stack .stack-start').click();
-  await expect(page.locator('#stack-grid')).toHaveAttribute('data-phase', 'running');
-  const targetLabel = await page.locator('#stack-piece-target').textContent();
-  const targetColumns = { WHO: 0, ACTION: 2, THING: 4, WHEN: 6, POWER: 8 };
-  const targetName = Object.keys(targetColumns).find((key) => targetLabel.includes('AIM FOR ' + key));
-  expect(targetName).toBeTruthy();
-  const targetCol = targetColumns[targetName];
-  const geometry = await page.locator('#stack-grid').evaluate((grid) => {
-    const blocks = [...grid.querySelectorAll('.stack-cell.is-falling')];
-    const positions = blocks.map((node) => [...grid.children].indexOf(node) % 10);
-    return { min: Math.min(...positions), width: Math.max(...positions) - Math.min(...positions) + 1 };
-  });
-  const desired = Math.min(targetCol, 10 - geometry.width);
-  const distance = desired - geometry.min;
-  for (let i = 0; i < Math.abs(distance); i++) await page.keyboard.press(distance < 0 ? 'ArrowLeft' : 'ArrowRight');
-  await page.keyboard.press('Space');
-  await expect(page.locator('#stack-locked')).toHaveText('1');
-  await expect(page.locator('#stack-sentence')).not.toBeEmpty();
-  const after = await page.locator('#studio-result').textContent();
-  expect(after).not.toBe(before);
-  await expect(page.locator('#stack-sentence')).toHaveText(after);
+  await expect(page.locator('#snap-sockets .snap-socket')).toHaveCount(5);
+  await expect(page.locator('#snap-sentence')).not.toBeEmpty();
+  await page.locator('[data-snap-mission="yesterday"]').click();
+  await expect(page.locator('#snap-objective')).toContainText('Change the timeline');
+  await expect(page.locator('#snap-cleared')).toHaveText('0 / 4');
+  await page.locator('[data-snap-slot="tense"]').click();
+  await page.locator('[data-snap-for="tense"][data-snap-value="past"]').click();
+  await expect(page.locator('#snap-cleared')).toHaveText('1 / 4');
+  await expect(page.locator('#snap-feedback')).toContainText('Blueprint');
+  await expect(page.locator('#snap-sentence')).toHaveText(await page.locator('#studio-result').textContent());
+  const completed = await page.evaluate(() => JSON.parse(localStorage.getItem('mvl:studio:blueprints:de') ?? '[]'));
+  expect(completed).toContain('yesterday');
+  await expect(page.locator('#snap-next')).toBeVisible();
+  await page.locator('#snap-next').click();
+  await expect(page.locator('#snap-objective')).toContainText('Make a future plan');
 });
 
-test('the stack arcade pauses while playing the manual grammar lab', async ({ page }) => {
+test('incompatible pieces cannot be dropped into unrelated sentence slots', async ({ page }) => {
   await page.goto('/#de/builder');
-  await page.locator('#studio-stack .stack-start').click();
-  await page.locator('#stack-pause').click();
-  await expect(page.locator('#stack-overlay')).toBeVisible();
-  await expect(page.locator('#stack-overlay')).toContainText('PAUSED');
-  await page.locator('#stack-overlay .stack-start').click();
-  await expect(page.locator('#stack-grid')).toHaveAttribute('data-phase', 'running');
+  await page.locator('#snap-free').click();
+  await page.locator('[data-snap-slot="agent"]').click();
+  const before = await page.locator('#snap-sentence').textContent();
+  const piece = page.locator('[data-snap-for="agent"][data-snap-value="we"]');
+  // Dispatch native drag data directly: mobile emulation has touch drag
+  // semantics, while the game supports taps for touch devices.
+  const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
+  await piece.dispatchEvent('dragstart', { dataTransfer });
+  await page.locator('[data-snap-slot="predicate"]').dispatchEvent('drop', { dataTransfer });
+  await expect(page.locator('#snap-feedback')).toContainText('does not fit');
+  await expect(page.locator('#snap-sentence')).toHaveText(before);
+  await page.locator('[data-snap-slot="agent"]').dispatchEvent('drop', { dataTransfer });
+  await expect(page.locator('#snap-sentence')).not.toHaveText(before);
+});
+
+test('snap builder preserves the advanced grammar lab for more complex patterns', async ({ page }) => {
+  await page.goto('/#de/builder');
+  await expect(page.locator('#studio-workshop')).not.toHaveAttribute('open');
+  await page.locator('#snap-lab').click();
+  await expect(page.locator('#studio-workshop')).toHaveAttribute('open', '');
+  await page.locator('#studio-show-recipes').click();
+  await page.locator('[data-recipe="connect"]').click();
+  await expect(page.locator('#snap-sockets .snap-socket')).toHaveCount(3);
+  await expect(page.locator('#snap-sentence')).toContainText('aber');
+  await expect(page.locator('#studio-structure')).toBeVisible();
 });

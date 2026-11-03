@@ -2145,3 +2145,61 @@ input[type='checkbox'] {
 #studio-delta-content span, #studio-delta-content strong { font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
 #studio-delta-content strong { color: var(--accent-ink); }
 #studio-delta-content .studio-delta-arrow { flex: 0; color: var(--accent); font-size: 20px; }
+
+/* The learner sees both semantic composition and actual spoken word order.
+   The tokens come from the language realizer; the selected block is traced by
+   comparing two generated sentences rather than by storing word positions. */
+.studio-order {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface);
+  padding: 17px;
+  margin-top: 16px;
+}
+.studio-order-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.studio-order-heading h3 {
+  font-size: 15px;
+  line-height: 1.4;
+  margin: 3px 0 0;
+  color: var(--ink-strong);
+}
+.studio-order-heading h3 span { color: var(--muted); font-size: 12px; font-weight: 550; }
+.studio-order-arrow { color: var(--accent-ink); font-size: 20px; }
+.studio-order-words {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 15px 0 5px;
+}
+.studio-order-word {
+  border: 1px solid var(--line-strong);
+  background: var(--surface-soft);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink-strong);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.studio-order-word.is-affected {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+  color: var(--accent-ink);
+}
+.studio-order-hint {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin: 9px 0 0;
+}
+@media (max-width: 680px) {
+  .studio-order { padding: 13px; }
+  .studio-order-word { font-size: 13px; padding: 6px 9px; }
+}

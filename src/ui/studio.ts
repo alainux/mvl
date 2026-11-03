@@ -49,6 +49,7 @@ import {
   type StudioState,
 } from './studio-model.js';
 import { ruleFor } from './studio-rules.js';
+import { traceSurfaceOrder } from './surface-order.js';
 
 export const REMIX_STORAGE_KEY = 'mvl:studio:remix';
 
@@ -331,6 +332,27 @@ function setSlot(state: StudioState, slot: StudioSlot, value: string): StudioSta
   return normalizeStudio(next);
 }
 
+/**
+ * Build a temporary comparison program for the currently selected block.
+ *
+ * For optional operators, remove the operator. For required semantic slots,
+ * substitute a valid alternative. Both sentences go through the same language
+ * realizer, so the highlighted surface words come from grammar, not a lookup.
+ */
+function contrastForSlot(state: StudioState, slot: StudioSlot): StudioState | null {
+  if (slot === 'descriptionTense') {
+    return setSlot(state, slot, state.descriptionTense === 'past' ? 'present' : 'past');
+  }
+
+  const visible = visualBlocks(state).find((block) => block.slot === slot);
+  if (visible?.optional) return removeSlot(state, slot);
+
+  const options = choices(state, slot);
+  const current = currentValue(state, slot);
+  const alternative = options.find((choice) => choice.value !== current);
+  return alternative ? setSlot(state, slot, alternative.value) : null;
+}
+
 function removeSlot(state: StudioState, slot: StudioSlot): StudioState {
   switch (slot) {
     case 'tense': return setSlot(state, 'tense', 'present');
@@ -405,6 +427,9 @@ export function initializeStudio(code: Code): void {
   const recipes = required<HTMLElement>('#studio-recipes-list');
   const missions = required<HTMLElement>('#studio-missions');
   const result = required<HTMLElement>('#studio-result');
+  const orderedWords = required<HTMLElement>('#studio-order-words');
+  const orderedHint = required<HTMLElement>('#studio-order-hint');
+  const orderedLanguage = required<HTMLElement>('#studio-order-language');
   const delta = required<HTMLElement>('#studio-delta');
   const meaning = required<HTMLElement>('#studio-english');
   const note = required<HTMLElement>('#studio-grammar-note');
@@ -431,8 +456,8 @@ export function initializeStudio(code: Code): void {
 
   function renderCanvas(): void {
     const blocks = visualBlocks(state);
-    const markup = blocks.map((block, index) => `${index > 0 ? '<span class="studio-join" aria-hidden="true">+</span>' : ''}${blockMarkup(block, activeSlot)}`).join('');
-    canvas.innerHTML = `${markup}<p class="studio-canvas-caption">${blocks.length} meaning blocks · click any block to edit</p>`;
+    const markup = blocks.map((block, index) => `${index > 0 ? '<span class="studio-join" aria-hidden="true">⊕</span>' : ''}${blockMarkup(block, activeSlot)}`).join('');
+    canvas.innerHTML = `${markup}<p class="studio-canvas-caption">${blocks.length} meaning ingredients · ⊕ means “combine meanings”, not “put these words in this order”</p>`;
   }
 
   function renderPalette(): void {
@@ -494,6 +519,27 @@ export function initializeStudio(code: Code): void {
       const current = linearize(expression, code);
       result.textContent = current;
       result.lang = code;
+
+      // Show the *spoken* word order separately from the semantic ingredients.
+      // A contrast with the selected block highlights its actual surface effect.
+      let comparison: string | null = null;
+      try {
+        const alternative = contrastForSlot(state, activeSlot);
+        if (alternative) comparison = linearize(studioExpression(alternative), code);
+      } catch {
+        // Some slots have no alternative in a particular construction.
+      }
+      const tokens = traceSurfaceOrder(current, comparison);
+      orderedLanguage.textContent = ({ de: '· German', fr: '· French', es: '· Spanish' } as const)[code];
+      orderedWords.lang = code;
+      orderedWords.innerHTML = tokens.map((token) => `
+        <span class="studio-order-word ${token.affected ? 'is-affected' : ''}">${escape(token.text)}</span>
+      `).join('');
+      const selectedBlock = visualBlocks(state).find((block) => block.slot === activeSlot);
+      const affectedCount = tokens.filter((token) => token.affected).length;
+      orderedHint.textContent = affectedCount > 0 && selectedBlock
+        ? `Highlighted: words affected by ${selectedBlock.value}. Select another meaning block to inspect its effect.`
+        : 'These words are in the order you would say them. Select a meaning block to inspect what it changes.';
       delta.hidden = !(priorOutput && priorOutput !== current);
       if (!delta.hidden && priorOutput) {
         required<HTMLElement>('#studio-delta-content').innerHTML = `
@@ -514,6 +560,8 @@ export function initializeStudio(code: Code): void {
     } catch (cause: unknown) {
       result.textContent = 'This combination is not supported.';
       meaning.textContent = '';
+      orderedWords.textContent = '';
+      orderedHint.textContent = 'This combination could not be realized.';
       copy.disabled = true;
       error.textContent = cause instanceof Error ? cause.message : 'Unsupported grammar combination.';
       error.hidden = false;

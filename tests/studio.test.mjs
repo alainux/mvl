@@ -95,3 +95,36 @@ test('non-action patterns expose their own valid operators', () => {
     assert.notEqual(linearize(studioExpression(description), code), linearize(studioExpression(negative), code));
   }
 });
+
+test('word order strip is based on generated surface text, not semantic tile order', async () => {
+  const { traceSurfaceOrder } = await import('../docs/assets/ui/surface-order.js');
+  const selection = {
+    ...initialStudio().action,
+    predicate: 'need', argument: 'help', tense: 'future', time: 'tomorrow',
+    negative: true, modal: '',
+  };
+  const current = makeTree(selection);
+  const withoutNegation = makeTree({ ...selection, negative: false });
+  for (const code of codes) {
+    const output = linearize(current, code);
+    const baseline = linearize(withoutNegation, code);
+    const words = traceSurfaceOrder(output, baseline);
+    assert.equal(words.map((word) => word.text).join(' '), output);
+    assert.ok(words.some((word) => word.affected), `negation should change ${code}`);
+    assert.ok(words.some((word) => !word.affected), `unchanged words should remain ${code}`);
+  }
+
+  const german = traceSurfaceOrder('Ich brauche morgen keine Hilfe.', 'Ich brauche morgen Hilfe.');
+  assert.deepEqual(german.filter((word) => word.affected).map((word) => word.text), ['keine']);
+  assert.deepEqual(german.map((word) => word.text), ['Ich', 'brauche', 'morgen', 'keine', 'Hilfe.']);
+});
+
+test('surface contrast covers split operators and reordering without phrase dictionaries', async () => {
+  const { traceSurfaceOrder } = await import('../docs/assets/ui/surface-order.js');
+  const french = traceSurfaceOrder('Je ne parle pas français.', 'Je parle français.');
+  assert.deepEqual(french.filter((word) => word.affected).map((word) => word.text), ['ne', 'pas']);
+
+  const moved = traceSurfaceOrder('Kann ich morgen kommen?', 'Ich kann morgen kommen.');
+  assert.deepEqual(moved.map((word) => word.text), ['Kann', 'ich', 'morgen', 'kommen?']);
+  assert.ok(moved.some((word) => word.affected));
+});

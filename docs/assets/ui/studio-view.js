@@ -30,8 +30,19 @@ export function renderStudio() {
             <div><span class="micro-label">YOUR WORKSPACE</span><h2 id="studio-canvas-title">The building blocks</h2></div>
             <button id="studio-reset" class="studio-text-button">Reset ↺</button>
           </div>
-          <p class="studio-instruction">Select a block to change its meaning. Add an operator below to transform the whole sentence.</p>
+          <p class="studio-instruction">Choose the meaning ingredients below. Their order is not the spoken word order: each language arranges and inflects them differently.</p>
           <div class="studio-block-canvas" id="studio-blocks" aria-label="Editable meaning blocks"></div>
+          <div class="studio-order" aria-labelledby="studio-order-title">
+            <div class="studio-order-heading">
+              <div>
+                <span class="micro-label">THE GRAMMAR ENGINE ARRANGES THEM</span>
+                <h3 id="studio-order-title">Actual word order <span id="studio-order-language"></span></h3>
+              </div>
+              <span class="studio-order-arrow" aria-hidden="true">↓</span>
+            </div>
+            <div class="studio-order-words" id="studio-order-words" aria-live="polite" aria-atomic="true"></div>
+            <p class="studio-order-hint" id="studio-order-hint"></p>
+          </div>
           <div class="studio-add-header"><span class="micro-label">ADD AN OPERATOR</span><span>Optional blocks</span></div>
           <div class="studio-palette" id="studio-palette" aria-label="Available operators"></div>
         </section>

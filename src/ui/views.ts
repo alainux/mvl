@@ -4,6 +4,8 @@ import { href, type Code, type Route } from './router.js';
 import { completedLessons, gameStats, getLanguage } from './state.js';
 import { drillQuestions, levelUnlocked, memoryExamples, meaningBlocks, nextLevelIndex, playableLesson } from './game-model.js';
 import { renderStudio } from './studio-view.js';
+import { renderQuest } from './quest-view.js';
+import type { QuestSession } from './quest-model.js';
 import { fromExpression } from './studio-model.js';
 
 const NAMES: Readonly<Record<Code, string>> = { de: 'German', fr: 'French', es: 'Spanish' };
@@ -50,7 +52,7 @@ function sidebar(route: Route, model: GeneratedGuide): string {
   const stats = gameStats(code);
   const completed = completedLessons(code).size;
   const nav = [
-    { page: 'start', icon: '◈', label: 'Level map', caption: 'Your journey' },
+    { page: 'start', icon: '◈', label: 'Campaign', caption: 'Play your next quest' },
     { page: 'builder', icon: '▦', label: 'Builder', caption: 'Play with blocks' },
     { page: 'practice', icon: '⚡', label: 'Speed drill', caption: 'Quick-fire rounds' },
     { page: 'cards', icon: '▤', label: 'Memory cards', caption: 'Keep it fresh' },
@@ -66,7 +68,7 @@ function sidebar(route: Route, model: GeneratedGuide): string {
     </select>
     <div class="sidebar-label has-top">PLAY</div>
     <nav class="sidebar-group game-nav" aria-label="Study tools">
-      ${nav.map((item) => `<a class="sidebar-link game-nav-item ${route.page === item.page || (item.page === 'start' && route.page === 'lesson') ? 'is-active' : ''}"
+      ${nav.map((item) => `<a class="sidebar-link game-nav-item ${route.page === item.page || (item.page === 'start' && (route.page === 'lesson' || route.page === 'play')) ? 'is-active' : ''}"
         href="${href(code, item.page)}"><span class="nav-icon">${item.icon}</span>
         <span><strong>${item.label}</strong><small>${item.caption}</small></span></a>`).join('')}
     </nav>
@@ -84,7 +86,8 @@ function titleFor(route: Route, model: GeneratedGuide): string {
   switch (route.page) {
     case 'home': return 'Choose language';
     case 'framework': return 'The idea';
-    case 'start': return 'Levels';
+    case 'start': return 'Campaign';
+    case 'play': return 'Sentence quest';
     case 'builder': return 'Block builder';
     case 'practice': return 'Speed drill';
     case 'cards': return 'Memory cards';
@@ -116,7 +119,7 @@ function renderHome(guides: Readonly<Record<Code, GeneratedGuide>>): string {
   return `<section class="page game-home">
     <span class="game-kicker">HELLO, LANGUAGE EXPLORER ✦</span>
     <h1>Words are blocks.<br><em>Learning is play.</em></h1>
-    <p class="lead">Choose a language. Build sentences, complete quick drills, collect memory cards and clear 40 levels.</p>
+    <p class="lead">Choose your language, enter the campaign, and forge sentences to open each gate. Drills and memory cards help you keep your powers sharp.</p>
     <div class="game-language-grid">
       ${(['de', 'fr', 'es'] as const).map((code) => `<a class="game-language-tile" href="${href(code, 'start')}">
         <span class="game-language-code">${code.toUpperCase()}</span><strong>${NAMES[code]}</strong>
@@ -127,8 +130,8 @@ function renderHome(guides: Readonly<Record<Code, GeneratedGuide>>): string {
 
 function modeCards(code: Code, lesson: GeneratedLesson): string {
   return `<div class="game-modes">
-    <a class="game-mode game-mode-builder" href="${href(code, 'builder')}"><span class="game-mode-icon">▦</span>
-      <strong>Build</strong><small>Move the meaning blocks around</small><span>Open builder →</span></a>
+    <a class="game-mode game-mode-builder" href="${href(code, 'play/' + lesson.id)}"><span class="game-mode-icon">⚔</span>
+      <strong>Play a quest</strong><small>Forge sentences. Win stars. Open gates.</small><span>Enter the game →</span></a>
     <a class="game-mode game-mode-drill" href="${href(code, 'practice/' + lesson.id)}"><span class="game-mode-icon">⚡</span>
       <strong>Speed drill</strong><small>Fast answers. A strong streak.</small><span>Play a round →</span></a>
     <a class="game-mode game-mode-memory" href="${href(code, 'cards/' + lesson.id)}"><span class="game-mode-icon">▤</span>
@@ -162,9 +165,10 @@ function renderOverview(model: GeneratedGuide): string {
   return `<section class="page game-page game-overview">
     <div class="game-hero">
       <div><span class="game-kicker">✦ YOUR LANGUAGE QUEST · ${escape(NAMES[code].toUpperCase())}</span>
-        <h1>Build a sentence.<br><em>Unlock a language.</em></h1>
-        <p>One small pattern at a time. Build it, test it, remember it. Your next level is ready whenever you are.</p>
-        <a class="game-primary" href="${href(code, 'lesson/' + current.id)}">${completed.size ? 'Continue playing' : 'Start level one'} <span>→</span></a>
+        <h1>Words are your power.<br><em>Open the next gate.</em></h1>
+        <p>Five encounters. Three hearts. One final gate. Arrange real language blocks to clear the quest and unlock your next chapter.</p>
+        <a class="game-primary" href="${href(code, 'play/' + current.id)}">${completed.size ? 'Continue your quest' : 'Enter your first quest'} <span>→</span></a>
+        <a class="game-hero-secondary" href="${href(code, 'lesson/' + current.id)}">Explore the worked examples ↗</a>
       </div>
       <div class="game-hero-progress">
         <span class="micro-label">YOUR PROGRESS</span>
@@ -174,9 +178,9 @@ function renderOverview(model: GeneratedGuide): string {
         <span class="game-progress-orb">✦</span>
       </div>
     </div>
-    <div class="game-section-heading"><div><span class="micro-label">THREE WAYS TO LEARN</span><h2>Pick your play style.</h2></div></div>
+    <div class="game-section-heading"><div><span class="micro-label">THREE WAYS TO LEARN</span><h2>Three ways to train.</h2></div></div>
     ${modeCards(code, current)}
-    <div class="game-section-heading game-map-heading"><div><span class="micro-label">THE ADVENTURE</span><h2>Your level map.</h2></div><p>Complete a level's drill to unlock the next one.</p></div>
+    <div class="game-section-heading game-map-heading"><div><span class="micro-label">THE ADVENTURE</span><h2>Your level map.</h2></div><p>Win a five-encounter sentence quest to unlock the next level.</p></div>
     ${groups}
   </section>`;
 }
@@ -202,7 +206,7 @@ function renderLevel(model: GeneratedGuide, lesson: GeneratedLesson): string {
     const previous = model.lessons[nextLevelIndex(model, completed)];
     return `<section class="page game-page game-locked-page">
       <span class="game-kicker">LEVEL ${padded(index + 1)} · LOCKED</span><h1>One level at a time.</h1>
-      <p>Clear the previous level's drill to unlock ${escape(lesson.title)}.</p>
+      <p>Beat the previous level's sentence quest to unlock ${escape(lesson.title)}.</p>
       <a class="game-primary" href="${href(code, 'lesson/' + (previous?.id ?? lesson.id))}">Go to your next level →</a>
     </section>`;
   }
@@ -218,14 +222,20 @@ function renderLevel(model: GeneratedGuide, lesson: GeneratedLesson): string {
       <h1>${escape(lesson.title)}</h1><p>${escape(lesson.goal)}.</p></div>
       <div class="game-level-medal">${completed.has(lesson.id) ? '★' : padded(index + 1)}<small>${completed.has(lesson.id) ? 'CLEARED' : 'LEVEL'}</small></div>
     </div>
+    <div class="game-level-quest-cta">
+      <div><span class="game-kicker">YOUR NEXT CHALLENGE</span><strong>Five encounters. Three hearts. One boss gate.</strong>
+        <p>Build the real sentences in the right order. Beat the gate to earn stars and unlock the next level.</p></div>
+      <a class="game-primary" href="${href(code, 'play/' + lesson.id)}">⚔ Enter the quest →</a>
+    </div>
     <div class="game-rule"><span class="game-rule-symbol">✧</span><div><span class="micro-label">TODAY'S POWER-UP</span>
       <strong>${escape(lesson.notes.recipe)}</strong><p>${escape(lesson.notes.explanation)}</p></div></div>
-    <div class="game-section-heading"><div><span class="micro-label">01 · WATCH IT WORK</span><h2>Examples you can play with.</h2></div>
+    <div class="game-section-heading"><div><span class="micro-label">OPTIONAL PREPARATION · LEARN A MOVE</span><h2>Study a move, then play it.</h2></div>
       <p>Every editable example is a pre-built block configuration. Open it and change one thing.</p></div>
     <div class="game-example-grid">${examples.map((example, i) => exampleTile(example, code, i)).join('')}</div>
     <div class="game-level-finish"><div><span class="micro-label">02 · YOUR TURN</span><h2>Ready for a round?</h2>
-      <p>Get most of the answers right to clear this level. No timer, no penalties.</p></div>
-      <div><a class="game-primary" href="${href(code, 'practice/' + lesson.id)}">⚡ Play speed drill →</a>
+      <p>Build five sentences to open the gate. Drills and memory cards help you prepare.</p></div>
+      <div><a class="game-primary" href="${href(code, 'play/' + lesson.id)}">⚔ Enter the quest →</a>
+        <a class="game-secondary" href="${href(code, 'practice/' + lesson.id)}">⚡ Speed drill</a>
         <a class="game-secondary" href="${href(code, 'cards/' + lesson.id)}">▤ Review cards</a></div></div>
   </article>`;
 }
@@ -236,19 +246,17 @@ function renderDrill(model: GeneratedGuide, lesson: GeneratedLesson, session: Dr
   const threshold = Math.ceil(questions.length * 0.7);
   const cleared = session.score >= threshold;
   if (session.index >= questions.length) {
-    const levelIndex = model.lessons.indexOf(lesson);
-    const next = model.lessons[levelIndex + 1];
     return `<section class="page game-page game-drill-page">
       <div class="game-round-end"><span class="game-celebrate">${cleared ? '🏆' : '↻'}</span>
-      <span class="game-kicker">ROUND COMPLETE</span><h1>${cleared ? 'Level cleared!' : 'Good practice. Go again!'}</h1>
-      <p>${cleared ? 'You unlocked the next level. Keep the pattern fresh with memory cards.' : 'You are building your reflexes. Try another round, or review the level examples.'}</p>
+      <span class="game-kicker">ROUND COMPLETE</span><h1>${cleared ? 'Drill conquered!' : 'Good practice. Go again!'}</h1>
+      <p>${cleared ? 'You trained your reflexes. Enter the sentence quest to unlock the next level.' : 'You are building your reflexes. Try another round, or review the level examples.'}</p>
       <div class="game-round-stats"><span><strong>${session.score} / ${questions.length}</strong>Correct</span>
         <span><strong>${session.best}</strong>Best streak</span>
         <span><strong>${session.score * 10 + session.bonus}</strong>Round XP*</span></div>
-      <small>*A level-clear bonus is awarded once. Correct answers always earn XP.</small>
+      <small>*Correct drill answers earn XP; only the sentence quest unlocks levels.</small>
       <div class="game-round-actions"><button class="game-primary" id="drill-restart">↻ Play again</button>
         <a class="game-secondary" href="${href(code, 'cards/' + lesson.id)}">Review memory cards</a>
-        ${cleared && next ? `<a class="game-secondary" href="${href(code, 'lesson/' + next.id)}">Next level →</a>` : ''}
+        <a class="game-secondary" href="${href(code, 'play/' + lesson.id)}">⚔ Play the sentence quest</a>
         <a class="game-secondary" href="${href(code, 'lesson/' + lesson.id)}">Back to examples</a>
       </div></div>
     </section>`;
@@ -325,6 +333,7 @@ export function renderContent(
   guides: Readonly<Record<Code, GeneratedGuide>>,
   drill: DrillSession | null,
   cards: CardSession | null,
+  quest: QuestSession | null,
 ): string {
   if (route.page === 'home') return renderHome(guides);
   if (route.page === 'framework') return `<section class="page game-page game-home">
@@ -337,6 +346,11 @@ export function renderContent(
   switch (route.page) {
     case 'start': case 'reference': return renderOverview(model);
     case 'builder': return renderStudio();
+    case 'play': {
+      const lesson = playableLesson(model, completedLessons(route.code), route.lesson);
+      if (!quest) throw new Error('Quest session not initialized');
+      return renderQuest(model, lesson, quest);
+    }
     case 'lesson': return renderLevel(model, model.lessons.find((lesson) => lesson.id === route.lesson) ?? currentLesson(model));
     case 'practice': {
       const lesson = playableLesson(model, completedLessons(route.code), route.lesson);

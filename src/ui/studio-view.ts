@@ -32,6 +32,7 @@ export function renderStudio(): string {
           </div>
           <p class="studio-instruction">Choose the meaning ingredients below. Their order is not the spoken word order: each language arranges and inflects them differently.</p>
           <div class="studio-block-canvas" id="studio-blocks" aria-label="Editable meaning blocks"></div>
+          <p id="studio-adjustment" class="studio-adjustment" role="status" aria-live="polite" hidden></p>
           <div class="studio-order" aria-labelledby="studio-order-title">
             <div class="studio-order-heading">
               <div>

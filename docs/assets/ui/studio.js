@@ -508,9 +508,11 @@ export function initializeStudio(code) {
     let activeMission = null;
     let missionRevealed = false;
     let status = '';
+  let adjustmentMessage = '';
     let priorOutput = null;
     let lastChange = '';
     const canvas = required('#studio-blocks');
+    const adjustment = required('#studio-adjustment');
     const palette = required('#studio-palette');
     const inspector = required('#studio-inspector-body');
     const recipes = required('#studio-recipes-list');
@@ -547,6 +549,8 @@ export function initializeStudio(code) {
         const blocks = visualBlocks(state);
         const markup = blocks.map((block, index) => `${index > 0 ? '<span class="studio-join" aria-hidden="true">⊕</span>' : ''}${blockMarkup(block, activeSlot)}`).join('');
         canvas.innerHTML = `${markup}<p class="studio-canvas-caption">${blocks.length} meaning ingredients · ⊕ means “combine meanings”, not “put these words in this order”</p>`;
+    adjustment.textContent = adjustmentMessage;
+    adjustment.hidden = !adjustmentMessage;
     }
     function renderPalette() {
         const paletteHeading = document.querySelector('.studio-add-header');
@@ -654,6 +658,7 @@ export function initializeStudio(code) {
             priorOutput = null;
         }
         lastChange = label;
+    adjustmentMessage = '';
     }
     function renderResult() {
         try {
@@ -753,6 +758,8 @@ export function initializeStudio(code) {
         saveState(code, state);
     }
     function applyChoice(slot, value) {
+        const oldArgument = state.action.argument;
+        const oldModal = state.action.modal;
         rememberBefore(`Edit ${slot}`);
         if (slot === 'time') {
             const next = structuredClone(state);
@@ -764,6 +771,12 @@ export function initializeStudio(code) {
         else {
             state = setSlot(state, slot, value);
             activeSlot = slot;
+        }
+        if (slot === 'predicate' || slot === 'agent') {
+            if (oldArgument !== state.action.argument)
+                adjustmentMessage = 'This subject/action cannot use the previous object; it was changed to ' + concept(state.action.argument) + '.';
+            else if (oldModal && !state.action.modal)
+                adjustmentMessage = 'The previous modal does not fit this verb, so it was removed.';
         }
         recipeId = null;
         status = '';

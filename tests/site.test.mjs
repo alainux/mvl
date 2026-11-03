@@ -10,6 +10,7 @@ test('Pages root serves a learner app and not a framework whitepaper', () => {
   assert.match(html, /id="app"/);
   assert.match(html, /assets\/main\.js/);
   assert.match(html, /assets\/style\.css/);
+  assert.match(html, /assets\/quest\.css/);
   assert.doesNotMatch(html, /semantic algebra reference|pseudo-minified/);
 });
 
@@ -23,6 +24,10 @@ test('all generated guide artifacts exist as committed static outputs', () => {
   assert.ok(existsSync('docs/assets/ui/studio.js'));
   assert.ok(existsSync('docs/assets/ui/studio-model.js'));
   assert.ok(existsSync('docs/assets/ui/game-model.js'));
+  assert.ok(existsSync('docs/assets/ui/quest-model.js'));
+  assert.ok(existsSync('docs/assets/ui/quest-controller.js'));
+  assert.ok(existsSync('docs/assets/ui/quest-view.js'));
+  assert.ok(existsSync('docs/assets/quest.css'));
   assert.ok(existsSync('docs/assets/ui/studio-view.js'));
   assert.ok(existsSync('docs/assets/learning/practice.js'));
 });
@@ -62,13 +67,16 @@ test('the root URL opens the playable level map, with routes for builder, drill 
 
   try {
     globalThis.location = { hash: '' };
-    assert.deepEqual(currentRoute(), { page: 'start', code: 'de' });
+    assert.deepEqual(currentRoute(), { page: 'play', code: 'de', lesson: null });
 
     globalThis.location.hash = '#fr/builder';
     assert.deepEqual(currentRoute(), { page: 'builder', code: 'fr' });
 
     globalThis.location.hash = '#es/cards/needs';
     assert.deepEqual(currentRoute(), { page: 'cards', code: 'es', lesson: 'needs' });
+
+    globalThis.location.hash = '#de/play/first-words';
+    assert.deepEqual(currentRoute(), { page: 'play', code: 'de', lesson: 'first-words' });
 
     globalThis.location.hash = '#fr/practice';
     assert.deepEqual(currentRoute(), { page: 'practice', code: 'fr', lesson: null });

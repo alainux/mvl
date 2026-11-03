@@ -44,6 +44,7 @@ for (const code of INSTALLED_LANGUAGES) {
 
 cpSync(resolve(root, 'src/index.html'), resolve(output, 'index.html'));
 cpSync(resolve(root, 'src/style.css'), resolve(output, 'assets/style.css'));
+cpSync(resolve(root, 'src/quest.css'), resolve(output, 'assets/quest.css'));
 cpSync(resolve(root, 'src/favicon.svg'), resolve(output, 'favicon.svg'));
 writeFileSync(resolve(output, '.nojekyll'), '');
 

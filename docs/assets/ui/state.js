@@ -110,3 +110,42 @@ export function dueCardCount(code, ids, now = Date.now()) {
     const recalls = cardRecalls(code);
     return ids.filter((id) => !recalls[id] || recalls[id].due <= now).length;
 }
+export function questRecords(code) {
+    try {
+        const decoded = JSON.parse(read('mvl:quest:records:' + code) ?? '{}');
+        if (!decoded || typeof decoded !== 'object' || Array.isArray(decoded))
+            return {};
+        const result = {};
+        for (const [key, raw] of Object.entries(decoded)) {
+            if (!raw || typeof raw !== 'object')
+                continue;
+            const row = raw;
+            if (typeof row['stars'] !== 'number' || typeof row['score'] !== 'number')
+                continue;
+            result[key] = {
+                stars: Math.min(3, Math.max(0, Math.round(row['stars']))),
+                score: Math.max(0, row['score']),
+                clears: typeof row['clears'] === 'number' ? Math.max(0, row['clears']) : 1,
+            };
+        }
+        return result;
+    }
+    catch {
+        return {};
+    }
+}
+export function recordQuestVictory(code, id, stars, score) {
+    const records = { ...questRecords(code) };
+    const existing = records[id];
+    const nextStars = Math.max(existing?.stars ?? 0, Math.min(3, Math.max(1, stars)));
+    records[id] = {
+        stars: nextStars, score: Math.max(existing?.score ?? 0, score),
+        clears: (existing?.clears ?? 0) + 1,
+    };
+    write('mvl:quest:records:' + code, JSON.stringify(records));
+    const bonus = !existing ? 70 + 20 * nextStars : 20 * (nextStars - existing.stars);
+    if (bonus > 0)
+        awardXP(code, bonus);
+    setLessonCompleted(code, id, true);
+    return bonus;
+}

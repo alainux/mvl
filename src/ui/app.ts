@@ -5,10 +5,12 @@ import { required } from './dom.js';
 import { currentRoute, href, type Code, type Route } from './router.js';
 import { initializeStudio, REMIX_STORAGE_KEY } from './studio.js';
 import { fromExpression } from './studio-model.js';
+import { beginQuest, type QuestSession } from './quest-model.js';
+import { mountQuest } from './quest-controller.js';
 import { drillQuestions, memoryExamples, playableLesson } from './game-model.js';
 import {
   awardXP, cardRecalls, completedLessons, getTheme,
-  rememberLanguage, recordCard, setLessonCompleted, setTheme,
+  rememberLanguage, recordCard, setTheme,
 } from './state.js';
 import { activeLanguage, renderContent, renderShell, type DrillSession, type CardSession } from './views.js';
 
@@ -24,6 +26,7 @@ interface Runtime {
   readonly guides: Readonly<Record<Code, GeneratedGuide>>;
   drill: DrillSession | null;
   cards: CardSession | null;
+  quest: QuestSession | null;
 }
 
 let activeListeners: AbortController | null = null;
@@ -60,6 +63,25 @@ function prepareSessions(runtime: Runtime, route: Route): void {
     const key = route.code + ':' + lesson.id;
     if (runtime.cards?.key !== key) runtime.cards = newCards(route.code, lesson);
   } else runtime.cards = null;
+
+  if (route.page === 'play') {
+    const guide = runtime.guides[route.code];
+    const lesson = chosenLesson(guide, route.lesson);
+    const key = route.code + ':' + lesson.id;
+    if (runtime.quest?.key !== key) {
+      let restored: QuestSession | null = null;
+      try {
+        const raw: unknown = JSON.parse(sessionStorage.getItem('mvl:quest:session:' + key) ?? 'null');
+        if (raw && typeof raw === 'object') {
+          const data = raw as Record<string, unknown>;
+          if (data['key'] === key && typeof data['round'] === 'number' &&
+            typeof data['hearts'] === 'number' && Array.isArray(data['selected']) &&
+            ['play', 'won', 'lost', 'victory'].includes(String(data['phase']))) restored = raw as QuestSession;
+        }
+      } catch { /* An invalid browser session restarts safely. */ }
+      runtime.quest = restored ?? beginQuest(key);
+    }
+  } else runtime.quest = null;
 }
 
 function initializeHeader(runtime: Runtime, route: Route): void {
@@ -69,7 +91,8 @@ function initializeHeader(runtime: Runtime, route: Route): void {
     rememberLanguage(target);
     const destination = route.page === 'builder' ? 'builder'
       : route.page === 'practice' ? 'practice'
-      : route.page === 'cards' ? 'cards' : 'start';
+      : route.page === 'cards' ? 'cards'
+      : route.page === 'play' ? 'play' : 'start';
     location.hash = href(target, destination);
   });
   required<HTMLButtonElement>('#theme-toggle').addEventListener('click', () => {
@@ -163,15 +186,10 @@ function initializeDrill(runtime: Runtime, code: LanguageProfile['code'], lesson
   function next(): void {
     const state = runtime.drill;
     if (!state?.answered) return;
-    const isFinal = state.index + 1 === deck.length;
-    let bonus = state.bonus;
-    if (isFinal && state.score >= Math.ceil(deck.length * 0.7) && !completedLessons(code).has(lesson.id)) {
-      setLessonCompleted(code, lesson.id, true);
-      awardXP(code, 40);
-      bonus = 40;
-    }
+    // Drills train recall and earn XP, but only the active assembly quest
+    // opens the next chapter. Multiple-choice alone is not mastery.
     runtime.drill = { ...state, index: state.index + 1,
-      answered: false, chosen: null, correct: false, bonus };
+      answered: false, chosen: null, correct: false };
     render(runtime);
     const focus = runtime.drill.mode === 'type' ? '#drill-input' : '[data-drill-option="0"]';
     document.querySelector<HTMLElement>(focus)?.focus();
@@ -254,7 +272,7 @@ function render(runtime: Runtime): void {
   if (route.page !== 'home' && route.page !== 'framework') rememberLanguage(code);
   document.body.classList.remove('nav-open');
   prepareSessions(runtime, route);
-  const content = renderContent(route, runtime.guides, runtime.drill, runtime.cards);
+  const content = renderContent(route, runtime.guides, runtime.drill, runtime.cards, runtime.quest);
   const root = required<HTMLElement>('#app');
   root.removeAttribute('role');
   root.removeAttribute('aria-live');
@@ -280,6 +298,17 @@ function render(runtime: Runtime): void {
     initializeDrill(runtime, code, lesson);
   }
   if (route.page === 'cards') initializeCards(runtime, code);
+  if (route.page === 'play' && runtime.quest) {
+    const lesson = chosenLesson(runtime.guides[code], route.lesson);
+    mountQuest(runtime.guides[code], lesson, runtime.quest, (newState) => {
+      runtime.quest = newState;
+      try { sessionStorage.setItem('mvl:quest:session:' + newState.key, JSON.stringify(newState)); }
+      catch { /* Gameplay remains available without storage. */ }
+      render(runtime);
+      document.querySelector<HTMLButtonElement>(newState.phase === 'won' ? '#quest-next' :
+        newState.phase === 'play' ? '#quest-check:not(:disabled)' : '#quest-restart')?.focus();
+    }, activeListeners!.signal);
+  }
 }
 
 export async function startApplication(): Promise<void> {
@@ -287,7 +316,7 @@ export async function startApplication(): Promise<void> {
   try {
     const loaded = await Promise.all(CODES.map(loadGuide));
     const guides = Object.fromEntries(loaded.map((guide) => [guide.language.code, guide])) as Record<Code, GeneratedGuide>;
-    const runtime: Runtime = { guides, drill: null, cards: null };
+    const runtime: Runtime = { guides, drill: null, cards: null, quest: null };
     window.addEventListener('hashchange', () => {
       render(runtime);
       window.scrollTo({ top: 0, behavior: 'instant' });

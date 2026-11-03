@@ -21,6 +21,7 @@ export interface DrillSession {
   readonly score: number;
   readonly streak: number;
   readonly best: number;
+  readonly bonus: number;
   readonly mode: 'pick' | 'type';
   readonly answered: boolean;
   readonly chosen: string | null;
@@ -238,8 +239,8 @@ function renderDrill(model: GeneratedGuide, lesson: GeneratedLesson, session: Dr
       <p>${cleared ? 'You unlocked the next level. Keep the pattern fresh with memory cards.' : 'You are building your reflexes. Try another round, or review the level examples.'}</p>
       <div class="game-round-stats"><span><strong>${session.score} / ${questions.length}</strong>Correct</span>
         <span><strong>${session.best}</strong>Best streak</span>
-        <span><strong>${session.score * 10 + (cleared ? 40 : 0)}</strong>Round XP*</span></div>
-      <small>*First level clears award a one-time bonus.</small>
+        <span><strong>${session.score * 10 + session.bonus}</strong>Round XP*</span></div>
+      <small>*A level-clear bonus is awarded once. Correct answers always earn XP.</small>
       <div class="game-round-actions"><button class="game-primary" id="drill-restart">↻ Play again</button>
         <a class="game-secondary" href="${href(code, 'cards/' + lesson.id)}">Review memory cards</a>
         ${cleared && next ? `<a class="game-secondary" href="${href(code, 'lesson/' + next.id)}">Next level →</a>` : ''}

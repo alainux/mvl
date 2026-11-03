@@ -7,8 +7,8 @@ import { initializeStudio, REMIX_STORAGE_KEY } from './studio.js';
 import { fromExpression } from './studio-model.js';
 import { drillQuestions, levelUnlocked, memoryExamples, nextLevelIndex } from './game-model.js';
 import {
-  awardXP, cardRecalls, completedLessons, gameStats, getTheme,
-  readNote, rememberLanguage, recordCard, saveNote, setLessonCompleted, setTheme,
+  awardXP, cardRecalls, completedLessons, getTheme,
+  rememberLanguage, recordCard, setLessonCompleted, setTheme,
 } from './state.js';
 import { activeLanguage, renderContent, renderShell, type DrillSession, type CardSession } from './views.js';
 

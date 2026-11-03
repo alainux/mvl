@@ -34,14 +34,14 @@ export function meaningBlocks(example: GeneratedExample): readonly string[] {
   if (expression.kind === 'route') return ['HOW TO GET?', String(CONCEPTS[expression.place]).toUpperCase()];
   if (expression.kind === 'price') return ['PRICE?', String(CONCEPTS[expression.thing]).toUpperCase()];
   if (expression.kind === 'presence') return ['EXISTS?', String(CONCEPTS[expression.thing]).toUpperCase()];
-  if (expression.kind === 'describe') return [String(CONCEPTS[expression.thing]).toUpperCase(), String(CONCEPTS[expression.quality]).toUpperCase()];
+  if (expression.kind === 'describe') return [String(CONCEPTS[expression.thing]).toUpperCase(), expression.quality.toUpperCase()];
   if (expression.kind === 'ask_object') return ['ASK WHAT?', PREDICATES[expression.predicate].description.toUpperCase()];
   const clause = expression.kind === 'ask_when' ? expression.value : expression;
   const agent = { speaker: 'I', addressee: 'YOU', we: 'WE', other: 'HE' }[clause.event.agent];
   const words = [agent, PREDICATES[clause.event.predicate].description.toUpperCase()];
   if (clause.event.argument !== 'none') words.push(String(CONCEPTS[clause.event.argument]).toUpperCase());
   if (clause.tense !== 'present') words.push(clause.tense.toUpperCase());
-  if (clause.time) words.push(String(CONCEPTS[clause.time] ?? clause.time).toUpperCase());
+  if (clause.time) words.push(clause.time.replaceAll('_', ' ').toUpperCase());
   if (clause.modality) words.push(clause.modality.toUpperCase());
   if (clause.negative) words.push('NOT');
   if (clause.question || expression.kind === 'ask_when') words.push('QUESTION');

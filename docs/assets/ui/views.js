@@ -1,7 +1,7 @@
 import { escapeHtml as escape } from './dom.js';
 import { href } from './router.js';
 import { completedLessons, gameStats, getLanguage } from './state.js';
-import { drillQuestions, levelUnlocked, memoryExamples, meaningBlocks, nextLevelIndex } from './game-model.js';
+import { drillQuestions, levelUnlocked, memoryExamples, meaningBlocks, nextLevelIndex, playableLesson } from './game-model.js';
 import { renderStudio } from './studio-view.js';
 import { fromExpression } from './studio-model.js';
 const NAMES = { de: 'German', fr: 'French', es: 'Spanish' };
@@ -304,13 +304,13 @@ export function renderContent(route, guides, drill, cards) {
         case 'builder': return renderStudio();
         case 'lesson': return renderLevel(model, model.lessons.find((lesson) => lesson.id === route.lesson) ?? currentLesson(model));
         case 'practice': {
-            const lesson = model.lessons.find((entry) => entry.id === route.lesson) ?? currentLesson(model);
+            const lesson = playableLesson(model, completedLessons(route.code), route.lesson);
             if (!drill)
                 throw new Error('Drill session must be initialized');
             return renderDrill(model, lesson, drill);
         }
         case 'cards': {
-            const lesson = model.lessons.find((entry) => entry.id === route.lesson) ?? currentLesson(model);
+            const lesson = playableLesson(model, completedLessons(route.code), route.lesson);
             if (!cards)
                 throw new Error('Card session must be initialized');
             return renderCards(model, lesson, cards);

@@ -4,6 +4,16 @@ export function nextLevelIndex(guide, completed) {
     const first = guide.lessons.findIndex((lesson) => !completed.has(lesson.id));
     return first === -1 ? guide.lessons.length - 1 : first;
 }
+/** Shared level selection so the visible drill and its answer checker can never diverge. */
+export function playableLesson(guide, completed, requested) {
+    const requestedIndex = guide.lessons.findIndex((lesson) => lesson.id === requested);
+    const index = requestedIndex >= 0 && levelUnlocked(guide, completed, requestedIndex)
+        ? requestedIndex : nextLevelIndex(guide, completed);
+    const lesson = guide.lessons[index];
+    if (!lesson)
+        throw new Error('Guide has no playable level');
+    return lesson;
+}
 export function levelUnlocked(guide, completed, index) {
     return index >= 0 && index < guide.lessons.length && index <= nextLevelIndex(guide, completed);
 }

@@ -182,8 +182,11 @@ function initializePractice(runtime, code) {
     });
     const remix = document.querySelector('#practice-remix');
     remix?.addEventListener('click', () => {
-        if (!editable) return;
-        try { sessionStorage.setItem(REMIX_STORAGE_KEY, JSON.stringify(editable)); }
+        if (!editable)
+            return;
+        try {
+            sessionStorage.setItem(REMIX_STORAGE_KEY, JSON.stringify(editable));
+        }
         catch { /* Storage restrictions must not prevent opening the studio. */ }
         location.hash = href(code, 'builder');
     });

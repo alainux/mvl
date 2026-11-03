@@ -508,7 +508,7 @@ export function initializeStudio(code) {
     let activeMission = null;
     let missionRevealed = false;
     let status = '';
-  let adjustmentMessage = '';
+    let adjustmentMessage = '';
     let priorOutput = null;
     let lastChange = '';
     const canvas = required('#studio-blocks');
@@ -549,8 +549,8 @@ export function initializeStudio(code) {
         const blocks = visualBlocks(state);
         const markup = blocks.map((block, index) => `${index > 0 ? '<span class="studio-join" aria-hidden="true">⊕</span>' : ''}${blockMarkup(block, activeSlot)}`).join('');
         canvas.innerHTML = `${markup}<p class="studio-canvas-caption">${blocks.length} meaning ingredients · ⊕ means “combine meanings”, not “put these words in this order”</p>`;
-    adjustment.textContent = adjustmentMessage;
-    adjustment.hidden = !adjustmentMessage;
+        adjustment.textContent = adjustmentMessage;
+        adjustment.hidden = !adjustmentMessage;
     }
     function renderPalette() {
         const paletteHeading = document.querySelector('.studio-add-header');
@@ -658,7 +658,7 @@ export function initializeStudio(code) {
             priorOutput = null;
         }
         lastChange = label;
-    adjustmentMessage = '';
+        adjustmentMessage = '';
     }
     function renderResult() {
         try {
@@ -678,9 +678,9 @@ export function initializeStudio(code) {
                 // Some slots have no alternative in a particular construction.
             }
             const tokens = traceSurfaceOrder(current, comparison);
-      structure.innerHTML = grammarSteps(state, code)
-        .map((step) => '<span class="studio-structure-step"><strong>' + escape(step.role) +
-          '</strong><small>' + escape(step.explanation) + '</small></span>').join('');
+            structure.innerHTML = grammarSteps(state, code)
+                .map((step) => '<span class="studio-structure-step"><strong>' + escape(step.role) +
+                '</strong><small>' + escape(step.explanation) + '</small></span>').join('');
             orderedLanguage.textContent = { de: '· German', fr: '· French', es: '· Spanish' }[code];
             orderedWords.lang = code;
             orderedWords.innerHTML = tokens.map((token) => `
@@ -715,7 +715,7 @@ export function initializeStudio(code) {
             result.textContent = 'This combination is not supported.';
             meaning.textContent = '';
             orderedWords.textContent = '';
-      structure.textContent = '';
+            structure.textContent = '';
             orderedComparison.textContent = '';
             orderedHint.textContent = 'This combination could not be realized.';
             copy.disabled = true;

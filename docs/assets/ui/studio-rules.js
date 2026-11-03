@@ -48,7 +48,6 @@ const GUIDANCE = {
         price: '¿Cuánto cuesta ...? asks the price of an item.',
     },
 };
-
 const SIMPLE_PAST_DE = {
     be: 'war', have: 'hatte', need: 'brauchte', would_like: 'wollte',
 };

@@ -24,6 +24,8 @@ export interface DrillSession {
   readonly streak: number;
   readonly best: number;
   readonly bonus: number;
+  readonly questionStartedAt: number;
+  readonly lastGain: number;
   readonly mode: 'pick' | 'type';
   readonly answered: boolean;
   readonly chosen: string | null;
@@ -255,58 +257,72 @@ function renderDrill(model: GeneratedGuide, lesson: GeneratedLesson, session: Dr
   const threshold = Math.ceil(questions.length * 0.7);
   const cleared = session.score >= threshold;
   if (session.index >= questions.length) {
-    return `<section class="page game-page game-drill-page">
-      <div class="game-round-end"><span class="game-celebrate">${cleared ? '🏆' : '↻'}</span>
-      <span class="game-kicker">ROUND COMPLETE</span><h1>${cleared ? 'Drill conquered!' : 'Good practice. Go again!'}</h1>
-      <p>${cleared ? 'You trained your reflexes. Enter the sentence quest to unlock the next level.' : 'You are building your reflexes. Try another round, or review the level examples.'}</p>
-      <div class="game-round-stats"><span><strong>${session.score} / ${questions.length}</strong>Correct</span>
-        <span><strong>${session.best}</strong>Best streak</span>
-        <span><strong>${session.score * 10 + session.bonus}</strong>Round XP*</span></div>
-      <small>*Correct drill answers earn XP; only the sentence quest unlocks levels.</small>
-      <div class="game-round-actions"><button class="game-primary" id="drill-restart">↻ Play again</button>
-        <a class="game-secondary" href="${href(code, 'cards/' + lesson.id)}">Review memory cards</a>
-        <a class="game-secondary" href="${href(code, 'play/' + lesson.id)}">⚔ Play the sentence quest</a>
-        <a class="game-secondary" href="${href(code, 'lesson/' + lesson.id)}">Back to examples</a>
-      </div></div>
+    const accuracy = Math.round(session.score / questions.length * 100);
+    return `<section class="page game-page game-drill-page rush-page">
+      <div class="game-round-end rush-finish">
+        <div class="rush-finish-glow" aria-hidden="true">✦</div>
+        <span class="game-kicker">SPEED ARENA / RUN FINISHED</span>
+        <span class="game-celebrate">${cleared ? '🏆' : '⚡'}</span>
+        <h1>${cleared ? 'Drill conquered!' : 'Run it back.'}</h1>
+        <p>${cleared ? 'Your reflexes are getting sharper. Now use those phrases in the sentence quest.' : 'Speed comes with repetition. Try the same deck again and beat your score.'}</p>
+        <div class="game-round-stats"><span><strong>${accuracy}%</strong>Accuracy</span>
+          <span><strong>${session.best}</strong>Best combo</span>
+          <span><strong>+${session.score * 10 + session.bonus}</strong>XP earned</span></div>
+        <small>Drills train fluency; sentence quests still unlock new levels.</small>
+        <div class="game-round-actions"><button class="game-primary" id="drill-restart">↻ Run again</button>
+          <a class="game-secondary" href="${href(code, 'play/' + lesson.id)}">⚔ Play sentence quest</a>
+          <a class="game-secondary" href="${href(code, 'cards/' + lesson.id)}">Review memory cards</a>
+        </div>
+      </div>
     </section>`;
   }
   const question = questions[session.index];
   if (!question) throw new Error('Missing drill question');
   const progress = Math.round(session.index / questions.length * 100);
+  const seconds = session.mode === 'pick' ? 14 : 22;
+  const remaining = session.answered ? 0 : Math.max(0, seconds - (Date.now() - session.questionStartedAt) / 1000);
   const selectedMeaning = session.chosen === null ? null
     : question.optionMeanings[question.options.indexOf(session.chosen)] ?? null;
-  return `<section class="page game-page game-drill-page">
-    <div class="game-section-heading"><div><span class="game-kicker">⚡ SPEED DRILL · LEVEL ${padded(model.lessons.indexOf(lesson) + 1)}</span>
-      <h1>Think fast.<br><em>Build fluency.</em></h1></div><a class="game-back" href="${href(code, 'lesson/' + lesson.id)}">← Level examples</a></div>
-    <div class="game-drill-toolbar"><label for="drill-lesson">LEVEL</label><select id="drill-lesson">
+  const dots = questions.map((_, i) =>
+    `<span class="${i < session.index ? 'is-past' : i === session.index ? 'is-current' : ''}"></span>`).join('');
+  return `<section class="page game-page game-drill-page rush-page">
+    <div class="rush-header"><div><span class="game-kicker">⚡ SPEED ARENA · LEVEL ${padded(model.lessons.indexOf(lesson) + 1)}</span>
+      <h1>Know it. <em>Hit it.</em></h1><p>Quick-fire translations. Keep the streak alive.</p></div>
+      <a class="game-back" href="${href(code, 'lesson/' + lesson.id)}">← Leave arena</a></div>
+    <div class="game-drill-toolbar rush-toolbar"><label for="drill-lesson">LEVEL</label><select id="drill-lesson">
       ${model.lessons.map((item, i) => `<option value="${item.id}" ${item.id === lesson.id ? 'selected' : ''} ${levelUnlocked(model, completedLessons(code), i) ? '' : 'disabled'}>${padded(i + 1)} · ${escape(item.title)}</option>`).join('')}
-    </select><div class="game-mode-toggle" role="group" aria-label="Drill type"><button data-drill-mode="pick" class="${session.mode === 'pick' ? 'is-active' : ''}" aria-pressed="${session.mode === 'pick'}">Quick pick</button>
-      <button data-drill-mode="type" class="${session.mode === 'type' ? 'is-active' : ''}" aria-pressed="${session.mode === 'type'}">Type it</button></div></div>
-    <div class="game-drill-frame">
+    </select><div class="game-mode-toggle" role="group" aria-label="Drill type"><button data-drill-mode="pick" class="${session.mode === 'pick' ? 'is-active' : ''}" aria-pressed="${session.mode === 'pick'}">⚡ Tap / 1–4</button>
+      <button data-drill-mode="type" class="${session.mode === 'type' ? 'is-active' : ''}" aria-pressed="${session.mode === 'type'}">⌨ Type</button></div></div>
+    <div class="game-drill-frame rush-frame ${session.answered ? session.correct ? 'rush-hit' : 'rush-miss' : ''}" data-drill-state="${session.answered ? session.correct ? 'correct' : 'wrong' : 'active'}">
+      <div class="rush-status"><span class="rush-round">ROUND ${padded(session.index + 1)} <small>/ ${padded(questions.length)}</small></span>
+        <span class="rush-streak ${session.streak >= 3 ? 'is-hot' : ''}">🔥 ${session.streak} STREAK</span>
+        <span class="rush-points">✦ ${session.score * 10 + session.bonus} XP</span></div>
       <div class="game-drill-meter"><span>QUESTION ${session.index + 1} / ${questions.length}</span>
-        <span>✦ ${session.score} correct <b>·</b> 🔥 ${session.streak} streak</span></div>
-      <div class="game-mini-track"><span style="width:${progress}%"></span></div>
-      <div class="game-prompt"><span>HOW DO YOU SAY THIS IN ${escape(NAMES[code].toUpperCase())}?</span>
+        <span>${session.score} correct <b>·</b> BEST ${session.best}</span></div>
+      <div class="rush-progress-dots" aria-label="${session.index} of ${questions.length} questions done">${dots}</div>
+      <div class="rush-timer"><span class="rush-timer-title">TIME TO ANSWER</span><span><strong id="drill-clock" aria-label="Seconds left">${remaining.toFixed(1)}</strong><small>SEC</small></span></div>
+      <div class="rush-time-track" role="progressbar" aria-label="Time remaining" aria-valuemin="0" aria-valuemax="${seconds}" aria-valuenow="${Math.ceil(remaining)}"><span id="drill-clock-fill" style="width:${remaining / seconds * 100}%"></span></div>
+      <div class="game-prompt"><span>TRANSLATE INTO ${escape(NAMES[code].toUpperCase())}</span>
         <h2>${escape(question.english)}</h2>
         ${question.contextHint ? `<span class="game-register-hint">${escape(question.contextHint)}</span>` : ''}</div>
       ${session.mode === 'pick'
         ? `<div class="game-answer-grid" role="group" aria-label="Choose the sentence">
-            ${question.options.map((option, i) => `<button class="game-answer ${session.answered && option === question.target ? 'is-correct' : session.answered && session.chosen === option ? 'is-wrong' : ''}"
-              data-drill-option="${i}" ${session.answered ? 'disabled' : ''}><kbd>${i + 1}</kbd><span lang="${code}">${escape(option)}</span></button>`).join('')}
+            ${question.options.map((option, i) => `<button type="button" class="game-answer ${session.answered && option === question.target ? 'is-correct' : session.answered && session.chosen === option ? 'is-wrong' : ''}"
+              data-drill-option="${i}" ${session.answered ? 'disabled' : ''}><kbd>${i + 1}</kbd><span lang="${code}">${escape(option)}</span><span class="rush-choice-arrow" aria-hidden="true">↗</span></button>`).join('')}
           </div>`
-        : `<form id="drill-type-form"><label for="drill-input">Your answer</label><input id="drill-input" autocomplete="off" spellcheck="false"
-            placeholder="Type your sentence…" ${session.answered ? 'disabled' : ''} /><button class="game-primary" type="submit" ${session.answered ? 'disabled' : ''}>Check ↵</button></form>`}
+        : `<form id="drill-type-form"><label for="drill-input">TYPE THE TRANSLATION</label><input id="drill-input" autocomplete="off" spellcheck="false"
+            placeholder="Type your sentence…" ${session.answered ? 'disabled' : ''} /><button class="game-primary" type="submit" ${session.answered ? 'disabled' : ''}>LOCK IN ↵</button></form>`}
       <div id="drill-feedback" class="game-answer-feedback ${session.answered ? (session.correct ? 'is-correct' : 'is-wrong') : ''}" role="status" ${session.answered ? '' : 'hidden'}>
-        ${session.answered ? `<strong>${session.correct ? 'Correct! +10 XP' : 'Not quite — here is the difference.'}</strong>
+        ${session.answered ? `<strong class="rush-feedback-title">${session.correct ? '✓ CLEAN HIT · +' + session.lastGain + ' XP' : session.chosen ? '✕ MISS · LEARN THE PATTERN' : '⌛ TIME UP · REMEMBER THIS'}</strong>
           ${!session.correct && session.chosen ? `<p class="game-feedback-choice"><small>Your answer</small>
             <span lang="${code}">${escape(session.chosen)}</span>
             ${selectedMeaning ? `<small>Means: ${escape(selectedMeaning)}</small>` : ''}</p>` : ''}
-          <p class="game-feedback-correct"><small>${session.correct ? 'You got it' : 'Correct answer'}</small>
+          <p class="game-feedback-correct"><small>${session.correct ? 'Nailed it' : 'Correct answer'}</small>
             <span lang="${code}">${escape(question.target)}</span></p>
-          ${question.patternHint ? `<p class="game-feedback-tip">${escape(question.patternHint)}</p>` : ''}
-          <button class="game-primary" id="drill-next">${session.index + 1 === questions.length ? 'See result →' : 'Next question →'}</button>` : ''}
+          ${!session.correct && question.patternHint ? `<p class="game-feedback-tip">${escape(question.patternHint)}</p>` : ''}
+          <button class="game-primary" id="drill-next">${session.index + 1 === questions.length ? 'SEE RESULTS →' : 'NEXT →'}</button>` : ''}
       </div>
-      <p class="game-drill-shortcut">${session.mode === 'pick' ? 'Press 1–4 to answer · Enter for next' : 'Press Enter to check your answer · Exact model comparison'} · No countdown.</p>
+      <p class="game-drill-shortcut">${session.mode === 'pick' ? 'KEYS 1–4 TO FIRE ·' : 'ENTER TO SUBMIT ·'} AUTO-ADVANCE ON · ${session.mode === 'pick' ? '14' : '22'} SECONDS PER QUESTION</p>
     </div>
   </section>`;
 }

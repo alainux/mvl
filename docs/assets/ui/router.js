@@ -18,7 +18,7 @@ export function currentRoute() {
     if (isLanguageCode(first)) {
         if (second === 'lesson' && isLessonId(third))
             return { page: 'lesson', code: first, lesson: third };
-        if (second === 'practice' || second === 'cards')
+        if (second === 'practice' || second === 'cards' || second === 'play')
             return { page: second, code: first, lesson: isLessonId(third) ? third : null };
         if (second === 'builder' || second === 'reference')
             return { page: second, code: first };

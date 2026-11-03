@@ -93,7 +93,7 @@ export function selectedWords(state, round) {
     return state.selected.map((id) => round.tiles.find((tile) => tile.id === id)?.word ?? '');
 }
 export function addQuestTile(state, round, id) {
-    if (state.phase !== 'play' || state.selected.includes(id) || !round.tiles.some((tile) => tile.id === id))
+    if (state.phase !== 'play' || state.selected.length >= round.expected.length || state.selected.includes(id) || !round.tiles.some((tile) => tile.id === id))
         return state;
     return { ...state, selected: [...state.selected, id], hintTile: null, feedback: '' };
 }

@@ -48,8 +48,9 @@ test('plain-language UI supports mobile reading and accessibility hooks', () => 
   assert.ok(read('docs/assets/ui/studio.js').includes('operatorApplied'));
 });
 
-test('no custom GitHub Actions workflow is required to publish checked-in /docs', () => {
-  assert.equal(existsSync('.github/workflows'), false);
+test('GitHub Actions verifies the typed builders and generated guides', () => {
+  assert.ok(existsSync('.github/workflows/verify.yml'));
+  assert.match(read('.github/workflows/verify.yml'), /npm run check/);
   assert.ok(readdirSync('docs/assets/languages').includes('fr.js'));
 });
 

@@ -1,7 +1,7 @@
 import type { GeneratedExample, GeneratedGuide, GeneratedLesson, LessonId } from '../learning/types.js';
 import { escapeHtml as escape } from './dom.js';
 import { href, type Code, type Route } from './router.js';
-import { completedLessons, gameStats, getLanguage, cardRecalls } from './state.js';
+import { completedLessons, gameStats, getLanguage } from './state.js';
 import { drillQuestions, levelUnlocked, memoryExamples, meaningBlocks, nextLevelIndex } from './game-model.js';
 import { renderStudio } from './studio-view.js';
 import { fromExpression } from './studio-model.js';
@@ -55,19 +55,19 @@ function sidebar(route: Route, model: GeneratedGuide): string {
     { page: 'cards', icon: '▤', label: 'Memory cards', caption: 'Keep it fresh' },
   ] as const;
   return `<aside class="sidebar game-sidebar" id="sidebar" aria-label="Game navigation">
-    <a class="brand game-brand" href="${href(code, 'start')" aria-label="MVL level map">
+    <a class="brand game-brand" href="${href(code, 'start')}" aria-label="MVL level map">
       <span class="brand-mark">mvl<span>.</span></span>
       <span class="brand-copy"><strong>Build your language</strong><small>THE LANGUAGE GAME</small></span>
     </a>
     <label class="sidebar-label" for="language-switch">I'M LEARNING</label>
     <select id="language-switch" aria-label="Select language">
-      ${(['de', 'fr', 'es'] as const).map((item) => `<option value="${item" ${item === code ? 'selected' : ''>${NAMES[item]</option>`).join('')}
+      ${(['de', 'fr', 'es'] as const).map((item) => `<option value="${item}" ${item === code ? 'selected' : ''>${NAMES[item]}</option>`).join('')}
     </select>
     <div class="sidebar-label has-top">PLAY</div>
     <nav class="sidebar-group game-nav" aria-label="Study tools">
       ${nav.map((item) => `<a class="sidebar-link game-nav-item ${route.page === item.page || (item.page === 'start' && route.page === 'lesson') ? 'is-active' : ''}"
-        href="${href(code, item.page)}"><span class="nav-icon">${item.icon</span>
-        <span><strong>${item.label</strong><small>${item.caption</small></span></a>`).join('')}
+        href="${href(code, item.page)}"><span class="nav-icon">${item.icon}</span>
+        <span><strong>${item.label}</strong><small>${item.caption}</small></span></a>`).join('')}
     </nav>
     <div class="game-sidebar-score">
       <span class="micro-label">YOUR ADVENTURE</span>
@@ -104,7 +104,7 @@ export function renderShell(route: Route, content: string, model: GeneratedGuide
         <div class="topbar-actions"><span class="game-top-score" aria-label="Experience points">✦ ${stats.xp} XP</span>
           <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light and dark theme" title="Toggle theme">◐</button></div>
       </header>
-      <main class="main" id="main-content">${content</main>
+      <main class="main" id="main-content">${content}</main>
       <footer class="footer"><span>mvl. · Learn by playing</span><span>Made from reusable grammar, not phrase lists.</span></footer>
     </div>
     <button id="nav-backdrop" class="nav-backdrop" aria-label="Close navigation" hidden></button>
@@ -152,8 +152,8 @@ function renderOverview(model: GeneratedGuide): string {
           const done = completed.has(lesson.id);
           const open = levelUnlocked(model, completed, index);
           const label = `<span class="game-level-number">${padded(index + 1)}</span><span class="game-level-copy"><strong>${escape(lesson.title)}</strong><small>${done ? '★ Cleared' : open ? '● Ready to play' : '○ Unlock later'}</small></span><span class="game-level-arrow">${done ? '✓' : open ? '↗' : '⌑'}</span>`;
-          return open ? `<a class="game-level-node ${done ? 'is-done' : 'is-current'}" href="${href(code, 'lesson/' + lesson.id)}">${label</a>`
-            : `<div class="game-level-node is-locked" aria-label="Level ${index + 1} locked">${label</div>`;
+          return open ? `<a class="game-level-node ${done ? 'is-done' : 'is-current'}" href="${href(code, 'lesson/' + lesson.id)}">${label}</a>`
+            : `<div class="game-level-node is-locked" aria-label="Level ${index + 1} locked">${label}</div>`;
         }).join('')}
       </div>
     </section>`;
@@ -176,7 +176,7 @@ function renderOverview(model: GeneratedGuide): string {
     <div class="game-section-heading"><div><span class="micro-label">THREE WAYS TO LEARN</span><h2>Pick your play style.</h2></div></div>
     ${modeCards(code, current)}
     <div class="game-section-heading game-map-heading"><div><span class="micro-label">THE ADVENTURE</span><h2>Your level map.</h2></div><p>Complete a level's drill to unlock the next one.</p></div>
-    ${groups
+    ${groups}
   </section>`;
 }
 
@@ -185,10 +185,10 @@ function exampleTile(example: GeneratedExample, code: Code, index: number): stri
   return `<div class="game-example-card">
     <div class="game-example-top"><span>EXAMPLE ${padded(index + 1)}</span><span>${editable ? 'EDITABLE BLOCKS' : 'EVERYDAY EXPRESSION'}</span></div>
     <div class="game-example-blocks">${meaningBlocks(example).map((block) => `<span>${escape(block)}</span>`).join('')}</div>
-    <strong lang="${code">${escape(example.target)}</strong>
+    <strong lang="${code}">${escape(example.target)}</strong>
     <p>${escape(example.english)}</p>
     ${editable
-      ? `<button type="button" class="game-example-play" data-remix-example="${escape(example.id)">Open in builder ↗</button>`
+      ? `<button type="button" class="game-example-play" data-remix-example="${escape(example.id)}">Open in builder ↗</button>`
       : `<span class="game-example-hint">Practice this in memory cards</span>`}
   </div>`;
 }
@@ -254,7 +254,7 @@ function renderDrill(model: GeneratedGuide, lesson: GeneratedLesson, session: Dr
     <div class="game-section-heading"><div><span class="game-kicker">⚡ SPEED DRILL · LEVEL ${padded(model.lessons.indexOf(lesson) + 1)}</span>
       <h1>Think fast.<br><em>Build fluency.</em></h1></div><a class="game-back" href="${href(code, 'lesson/' + lesson.id)}">← Level examples</a></div>
     <div class="game-drill-toolbar"><label for="drill-lesson">LEVEL</label><select id="drill-lesson">
-      ${model.lessons.map((item, i) => `<option value="${item.id" ${item.id === lesson.id ? 'selected' : ''} ${levelUnlocked(model, completedLessons(code), i) ? '' : 'disabled'}>${padded(i + 1)} · ${escape(item.title)}</option>`).join('')}
+      ${model.lessons.map((item, i) => `<option value="${item.id}" ${item.id === lesson.id ? 'selected' : ''} ${levelUnlocked(model, completedLessons(code), i) ? '' : 'disabled'}>${padded(i + 1)} · ${escape(item.title)}</option>`).join('')}
     </select><div class="game-mode-toggle" role="group" aria-label="Drill type"><button data-drill-mode="pick" class="${session.mode === 'pick' ? 'is-active' : ''}" aria-pressed="${session.mode === 'pick'}">Quick pick</button>
       <button data-drill-mode="type" class="${session.mode === 'type' ? 'is-active' : ''}" aria-pressed="${session.mode === 'type'}">Type it</button></div></div>
     <div class="game-drill-frame">
@@ -266,13 +266,13 @@ function renderDrill(model: GeneratedGuide, lesson: GeneratedLesson, session: Dr
       ${session.mode === 'pick'
         ? `<div class="game-answer-grid" role="group" aria-label="Choose the sentence">
             ${question.options.map((option, i) => `<button class="game-answer ${session.answered && option === question.target ? 'is-correct' : session.answered && session.chosen === option ? 'is-wrong' : ''}"
-              data-drill-option="${i" ${session.answered ? 'disabled' : ''}><kbd>${i + 1}</kbd><span lang="${code">${escape(option)}</span></button>`).join('')}
+              data-drill-option="${i}" ${session.answered ? 'disabled' : ''}><kbd>${i + 1}</kbd><span lang="${code}">${escape(option)}</span></button>`).join('')}
           </div>`
         : `<form id="drill-type-form"><label for="drill-input">Your answer</label><input id="drill-input" autocomplete="off" spellcheck="false"
             placeholder="Type your sentence…" ${session.answered ? 'disabled' : ''} /><button class="game-primary" type="submit" ${session.answered ? 'disabled' : ''}>Check ↵</button></form>`}
       <div id="drill-feedback" class="game-answer-feedback ${session.answered ? (session.correct ? 'is-correct' : 'is-wrong') : ''}" role="status" ${session.answered ? '' : 'hidden'}>
         ${session.answered ? `<strong>${session.correct ? 'Nice! +10 XP' : 'Not quite — remember this one.'}</strong>
-          <p lang="${code">${escape(question.target)}</p>
+          <p lang="${code}">${escape(question.target)}</p>
           <button class="game-primary" id="drill-next">${session.index + 1 === questions.length ? 'See result →' : 'Next question →'}</button>` : ''}
       </div>
       <p class="game-drill-shortcut">${session.mode === 'pick' ? 'Press 1–4 to answer · Enter for next' : 'Press Enter to check your answer · Exact model comparison'} · No countdown.</p>
@@ -297,7 +297,7 @@ function renderCards(model: GeneratedGuide, lesson: GeneratedLesson, session: Ca
     <div class="game-section-heading"><div><span class="game-kicker">▤ MEMORY CARDS · LEVEL ${padded(model.lessons.indexOf(lesson) + 1)}</span>
       <h1>Make it stick.</h1></div><a class="game-back" href="${href(code, 'lesson/' + lesson.id)}">← Level examples</a></div>
     <div class="game-card-toolbar"><label for="cards-lesson">DECK</label><select id="cards-lesson">
-      ${model.lessons.map((item, i) => `<option value="${item.id" ${item.id === lesson.id ? 'selected' : ''} ${levelUnlocked(model, completedLessons(code), i) ? '' : 'disabled'}>${padded(i + 1)} · ${escape(item.title)}</option>`).join('')}
+      ${model.lessons.map((item, i) => `<option value="${item.id}" ${item.id === lesson.id ? 'selected' : ''} ${levelUnlocked(model, completedLessons(code), i) ? '' : 'disabled'}>${padded(i + 1)} · ${escape(item.title)}</option>`).join('')}
     </select><span>${session.index + 1} / ${session.ids.length} cards</span></div>
     <div class="game-memory-progress game-mini-track"><span style="width:${Math.round(session.index / session.ids.length * 100)}%"></span></div>
     <button id="card-flip" class="game-flashcard ${session.flipped ? 'is-flipped' : ''}" aria-label="${session.flipped ? 'Show English meaning' : 'Reveal target sentence'}" aria-pressed="${session.flipped}">

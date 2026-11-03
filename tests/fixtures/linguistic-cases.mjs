@@ -68,6 +68,18 @@ export const linguisticCases = [
     expected: { en: 'I would not like a bill.', de: 'Ich möchte keine Rechnung.', fr: 'Je ne voudrais pas l’addition.', es: 'No quisiera la cuenta.' },
   },
   {
+    id: 'polite-request-past', meaning: action('would_like', 'coffee', { tense: 'past', negative: true }),
+    expected: { en: 'I did not want a coffee.', de: 'Ich wollte keinen Kaffee.', fr: 'Je ne voulais pas de café.', es: 'No quería un café.' },
+  },
+  {
+    id: 'polite-request-future', meaning: action('would_like', 'coffee', { tense: 'future', time: 'tomorrow' }),
+    expected: { en: 'I would like a coffee tomorrow.', de: 'Ich möchte morgen einen Kaffee.', fr: 'Je voudrais un café demain.', es: 'Quisiera un café mañana.' },
+  },
+  {
+    id: 'see-doctor-past', meaning: action('meet', 'doctor', { tense: 'past' }),
+    expected: { en: 'I saw a doctor.', de: 'Ich habe einen Arzt gesehen.', fr: 'J’ai vu un médecin.', es: 'Vi a un médico.' },
+  },
+  {
     id: 'cannot-come', meaning: action('come', 'none', { modal: 'can', negative: true }),
     expected: { en: 'I cannot come.', de: 'Ich kann nicht kommen.', fr: 'Je ne peux pas venir.', es: 'No puedo venir.' },
   },

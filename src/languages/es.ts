@@ -272,7 +272,11 @@ function realizeClause(value: Clause): string {
     const finite = form(tense === 'past' ? verb.past : verb.present, person);
     predicateText = words(finite, infinitiveWithObject(action), object);
   } else if (tense === 'future') {
-    predicateText = words(form(FUTURE, person), infinitiveWithObject(action), object);
+    // A polite request for a future time keeps 'quisiera' with a time word.
+    // 'Voy a querer...' describes a future desire instead of a simple request.
+    predicateText = action.predicate === 'would_like'
+      ? words(form(meetingVerb.present, person), object)
+      : words(form(FUTURE, person), infinitiveWithObject(action), object);
   } else {
     const finite = form(tense === 'past' ? meetingVerb.past : meetingVerb.present, person);
     const clitic = pronoun ? `${pronoun} ` : '';

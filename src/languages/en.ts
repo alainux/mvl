@@ -157,7 +157,11 @@ function thirdPersonPresent(phrase: string): string {
 function realizeClause(value: Clause): string {
   const { event: action, tense, modality, negative, question } = value;
   const person = PEOPLE[action.agent][0];
-  const main = ROOTS[action.predicate];
+  // A medical appointment is expressed as 'see a doctor' in all three
+  // target languages. Keep the English prompt semantically equivalent.
+  const main = action.predicate === 'meet' && action.argument === 'doctor'
+    ? { base: 'see', past: 'saw' }
+    : ROOTS[action.predicate];
   const object = complement(action);
   const time = timeWord(value.time ?? (tense === 'future' ? 'soon' : null), TIMES);
   let result: string;
@@ -194,10 +198,18 @@ function realizeClause(value: Clause): string {
         : words(person, negative ? 'will not be' : 'will be', object)
       : question ? words(be, person, negative ? 'not' : '', object)
         : words(person, be, negative ? 'not' : '', object);
-  } else if (action.predicate === 'would_like' && tense === 'present') {
-    result = question
-      ? words('Would', person, negative ? 'not' : '', 'like', object)
-      : words(person, negative ? 'would not like' : 'would like', object);
+  } else if (action.predicate === 'would_like') {
+    // 'Would like' is already a polite conditional. Do not attach English
+    // 'did' or 'will' to it: 'did not would like' is ungrammatical.
+    // Past wishes are ordinary wants; future requests keep the conditional
+    // and receive a future time word, as in the minimal German grammar.
+    result = tense === 'past'
+      ? question
+        ? words('Did', person, negative ? 'not' : '', 'want', object)
+        : words(person, negative ? 'did not want' : 'wanted', object)
+      : question
+        ? words('Would', person, negative ? 'not' : '', 'like', object)
+        : words(person, negative ? 'would not like' : 'would like', object);
   } else if (tense === 'future') {
     result = question
       ? words('Will', person, negative ? 'not' : '', main.base, object)

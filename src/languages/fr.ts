@@ -293,8 +293,14 @@ function realizeClause(value: Clause): string {
     const action = pronoun ? attachClitic(pronoun, verb.infinitive) : verb.infinitive;
     text = words(first, tense === 'past' ? m.participle : '', action, object, temporal);
   } else if (tense === 'future') {
-    const inf = pronoun ? attachClitic(pronoun, verb.infinitive) : verb.infinitive;
-    text = words(finiteGroup(person, form(ALLER, person), negative), inf, object, temporal);
+    if (action.predicate === 'would_like') {
+      // A request for tomorrow remains a polite request: 'Je voudrais ...
+      // demain' is simpler and more idiomatic than 'Je vais vouloir ...'.
+      text = words(finiteGroup(person, form(verb.present, person), negative), object, temporal);
+    } else {
+      const inf = pronoun ? attachClitic(pronoun, verb.infinitive) : verb.infinitive;
+      text = words(finiteGroup(person, form(ALLER, person), negative), inf, object, temporal);
+    }
   } else if (tense === 'past' && !verb.past) {
     const aux = verb.auxiliary === 'être' ? BE : HAVE;
     const finite = finiteGroup(person, form(aux, person), negative, pronoun);

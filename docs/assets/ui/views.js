@@ -1,333 +1,319 @@
-import { CONCEPTS } from '../core/vocabulary.js';
-import { generatePractice } from '../learning/practice.js';
 import { escapeHtml as escape } from './dom.js';
 import { href } from './router.js';
-import { completedLessons, getLanguage } from './state.js';
+import { completedLessons, gameStats, getLanguage } from './state.js';
+import { drillQuestions, levelUnlocked, memoryExamples, meaningBlocks, nextLevelIndex } from './game-model.js';
 import { renderStudio } from './studio-view.js';
-import { fromExpression, allowedArgumentsFor } from './studio-model.js';
-const LANGUAGE_NAMES = {
-    de: 'German',
-    fr: 'French',
-    es: 'Spanish',
-};
-const TAGLINES = {
-    de: 'Clear German, built from reusable rules.',
-    fr: 'Clear French, built from reusable rules.',
-    es: 'Clear Spanish, built from reusable rules.',
-};
-function selected(value, current) {
-    return value === current ? 'selected' : '';
+import { fromExpression } from './studio-model.js';
+const NAMES = { de: 'German', fr: 'French', es: 'Spanish' };
+const STAGES = [
+    { id: 'foundation', name: 'The basics', subtitle: 'Make your first useful sentences', symbol: '✦' },
+    { id: 'time-and-plans', name: 'Time travel', subtitle: 'Yesterday, today and tomorrow', symbol: '◷' },
+    { id: 'connected-speech', name: 'Make connections', subtitle: 'People, questions and reasons', symbol: '↗' },
+    { id: 'everyday-life', name: 'Everyday missions', subtitle: 'Use the language out in the world', symbol: '⌁' },
+    { id: 'independent-speech', name: 'Your own voice', subtitle: 'Combine what you know', symbol: '★' },
+];
+function padded(number) { return String(number).padStart(2, '0'); }
+function currentLesson(model) {
+    const next = nextLevelIndex(model, completedLessons(model.language.code));
+    const lesson = model.lessons[next];
+    if (!lesson)
+        throw new Error('Guide must contain a level');
+    return lesson;
 }
-function active(route, page, id) {
-    if (route.page !== page)
-        return '';
-    return route.page === 'lesson' && id !== undefined && route.lesson !== id ? '' : 'is-active';
-}
-function lessonLabel(index) {
-    return String(index + 1).padStart(2, '0');
-}
-function renderSidebar(route, model) {
+function sidebar(route, model) {
     const code = model.language.code;
-    const completed = completedLessons(code);
-    const navigation = model.lessons.map((lesson, index) => `
-    <a class="sidebar-link lesson-link ${active(route, 'lesson', lesson.id)}"
-       href="${href(code, `lesson/${lesson.id}`)}">
-      <span class="nav-index">${lessonLabel(index)}</span>
-      <span class="nav-link-label">${escape(lesson.title)}</span>
-      ${completed.has(lesson.id) ? '<span class="lesson-check" aria-label="Studied">✓</span>' : ''}
-    </a>
-  `).join('');
-    return `<aside class="sidebar" id="sidebar" aria-label="Guide navigation">
-    <a class="brand" href="#home" aria-label="Minimum Viable Language home">
+    const stats = gameStats(code);
+    const completed = completedLessons(code).size;
+    const nav = [
+        { page: 'start', icon: '◈', label: 'Level map', caption: 'Your journey' },
+        { page: 'builder', icon: '▦', label: 'Builder', caption: 'Play with blocks' },
+        { page: 'practice', icon: '⚡', label: 'Speed drill', caption: 'Quick-fire rounds' },
+        { page: 'cards', icon: '▤', label: 'Memory cards', caption: 'Keep it fresh' },
+    ];
+    return `<aside class="sidebar game-sidebar" id="sidebar" aria-label="Game navigation">
+    <a class="brand game-brand" href="${href(code, 'start')}" aria-label="MVL level map">
       <span class="brand-mark">mvl<span>.</span></span>
-      <span class="brand-copy"><strong>Minimum Viable</strong><small>Language manuals</small></span>
+      <span class="brand-copy"><strong>Build your language</strong><small>THE LANGUAGE GAME</small></span>
     </a>
-
-    <label class="sidebar-label" for="language-switch">CURRENT MANUAL</label>
+    <label class="sidebar-label" for="language-switch">I'M LEARNING</label>
     <select id="language-switch" aria-label="Select language">
-      ${['de', 'fr', 'es'].map((item) => `<option value="${item}" ${selected(item, code)}>${LANGUAGE_NAMES[item]}</option>`).join('')}
+      ${['de', 'fr', 'es'].map((item) => `<option value="${item}" ${item === code ? 'selected' : ''}>${NAMES[item]}</option>`).join('')}
     </select>
-
-    <div class="sidebar-label has-top">STUDY</div>
-    <nav class="sidebar-group" aria-label="Study tools">
-      <a class="sidebar-link ${active(route, 'builder')}" href="${href(code, 'builder')}"><span class="nav-icon">▦</span> Block studio</a>
-      <a class="sidebar-link ${active(route, 'start')}" href="${href(code, 'start')}"><span class="nav-icon">⌂</span> Learning path</a>
-      <a class="sidebar-link ${active(route, 'practice')}" href="${href(code, 'practice')}"><span class="nav-icon">✎</span> Practice lab</a>
-      <a class="sidebar-link ${active(route, 'reference')}" href="${href(code, 'reference')}"><span class="nav-icon">≡</span> Quick reference</a>
+    <div class="sidebar-label has-top">PLAY</div>
+    <nav class="sidebar-group game-nav" aria-label="Study tools">
+      ${nav.map((item) => `<a class="sidebar-link game-nav-item ${route.page === item.page || (item.page === 'start' && route.page === 'lesson') ? 'is-active' : ''}"
+        href="${href(code, item.page)}"><span class="nav-icon">${item.icon}</span>
+        <span><strong>${item.label}</strong><small>${item.caption}</small></span></a>`).join('')}
     </nav>
-
-    <div class="sidebar-label has-top label-flex"><span>LESSONS</span><span>${completed.size}/${model.lessons.length}</span></div>
-    <nav class="sidebar-group sidebar-lessons" aria-label="Lessons">${navigation}</nav>
-    <div class="sidebar-footer">
-      <a href="#framework">About the project</a>
-      <a href="https://github.com/alainux/mvl" target="_blank" rel="noopener noreferrer">Source code ↗</a>
+    <div class="game-sidebar-score">
+      <span class="micro-label">YOUR ADVENTURE</span>
+      <strong>${stats.xp} <small>XP</small></strong>
+      <div class="game-mini-track"><span style="width:${Math.round(completed / model.lessons.length * 100)}%"></span></div>
+      <p>${completed} of ${model.lessons.length} levels cleared</p>
     </div>
+    <div class="sidebar-footer"><a href="#home">Change language</a><a href="#framework">About MVL</a></div>
   </aside>`;
 }
-function titleFor(route, guide) {
+function titleFor(route, model) {
     switch (route.page) {
-        case 'home': return 'Choose a language';
-        case 'framework': return 'About the project';
-        case 'start': return 'Overview';
-        case 'builder': return 'Block studio';
-        case 'practice': return 'Practice lab';
-        case 'reference': return 'Quick reference';
-        case 'lesson': return guide.lessons.find((lesson) => lesson.id === route.lesson)?.title ?? 'Lesson';
+        case 'home': return 'Choose language';
+        case 'framework': return 'The idea';
+        case 'start': return 'Levels';
+        case 'builder': return 'Block builder';
+        case 'practice': return 'Speed drill';
+        case 'cards': return 'Memory cards';
+        case 'reference': return 'Levels';
+        case 'lesson': return model.lessons.find((lesson) => lesson.id === route.lesson)?.title ?? 'Level';
     }
 }
-function renderHeader(route, guide) {
-    return `<header class="topbar">
-    <button id="menu-toggle" class="menu-toggle" aria-label="Open navigation" aria-expanded="false">☰</button>
-    <div class="breadcrumbs"><a href="${href(guide.language.code, 'start')}">${escape(guide.language.name)}</a><span>/</span>${escape(titleFor(route, guide))}</div>
-    <div class="topbar-actions">
-      <div class="search-area">
-        <label class="visually-hidden" for="site-search">Search this manual</label>
-        <input type="search" id="site-search" autocomplete="off" placeholder="Search the manual…" />
-        <span class="search-shortcut">/</span>
-        <div class="search-results" id="search-results" hidden></div>
-      </div>
-      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light and dark theme" title="Toggle theme">◐</button>
-    </div>
-  </header>`;
-}
-export function renderShell(route, content, guide) {
-    return `<div class="app-shell">
-    ${renderSidebar(route, guide)}
-    <div class="workspace">
-      ${renderHeader(route, guide)}
+export function renderShell(route, content, model) {
+    const code = model.language.code;
+    const stats = gameStats(code);
+    return `<div class="app-shell game-shell">
+    ${sidebar(route, model)}
+    <div class="workspace game-workspace">
+      <header class="topbar game-topbar">
+        <button id="menu-toggle" class="menu-toggle" aria-label="Open navigation" aria-expanded="false">☰</button>
+        <div class="breadcrumbs"><a href="${href(code, 'start')}">${escape(NAMES[code])}</a><span>/</span>${escape(titleFor(route, model))}</div>
+        <div class="topbar-actions"><span class="game-top-score" aria-label="Experience points">✦ ${stats.xp} XP</span>
+          <button class="theme-toggle" id="theme-toggle" aria-label="Toggle light and dark theme" title="Toggle theme">◐</button></div>
+      </header>
       <main class="main" id="main-content">${content}</main>
-      <footer class="footer"><span>Minimum Viable ${escape(guide.language.name)}</span><span>Small rules, useful language.</span></footer>
+      <footer class="footer"><span>mvl. · Learn by playing</span><span>Made from reusable grammar, not phrase lists.</span></footer>
     </div>
     <button id="nav-backdrop" class="nav-backdrop" aria-label="Close navigation" hidden></button>
   </div>`;
 }
-function renderLanguageCard(guide) {
-    const code = guide.language.code;
-    const total = guide.lessons.length;
-    const completed = completedLessons(code).size;
-    const width = Math.round((completed / total) * 100);
-    return `<a class="language-card" href="${href(code, 'builder')}">
-    <span class="language-letters">${code.toUpperCase()}</span>
-    <span class="language-card-arrow">↗</span>
-    <h3>${escape(guide.language.name)}</h3>
-    <p>${escape(TAGLINES[code])}</p>
-    <div class="progress-rail"><span style="width:${width}%"></span></div>
-    <small>${completed} of ${total} lessons studied</small>
-  </a>`;
-}
 function renderHome(guides) {
-    return `<section class="page home-page">
-    <div class="eyebrow"><span class="eyebrow-line"></span>INDEPENDENT LANGUAGE STUDY</div>
-    <h1>Learn the useful parts.<br /><em>Start communicating.</em></h1>
-    <p class="lead">See the meaning blocks, snap them together, and watch real sentences emerge. Practice the smallest useful grammar for today, yesterday, tomorrow—and everyday life.</p>
-    <div class="section-heading"><h2>Choose your manual</h2><p>Choose a language to start building your own sentences.</p></div>
-    <div class="language-grid">${['de', 'fr', 'es'].map((code) => renderLanguageCard(guides[code])).join('')}</div>
-    <div class="principles">
-      <div><b>01 <span>Understand</span></b><p>Explore the meaning blocks and the possibilities each one unlocks.</p></div>
-      <div><b>02 <span>Substitute</span></b><p>Connect who, action and object; add operators like past or not.</p></div>
-      <div><b>03 <span>Produce</span></b><p>Build a target expression, then use it in new situations.</p></div>
+    return `<section class="page game-home">
+    <span class="game-kicker">HELLO, LANGUAGE EXPLORER ✦</span>
+    <h1>Words are blocks.<br><em>Learning is play.</em></h1>
+    <p class="lead">Choose a language. Build sentences, complete quick drills, collect memory cards and clear 40 levels.</p>
+    <div class="game-language-grid">
+      ${['de', 'fr', 'es'].map((code) => `<a class="game-language-tile" href="${href(code, 'start')}">
+        <span class="game-language-code">${code.toUpperCase()}</span><strong>${NAMES[code]}</strong>
+        <small>${completedLessons(code).size} / ${guides[code].lessons.length} levels</small><span class="game-tile-arrow">→</span></a>`).join('')}
     </div>
   </section>`;
 }
-function renderGuideOverview(model) {
+function modeCards(code, lesson) {
+    return `<div class="game-modes">
+    <a class="game-mode game-mode-builder" href="${href(code, 'builder')}"><span class="game-mode-icon">▦</span>
+      <strong>Build</strong><small>Move the meaning blocks around</small><span>Open builder →</span></a>
+    <a class="game-mode game-mode-drill" href="${href(code, 'practice/' + lesson.id)}"><span class="game-mode-icon">⚡</span>
+      <strong>Speed drill</strong><small>Fast answers. A strong streak.</small><span>Play a round →</span></a>
+    <a class="game-mode game-mode-memory" href="${href(code, 'cards/' + lesson.id)}"><span class="game-mode-icon">▤</span>
+      <strong>Memory cards</strong><small>Flip, recall and remember</small><span>Review cards →</span></a>
+  </div>`;
+}
+function renderOverview(model) {
     const code = model.language.code;
     const completed = completedLessons(code);
-    const firstUnfinished = model.lessons.find((lesson) => !completed.has(lesson.id)) ?? model.lessons[0];
-    if (!firstUnfinished)
-        throw new Error('A guide must contain at least one lesson');
-    const examples = model.lessons.reduce((total, lesson) => total + lesson.examples.length, 0);
-    const chapters = model.lessons.map((lesson, index) => `
-    <a class="chapter" href="${href(code, `lesson/${lesson.id}`)}">
-      <span class="chapter-number">${lessonLabel(index)}</span>
-      <span class="chapter-copy"><strong>${escape(lesson.title)}</strong><small>${escape(lesson.goal)}</small></span>
-      <span class="chapter-arrow">${completed.has(lesson.id) ? '✓' : '↗'}</span>
-    </a>`).join('');
-    const featured = model.lessons.find((lesson) => lesson.id === 'ability')?.examples[1];
-    return `<section class="page overview-page">
-    <div class="eyebrow">THE PRACTICAL MANUAL · ${escape(model.language.variety.toUpperCase())}</div>
-    <h1>Minimum Viable<br /><em>${escape(model.language.name)}.</em></h1>
-    <p class="lead">${escape(TAGLINES[code])} Start by assembling sentences as visual blocks. The lessons explain the grammar when you want to understand a transformation in more depth.</p>
-    <div class="hero-buttons">
-      <a class="button primary" href="${href(code, 'builder')}">Open block studio <span>↗</span></a>
-      <a class="button secondary" href="${href(code, `lesson/${firstUnfinished.id}`)}">${completed.size ? 'Continue lessons' : 'Follow the learning path'}</a>
+    const current = currentLesson(model);
+    const currentIndex = model.lessons.indexOf(current);
+    const progress = Math.round(completed.size / model.lessons.length * 100);
+    const groups = STAGES.map((stage) => {
+        const lessons = model.lessons.map((lesson, index) => ({ lesson, index })).filter(({ lesson }) => lesson.stage === stage.id);
+        if (!lessons.length)
+            return '';
+        return `<section class="game-world" aria-label="${escape(stage.name)}">
+      <div class="game-world-heading"><span class="game-world-icon">${stage.symbol}</span><div><span class="micro-label">WORLD ${STAGES.indexOf(stage) + 1}</span>
+        <h2>${escape(stage.name)}</h2><p>${escape(stage.subtitle)}</p></div></div>
+      <div class="game-level-grid">
+        ${lessons.map(({ lesson, index }) => {
+            const done = completed.has(lesson.id);
+            const open = levelUnlocked(model, completed, index);
+            const label = `<span class="game-level-number">${padded(index + 1)}</span><span class="game-level-copy"><strong>${escape(lesson.title)}</strong><small>${done ? '★ Cleared' : open ? '● Ready to play' : '○ Unlock later'}</small></span><span class="game-level-arrow">${done ? '✓' : open ? '↗' : '⌑'}</span>`;
+            return open ? `<a class="game-level-node ${done ? 'is-done' : 'is-current'}" href="${href(code, 'lesson/' + lesson.id)}">${label}</a>`
+                : `<div class="game-level-node is-locked" aria-label="Level ${index + 1} locked">${label}</div>`;
+        }).join('')}
+      </div>
+    </section>`;
+    }).join('');
+    return `<section class="page game-page game-overview">
+    <div class="game-hero">
+      <div><span class="game-kicker">✦ YOUR LANGUAGE QUEST · ${escape(NAMES[code].toUpperCase())}</span>
+        <h1>Build a sentence.<br><em>Unlock a language.</em></h1>
+        <p>One small pattern at a time. Build it, test it, remember it. Your next level is ready whenever you are.</p>
+        <a class="game-primary" href="${href(code, 'lesson/' + current.id)}">${completed.size ? 'Continue playing' : 'Start level one'} <span>→</span></a>
+      </div>
+      <div class="game-hero-progress">
+        <span class="micro-label">YOUR PROGRESS</span>
+        <strong>${padded(currentIndex + 1)}<small> / 40</small></strong>
+        <div class="game-mini-track"><span style="width:${progress}%"></span></div>
+        <p>${completed.size} levels cleared · ${progress}% complete</p>
+        <span class="game-progress-orb">✦</span>
+      </div>
     </div>
-    <div class="guide-metrics"><span><strong>${model.lessons.length}</strong> lessons</span><span><strong>${examples}</strong> worked examples</span><span><strong>${completed.size}</strong> studied</span></div>
-    ${featured ? `<div class="sample-card"><span class="micro-label">A USEFUL PATTERN</span><strong lang="${code}">${escape(featured.target)}</strong><p>${escape(featured.english)}</p></div>` : ''}
-    <div class="section-heading"><h2>Learning path</h2><p>Study in order, or open the rule you need.</p></div>
-    <div class="chapter-list">${chapters}</div>
-    <aside class="aside-note"><strong>Small on purpose.</strong> These lessons teach a productive A2-oriented subset, not the whole language. You can speak simply and gradually expand what you understand.</aside>
+    <div class="game-section-heading"><div><span class="micro-label">THREE WAYS TO LEARN</span><h2>Pick your play style.</h2></div></div>
+    ${modeCards(code, current)}
+    <div class="game-section-heading game-map-heading"><div><span class="micro-label">THE ADVENTURE</span><h2>Your level map.</h2></div><p>Complete a level's drill to unlock the next one.</p></div>
+    ${groups}
   </section>`;
 }
-function renderExample(example, code) {
-    const canRemix = example.source.kind === 'expression'
-        && fromExpression(example.source.expression) !== null;
-    return `<div class="example-row">
-    <div class="example-copy"><strong lang="${code}">${escape(example.target)}</strong><small>${escape(example.english)}</small></div>
-    <div class="example-actions">${canRemix ? `<button class="copy-button" data-remix-example="${escape(example.id)}" title="Open this meaning in the block studio">Remix ↗</button>` : ''}<button class="copy-button" data-copy-example="${escape(example.id)}" aria-label="Copy example" title="Copy sentence">Copy</button></div>
+function exampleTile(example, code, index) {
+    const editable = example.source.kind === 'expression' && fromExpression(example.source.expression) !== null;
+    return `<div class="game-example-card">
+    <div class="game-example-top"><span>EXAMPLE ${padded(index + 1)}</span><span>${editable ? 'EDITABLE BLOCKS' : 'EVERYDAY EXPRESSION'}</span></div>
+    <div class="game-example-blocks">${meaningBlocks(example).map((block) => `<span>${escape(block)}</span>`).join('')}</div>
+    <strong lang="${code}">${escape(example.target)}</strong>
+    <p>${escape(example.english)}</p>
+    ${editable
+        ? `<button type="button" class="game-example-play" data-remix-example="${escape(example.id)}">Open in builder ↗</button>`
+        : `<span class="game-example-hint">Practice this in memory cards</span>`}
   </div>`;
 }
-function renderSubstitution(lesson, code) {
-    const source = lesson.examples.find((example) => example.source.kind === 'expression' && example.source.selection !== undefined);
-    if (!source || source.source.kind !== 'expression' || !source.source.selection)
-        return '';
-    const selection = source.source.selection;
-    const available = allowedArgumentsFor(selection.predicate, selection.agent);
-    if (available.length <= 1)
-        return '';
-    const options = available.map((argument) => `
-    <option value="${argument}" ${selected(argument, selection.argument)}>${escape(CONCEPTS[argument])}</option>`).join('');
-    return `<div class="substitution-panel" data-initial-example="${escape(source.id)}">
-    <div><span class="micro-label">CHANGE ONE BUILDING BLOCK</span><p>Try replacing the object. The rest of the sentence adapts automatically.</p></div>
-    <label for="substitution-argument">Replace the object</label>
-    <select id="substitution-argument">${options}</select>
-    <strong id="substitution-output" lang="${code}">${escape(source.target)}</strong>
-    <small id="substitution-english">${escape(source.english)}</small>
-  </div>`;
-}
-function renderLesson(model, lesson) {
+function renderLevel(model, lesson) {
     const code = model.language.code;
-    const index = model.lessons.findIndex((item) => item.id === lesson.id);
-    const prev = model.lessons[index - 1];
-    const next = model.lessons[index + 1];
-    const completed = completedLessons(code).has(lesson.id);
-    const practice = generatePractice(lesson, code, 1)[0];
-    return `<article class="page lesson-page" data-lesson="${lesson.id}">
-    <div class="eyebrow">LESSON ${lessonLabel(index)} / ${model.lessons.length} · ${escape(model.language.name.toUpperCase())}</div>
-    <h1>${escape(lesson.title)}</h1>
-    <p class="lead">${escape(lesson.goal)}.</p>
-    <p class="lesson-intro">${escape(lesson.introduction)}</p>
-    <div class="lesson-studio-jump"><span><strong>Make it yours.</strong> Open any worked example as editable blocks, or start from a blank canvas.</span>
-      <a class="button primary" href="${href(code, 'builder')}">Open block studio ↗</a></div>
-
-    <section class="lesson-section">
-      <div class="section-heading"><h2>The recipe</h2><span class="section-caption">01 / UNDERSTAND</span></div>
-      <div class="recipe-box"><code>${escape(lesson.notes.recipe)}</code><p>${escape(lesson.notes.explanation)}</p></div>
-      <p class="lesson-detail">${escape(lesson.notes.detail)}</p>
-    </section>
-
-    <section class="lesson-section">
-      <div class="section-heading"><h2>Worked examples</h2><span class="section-caption">02 / OBSERVE</span></div>
-      <div class="examples">${lesson.examples.map((example) => renderExample(example, code)).join('')}</div>
-      ${renderSubstitution(lesson, code)}
-    </section>
-
-    <aside class="caution"><span>REMEMBER</span><p>${escape(lesson.notes.caution)}</p></aside>
-
-    ${practice ? `<section class="lesson-section mini-practice">
-      <div class="section-heading"><h2>Check your recall</h2><span class="section-caption">03 / PRODUCE</span></div>
-      <p>How would you say this in ${escape(model.language.name)}?</p>
-      <div class="practice-prompt">${escape(practice.english)}</div>
-      <button id="mini-reveal" class="button secondary" aria-expanded="false">Show model answer</button>
-      <div id="mini-answer" class="mini-answer" hidden lang="${code}">${escape(practice.target)}</div>
-    </section>` : ''}
-
-    <section class="lesson-section"><div class="section-heading"><h2>Your notes</h2><span class="section-caption">SAVED ON THIS DEVICE</span></div>
-      <label class="visually-hidden" for="lesson-note">Notes for ${escape(lesson.title)}</label>
-      <textarea id="lesson-note" rows="4" placeholder="Rewrite the rule in your own words, or note a useful pattern…"></textarea>
-    </section>
-    <div class="lesson-actions">
-      <button class="button ${completed ? 'secondary' : 'primary'}" id="mark-complete">${completed ? '✓ Studied — undo' : 'Mark as studied ✓'}</button>
-      <a class="button secondary" href="${href(code, 'practice')}">Open practice lab ↗</a>
+    const index = model.lessons.indexOf(lesson);
+    const completed = completedLessons(code);
+    if (!levelUnlocked(model, completed, index)) {
+        const previous = model.lessons[nextLevelIndex(model, completed)];
+        return `<section class="page game-page game-locked-page">
+      <span class="game-kicker">LEVEL ${padded(index + 1)} · LOCKED</span><h1>One level at a time.</h1>
+      <p>Clear the previous level's drill to unlock ${escape(lesson.title)}.</p>
+      <a class="game-primary" href="${href(code, 'lesson/' + (previous?.id ?? lesson.id))}">Go to your next level →</a>
+    </section>`;
+    }
+    // Show productive configurations first; routine greetings are memory cards,
+    // never mistaken for independently composable grammar.
+    const examples = [
+        ...lesson.examples.filter((item) => item.source.kind === 'expression'),
+        ...lesson.examples.filter((item) => item.source.kind === 'convention'),
+    ].slice(0, 9);
+    return `<article class="page game-page game-level-page" data-lesson="${lesson.id}">
+    <a class="game-back" href="${href(code, 'start')}">← All levels</a>
+    <div class="game-level-hero"><div><span class="game-kicker">✦ LEVEL ${padded(index + 1)} / ${model.lessons.length}</span>
+      <h1>${escape(lesson.title)}</h1><p>${escape(lesson.goal)}.</p></div>
+      <div class="game-level-medal">${completed.has(lesson.id) ? '★' : padded(index + 1)}<small>${completed.has(lesson.id) ? 'CLEARED' : 'LEVEL'}</small></div>
     </div>
-    <nav class="chapter-pagination" aria-label="Other lessons">
-      ${prev ? `<a href="${href(code, `lesson/${prev.id}`)}"><small>← Previous lesson</small><strong>${escape(prev.title)}</strong></a>` : '<span></span>'}
-      ${next ? `<a href="${href(code, `lesson/${next.id}`)}"><small>Next lesson →</small><strong>${escape(next.title)}</strong></a>` : '<span></span>'}
-    </nav>
+    <div class="game-rule"><span class="game-rule-symbol">✧</span><div><span class="micro-label">TODAY'S POWER-UP</span>
+      <strong>${escape(lesson.notes.recipe)}</strong><p>${escape(lesson.notes.explanation)}</p></div></div>
+    <div class="game-section-heading"><div><span class="micro-label">01 · WATCH IT WORK</span><h2>Examples you can play with.</h2></div>
+      <p>Every editable example is a pre-built block configuration. Open it and change one thing.</p></div>
+    <div class="game-example-grid">${examples.map((example, i) => exampleTile(example, code, i)).join('')}</div>
+    <div class="game-level-finish"><div><span class="micro-label">02 · YOUR TURN</span><h2>Ready for a round?</h2>
+      <p>Get most of the answers right to clear this level. No timer, no penalties.</p></div>
+      <div><a class="game-primary" href="${href(code, 'practice/' + lesson.id)}">⚡ Play speed drill →</a>
+        <a class="game-secondary" href="${href(code, 'cards/' + lesson.id)}">▤ Review cards</a></div></div>
   </article>`;
 }
-function renderReference(model) {
+function renderDrill(model, lesson, session) {
     const code = model.language.code;
-    const entries = model.lessons.map((lesson, index) => `
-    <article class="reference-entry">
-      <span class="chapter-number">${lessonLabel(index)}</span>
-      <div>
-        <h3><a href="${href(code, `lesson/${lesson.id}`)}">${escape(lesson.title)}</a></h3>
-        <code>${escape(lesson.notes.recipe)}</code>
-        <p>${escape(lesson.notes.explanation)}</p>
-        ${lesson.examples[0] ? `<small lang="${code}">${escape(lesson.examples[0].target)}</small>` : ''}
+    const questions = drillQuestions(model, lesson);
+    const threshold = Math.ceil(questions.length * 0.7);
+    const cleared = session.score >= threshold;
+    if (session.index >= questions.length) {
+        const levelIndex = model.lessons.indexOf(lesson);
+        const next = model.lessons[levelIndex + 1];
+        return `<section class="page game-page game-drill-page">
+      <div class="game-round-end"><span class="game-celebrate">${cleared ? '🏆' : '↻'}</span>
+      <span class="game-kicker">ROUND COMPLETE</span><h1>${cleared ? 'Level cleared!' : 'Good practice. Go again!'}</h1>
+      <p>${cleared ? 'You unlocked the next level. Keep the pattern fresh with memory cards.' : 'You are building your reflexes. Try another round, or review the level examples.'}</p>
+      <div class="game-round-stats"><span><strong>${session.score} / ${questions.length}</strong>Correct</span>
+        <span><strong>${session.best}</strong>Best streak</span>
+        <span><strong>${session.score * 10 + session.bonus}</strong>Round XP*</span></div>
+      <small>*A level-clear bonus is awarded once. Correct answers always earn XP.</small>
+      <div class="game-round-actions"><button class="game-primary" id="drill-restart">↻ Play again</button>
+        <a class="game-secondary" href="${href(code, 'cards/' + lesson.id)}">Review memory cards</a>
+        ${cleared && next ? `<a class="game-secondary" href="${href(code, 'lesson/' + next.id)}">Next level →</a>` : ''}
+        <a class="game-secondary" href="${href(code, 'lesson/' + lesson.id)}">Back to examples</a>
+      </div></div>
+    </section>`;
+    }
+    const question = questions[session.index];
+    if (!question)
+        throw new Error('Missing drill question');
+    const progress = Math.round(session.index / questions.length * 100);
+    return `<section class="page game-page game-drill-page">
+    <div class="game-section-heading"><div><span class="game-kicker">⚡ SPEED DRILL · LEVEL ${padded(model.lessons.indexOf(lesson) + 1)}</span>
+      <h1>Think fast.<br><em>Build fluency.</em></h1></div><a class="game-back" href="${href(code, 'lesson/' + lesson.id)}">← Level examples</a></div>
+    <div class="game-drill-toolbar"><label for="drill-lesson">LEVEL</label><select id="drill-lesson">
+      ${model.lessons.map((item, i) => `<option value="${item.id}" ${item.id === lesson.id ? 'selected' : ''} ${levelUnlocked(model, completedLessons(code), i) ? '' : 'disabled'}>${padded(i + 1)} · ${escape(item.title)}</option>`).join('')}
+    </select><div class="game-mode-toggle" role="group" aria-label="Drill type"><button data-drill-mode="pick" class="${session.mode === 'pick' ? 'is-active' : ''}" aria-pressed="${session.mode === 'pick'}">Quick pick</button>
+      <button data-drill-mode="type" class="${session.mode === 'type' ? 'is-active' : ''}" aria-pressed="${session.mode === 'type'}">Type it</button></div></div>
+    <div class="game-drill-frame">
+      <div class="game-drill-meter"><span>QUESTION ${session.index + 1} / ${questions.length}</span>
+        <span>✦ ${session.score} correct <b>·</b> 🔥 ${session.streak} streak</span></div>
+      <div class="game-mini-track"><span style="width:${progress}%"></span></div>
+      <div class="game-prompt"><span>HOW DO YOU SAY THIS IN ${escape(NAMES[code].toUpperCase())}?</span>
+        <h2>${escape(question.english)}</h2></div>
+      ${session.mode === 'pick'
+        ? `<div class="game-answer-grid" role="group" aria-label="Choose the sentence">
+            ${question.options.map((option, i) => `<button class="game-answer ${session.answered && option === question.target ? 'is-correct' : session.answered && session.chosen === option ? 'is-wrong' : ''}"
+              data-drill-option="${i}" ${session.answered ? 'disabled' : ''}><kbd>${i + 1}</kbd><span lang="${code}">${escape(option)}</span></button>`).join('')}
+          </div>`
+        : `<form id="drill-type-form"><label for="drill-input">Your answer</label><input id="drill-input" autocomplete="off" spellcheck="false"
+            placeholder="Type your sentence…" ${session.answered ? 'disabled' : ''} /><button class="game-primary" type="submit" ${session.answered ? 'disabled' : ''}>Check ↵</button></form>`}
+      <div id="drill-feedback" class="game-answer-feedback ${session.answered ? (session.correct ? 'is-correct' : 'is-wrong') : ''}" role="status" ${session.answered ? '' : 'hidden'}>
+        ${session.answered ? `<strong>${session.correct ? 'Nice! +10 XP' : 'Not quite — remember this one.'}</strong>
+          <p lang="${code}">${escape(question.target)}</p>
+          <button class="game-primary" id="drill-next">${session.index + 1 === questions.length ? 'See result →' : 'Next question →'}</button>` : ''}
       </div>
-    </article>`).join('');
-    return `<section class="page reference-page">
-    <div class="eyebrow">QUICK REFERENCE · ${escape(model.language.name.toUpperCase())}</div>
-    <h1>All the patterns.<br /><em>One place.</em></h1>
-    <p class="lead">An index of the useful constructions from the manual. Every entry links to a detailed explanation and examples.</p>
-    <button id="print-reference" class="button secondary">Print reference ↗</button>
-    <div class="reference-list">${entries}</div>
+      <p class="game-drill-shortcut">${session.mode === 'pick' ? 'Press 1–4 to answer · Enter for next' : 'Press Enter to check your answer · Exact model comparison'} · No countdown.</p>
+    </div>
   </section>`;
 }
-function renderPractice(model, state) {
-    const lesson = model.lessons.find((item) => item.id === state.lessonId) ?? model.lessons[0];
-    if (!lesson)
-        throw new Error('No practice lessons');
-    const exercises = generatePractice(lesson, model.language.code);
-    const exercise = exercises[state.index % exercises.length];
-    if (!exercise)
-        throw new Error('No practice examples');
-    const lessonOptions = model.lessons.map((entry) => `
-    <option value="${entry.id}" ${selected(entry.id, lesson.id)}>${escape(entry.title)}</option>`).join('');
-    return `<section class="page practice-page">
-    <div class="eyebrow">ACTIVE RECALL · ${escape(model.language.name.toUpperCase())}</div>
-    <h1>Practice<br /><em>lab.</em></h1>
-    <p class="lead">Try producing the sentence before seeing the answer. These prompts are derived from the same grammatical building blocks as your lessons, including new combinations.</p>
-    <div class="practice-toolbar"><label for="practice-lesson">Practise a lesson</label><select id="practice-lesson">${lessonOptions}</select></div>
-    <div class="practice-card" data-practice-id="${escape(exercise.id)}">
-      <div class="practice-card-head"><span>TRANSLATE THE MEANING</span><span>${(state.index % exercises.length) + 1} / ${exercises.length}</span></div>
-      <h2>${escape(exercise.english)}</h2>
-      <label for="practice-answer">Your ${escape(model.language.name)} sentence</label>
-      <textarea id="practice-answer" rows="3" autocomplete="off" spellcheck="false" placeholder="Type what you would say…"></textarea>
-      <div class="practice-controls">
-        <button id="practice-check" class="button primary">Check against model</button>
-        <button id="practice-reveal" class="button secondary">Show answer</button>
-        <button id="practice-hint" class="button secondary" aria-expanded="false">Grammar hint</button>
-      </div>
-      <p id="practice-hint-content" class="practice-hint" role="status" hidden></p>
-      <div class="practice-feedback" id="practice-feedback" ${state.revealed ? '' : 'hidden'}>
-        <span id="practice-feedback-title">${state.feedback === 'matched' ? 'Matches the model' : 'Model answer'}</span>
-        <strong id="practice-model-answer" lang="${model.language.code}">${escape(exercise.target)}</strong>
-        <p>${state.feedback === 'matched'
-        ? 'Your response matches the model form.'
-        : 'Not an exact model match. Your answer may still be valid; compare the grammar and try again.'}</p>
-      </div>
-      ${exercise.source.kind === 'expression' ? '<button id="practice-remix" class="button secondary">Inspect as editable blocks ↗</button>' : ''}
-      <button id="practice-next" class="button secondary practice-next" ${state.revealed ? '' : 'disabled'}>Next prompt →</button>
+function renderCards(model, lesson, session) {
+    const code = model.language.code;
+    const examples = memoryExamples(lesson);
+    const example = examples.find((candidate) => lesson.id + ':' + candidate.id === session.ids[session.index]);
+    if (!example) {
+        return `<section class="page game-page game-memory-page">
+      <div class="game-round-end"><span class="game-celebrate">✦</span><span class="game-kicker">MEMORY MODE</span>
+        <h1>Deck complete.</h1><p>${session.ids.length === 0 ? 'Nothing is due right now. Your reviewed cards return after an interval.' : 'Great review. The cards you remembered will reappear later; missed cards are ready to try again.'}</p>
+        <div class="game-round-stats"><span><strong>${session.known}</strong>Remembered</span><span><strong>${session.again}</strong>Try again</span></div>
+        <a class="game-primary" href="${href(code, 'lesson/' + lesson.id)}">Back to level →</a>
+        <a class="game-secondary" href="${href(code, 'start')}">Level map</a></div>
+    </section>`;
+    }
+    return `<section class="page game-page game-memory-page">
+    <div class="game-section-heading"><div><span class="game-kicker">▤ MEMORY CARDS · LEVEL ${padded(model.lessons.indexOf(lesson) + 1)}</span>
+      <h1>Make it stick.</h1></div><a class="game-back" href="${href(code, 'lesson/' + lesson.id)}">← Level examples</a></div>
+    <div class="game-card-toolbar"><label for="cards-lesson">DECK</label><select id="cards-lesson">
+      ${model.lessons.map((item, i) => `<option value="${item.id}" ${item.id === lesson.id ? 'selected' : ''} ${levelUnlocked(model, completedLessons(code), i) ? '' : 'disabled'}>${padded(i + 1)} · ${escape(item.title)}</option>`).join('')}
+    </select><span>${session.index + 1} / ${session.ids.length} cards</span></div>
+    <div class="game-memory-progress game-mini-track"><span style="width:${Math.round(session.index / session.ids.length * 100)}%"></span></div>
+    <button id="card-flip" class="game-flashcard ${session.flipped ? 'is-flipped' : ''}" aria-label="${session.flipped ? 'Show English meaning' : 'Reveal target sentence'}" aria-pressed="${session.flipped}">
+      <span class="game-flash-top">${session.flipped ? escape(NAMES[code].toUpperCase()) : 'THE MEANING'}</span>
+      <strong lang="${session.flipped ? code : 'en'}">${escape(session.flipped ? example.target : example.english)}</strong>
+      <span class="game-flash-bottom">${session.flipped ? 'TAP TO SEE MEANING ↺' : 'TAP TO FLIP ↗'}</span>
+    </button>
+    <div class="game-card-controls">
+      ${session.flipped ? `<button class="game-recall-again" id="card-again">↻ Again <small>1</small></button>
+        <button class="game-recall-known" id="card-known">✓ Got it <small>2</small></button>`
+        : `<p>Say the sentence before flipping. <kbd>Space</kbd> reveals it.</p>`}
     </div>
-    <aside class="aside-note">This is a writing exercise, not an automated grammar examiner. It compares your input with one model sentence; it cannot judge every valid alternative.</aside>
+    <p class="game-memory-note">Remembered cards come back later. Cards marked “Again” remain due for another review.</p>
   </section>`;
 }
-function renderFramework() {
-    return `<article class="page about-page">
-    <div class="eyebrow">PROJECT REFERENCE · FOR CONTRIBUTORS</div>
-    <h1>How the manuals<br /><em>are built.</em></h1>
-    <p class="lead">One shared curriculum describes meanings and operations. Separate language implementations produce the surface forms, while language-specific notes explain the relevant grammar.</p>
-    <div class="architecture-grid">
-      <div><span>01</span><h2>Semantic building blocks</h2><p>Typed predicates, participants, arguments, and operators represent what someone wants to communicate, independently of a particular language.</p></div>
-      <div><span>02</span><h2>Language realization</h2><p>German, French and Spanish modules handle conjugation, pronouns, noun phrases, word order, and negation. Productive examples are generated rather than translated from a phrase table.</p></div>
-      <div><span>03</span><h2>Teaching guides</h2><p>Reusable lesson plans compile into readable guides and automatically derived exercises. A small separate lexicon covers conventional expressions such as greetings.</p></div>
-    </div>
-    <div class="about-links">
-      <h2>Read the specification</h2>
-      <p>The reference documents define the current grammar boundaries, contribution rules, and tests.</p>
-      <a href="https://github.com/alainux/mvl/blob/main/FRAMEWORK.md" target="_blank" rel="noopener noreferrer">Framework specification ↗</a>
-      <a href="https://github.com/alainux/mvl/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer">Contributing ↗</a>
-      <a href="https://github.com/alainux/mvl/tree/main/src/learning" target="_blank" rel="noopener noreferrer">Curriculum compiler ↗</a>
-      <a href="https://github.com/alainux/mvl/tree/main/src/languages" target="_blank" rel="noopener noreferrer">Language implementations ↗</a>
-    </div>
-  </article>`;
-}
-export function renderContent(route, guides, practiceState) {
+export function renderContent(route, guides, drill, cards) {
     if (route.page === 'home')
         return renderHome(guides);
     if (route.page === 'framework')
-        return renderFramework();
+        return `<section class="page game-page game-home">
+    <span class="game-kicker">ABOUT THE GAME</span><h1>Small rules.<br><em>Big possibilities.</em></h1>
+    <p class="lead">MVL teaches a small, productive language system. Levels, drills and memory cards are different ways of working with the same generated semantic examples, not unrelated phrase lists.</p>
+    <a class="game-primary" href="${href(getLanguage(), 'start')}">Back to levels →</a>
+    <p><a href="https://github.com/alainux/mvl">Source and grammar framework</a></p>
+  </section>`;
     const model = guides[route.code];
     switch (route.page) {
-        case 'start': return renderGuideOverview(model);
+        case 'start':
+        case 'reference': return renderOverview(model);
         case 'builder': return renderStudio();
-        case 'practice': return renderPractice(model, practiceState);
-        case 'reference': return renderReference(model);
-        case 'lesson': {
-            const lesson = model.lessons.find((entry) => entry.id === route.lesson);
-            return lesson ? renderLesson(model, lesson) : renderGuideOverview(model);
+        case 'lesson': return renderLevel(model, model.lessons.find((lesson) => lesson.id === route.lesson) ?? currentLesson(model));
+        case 'practice': {
+            const lesson = model.lessons.find((entry) => entry.id === route.lesson) ?? currentLesson(model);
+            if (!drill)
+                throw new Error('Drill session must be initialized');
+            return renderDrill(model, lesson, drill);
+        }
+        case 'cards': {
+            const lesson = model.lessons.find((entry) => entry.id === route.lesson) ?? currentLesson(model);
+            if (!cards)
+                throw new Error('Card session must be initialized');
+            return renderCards(model, lesson, cards);
         }
     }
 }
@@ -335,19 +321,10 @@ export function activeLanguage(route) {
     return route.page === 'home' || route.page === 'framework' ? getLanguage() : route.code;
 }
 export function searchGuide(model, rawQuery) {
-    const query = rawQuery.trim().toLocaleLowerCase();
+    const query = rawQuery.trim().toLowerCase();
     if (query.length < 2)
         return [];
-    return model.lessons.flatMap((lesson) => {
-        const fields = [lesson.title, lesson.goal, lesson.notes.recipe, lesson.notes.explanation];
-        const matches = lesson.examples.filter((example) => `${example.english} ${example.target}`.toLocaleLowerCase().includes(query));
-        if (!fields.some((field) => field.toLocaleLowerCase().includes(query)) && matches.length === 0) {
-            return [];
-        }
-        return [{
-                label: lesson.title,
-                description: matches[0] ? `${matches[0].target} · ${matches[0].english}` : lesson.goal,
-                url: href(model.language.code, `lesson/${lesson.id}`),
-            }];
-    }).slice(0, 7);
+    return model.lessons.filter((lesson) => (lesson.title + ' ' + lesson.goal).toLowerCase().includes(query))
+        .slice(0, 6).map((lesson) => ({ label: lesson.title, description: lesson.goal,
+        url: href(model.language.code, 'lesson/' + lesson.id) }));
 }

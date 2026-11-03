@@ -14,7 +14,7 @@ import { realizeEnglish } from '../languages/en.js';
 import { linearize } from '../languages/index.js';
 import { escapeHtml as escape, required } from './dom.js';
 import { MISSIONS, RECIPES, applyRecipe, allowedArgumentsFor, availableOperator, clauseFromSelection, editCompositeClause, isCompositeField, initialStudio, isPresent, operatorApplied, matchesMission, missionAnswer, normalizeStudio, startMission, studioExpression, toggleOperator, } from './studio-model.js';
-import { ruleFor } from './studio-rules.js';
+import { grammarSteps, ruleFor } from './studio-rules.js';
 import { traceSurfaceOrder } from './surface-order.js';
 export const REMIX_STORAGE_KEY = 'mvl:studio:remix';
 const SUBJECT_CHOICES = [
@@ -517,6 +517,7 @@ export function initializeStudio(code) {
     const missions = required('#studio-missions');
     const result = required('#studio-result');
     const orderedWords = required('#studio-order-words');
+    const structure = required('#studio-structure');
     const orderedHint = required('#studio-order-hint');
     const orderedLanguage = required('#studio-order-language');
     const orderedComparison = required('#studio-order-comparison');
@@ -672,6 +673,9 @@ export function initializeStudio(code) {
                 // Some slots have no alternative in a particular construction.
             }
             const tokens = traceSurfaceOrder(current, comparison);
+      structure.innerHTML = grammarSteps(state, code)
+        .map((step) => '<span class="studio-structure-step"><strong>' + escape(step.role) +
+          '</strong><small>' + escape(step.explanation) + '</small></span>').join('');
             orderedLanguage.textContent = { de: '· German', fr: '· French', es: '· Spanish' }[code];
             orderedWords.lang = code;
             orderedWords.innerHTML = tokens.map((token) => `
@@ -706,6 +710,7 @@ export function initializeStudio(code) {
             result.textContent = 'This combination is not supported.';
             meaning.textContent = '';
             orderedWords.textContent = '';
+      structure.textContent = '';
             orderedComparison.textContent = '';
             orderedHint.textContent = 'This combination could not be realized.';
             copy.disabled = true;

@@ -41,6 +41,7 @@ export function renderStudio() {
               <span class="studio-order-arrow" aria-hidden="true">↓</span>
             </div>
             <div class="studio-order-words" id="studio-order-words" aria-live="polite" aria-atomic="true"></div>
+            <div class="studio-structure" id="studio-structure" aria-label="Sentence assembly rules"></div>
             <p class="studio-order-hint" id="studio-order-hint"></p>
             <p class="studio-order-comparison" id="studio-order-comparison"></p>
           </div>

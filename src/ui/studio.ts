@@ -53,7 +53,7 @@ import {
   type StudioSlot,
   type StudioState,
 } from './studio-model.js';
-import { ruleFor } from './studio-rules.js';
+import { grammarSteps, ruleFor } from './studio-rules.js';
 import { traceSurfaceOrder } from './surface-order.js';
 
 export const REMIX_STORAGE_KEY = 'mvl:studio:remix';
@@ -497,6 +497,7 @@ export function initializeStudio(code: Code): void {
   const missions = required<HTMLElement>('#studio-missions');
   const result = required<HTMLElement>('#studio-result');
   const orderedWords = required<HTMLElement>('#studio-order-words');
+  const structure = required<HTMLElement>('#studio-structure');
   const orderedHint = required<HTMLElement>('#studio-order-hint');
   const orderedLanguage = required<HTMLElement>('#studio-order-language');
   const orderedComparison = required<HTMLElement>('#studio-order-comparison');
@@ -651,6 +652,9 @@ export function initializeStudio(code: Code): void {
         // Some slots have no alternative in a particular construction.
       }
       const tokens = traceSurfaceOrder(current, comparison);
+      structure.innerHTML = grammarSteps(state, code)
+        .map((step) => '<span class="studio-structure-step"><strong>' + escape(step.role) +
+          '</strong><small>' + escape(step.explanation) + '</small></span>').join('');
       orderedLanguage.textContent = ({ de: '· German', fr: '· French', es: '· Spanish' } as const)[code];
       orderedWords.lang = code;
       orderedWords.innerHTML = tokens.map((token) => `
@@ -685,6 +689,7 @@ export function initializeStudio(code: Code): void {
       result.textContent = 'This combination is not supported.';
       meaning.textContent = '';
       orderedWords.textContent = '';
+      structure.textContent = '';
       orderedComparison.textContent = '';
       orderedHint.textContent = 'This combination could not be realized.';
       copy.disabled = true;

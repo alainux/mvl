@@ -152,11 +152,12 @@ function initializeDrill(runtime: Runtime, code: LanguageProfile['code'], lesson
 
   const question = deck[session.index];
   if (!question) throw new Error('Missing current drill question');
+  const expectedSentence = question.target;
 
   function answer(input: string): void {
     const state = runtime.drill;
     if (!state || state.answered) return;
-    const correct = state.mode === 'pick' ? input === question.target : matchesModel(input, question.target);
+    const correct = state.mode === 'pick' ? input === expectedSentence : matchesModel(input, expectedSentence);
     const streak = correct ? state.streak + 1 : 0;
     if (correct) awardXP(code, 10, true, streak);
     runtime.drill = { ...state, answered: true, chosen: input, correct,
@@ -284,10 +285,7 @@ function render(runtime: Runtime): void {
     const lesson = chosenLesson(runtime.guides[code], route.lesson);
     initializeDrill(runtime, code, lesson);
   }
-  if (route.page === 'cards') {
-    const lesson = chosenLesson(runtime.guides[code], route.lesson);
-    initializeCards(runtime, code);
-  }
+  if (route.page === 'cards') initializeCards(runtime, code);
 }
 
 export async function startApplication(): Promise<void> {

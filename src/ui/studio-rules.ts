@@ -167,7 +167,7 @@ export function ruleFor(state: StudioState, code: Code, selected: StudioSlot): s
   if (selected === 'frequency' && a.frequency) return source.frequency;
   if (selected === 'modal' && a.modal && a.tense !== 'past') return source.modal;
 
-  if (selected === 'tense' || selected === 'time' || a.tense !== 'present') {
+  if (selected === 'tense' || a.tense !== 'present') {
     if (a.tense === 'future') return source.future;
     if (a.tense === 'past') {
       if (code === 'de' && a.modal)
@@ -180,7 +180,7 @@ export function ruleFor(state: StudioState, code: Code, selected: StudioSlot): s
         return 'This past state uses the imperfect rather than the completed-event preterite.';
       return source.past;
     }
-    if (selected === 'time' && a.time) return 'The time phrase anchors the event; compare where it appears in the sentence.';
+    if (selected === 'tense' && a.time) return 'The time phrase anchors the event; compare where it appears in the sentence.';
   }
   if (a.modal) return source.modal;
   return source.basic;

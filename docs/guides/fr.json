@@ -11760,7 +11760,7 @@
         },
         {
           "id": "health-10",
-          "english": "I will meet a doctor tomorrow.",
+          "english": "I will see a doctor tomorrow.",
           "target": "Je vais voir un médecin demain.",
           "source": {
             "kind": "expression",
@@ -13893,7 +13893,7 @@
         },
         {
           "id": "more-past-11",
-          "english": "I met a doctor last month.",
+          "english": "I saw a doctor last month.",
           "target": "J’ai vu un médecin le mois dernier.",
           "source": {
             "kind": "expression",

@@ -38,7 +38,7 @@ function chosenLesson(model: GeneratedGuide, requested: string | null): Generate
 function newDrill(key: string, mode: 'pick' | 'type' = 'pick'): DrillSession {
   return { key, index: 0, score: 0, streak: 0, best: 0,
     mode, answered: false, chosen: null, correct: false, bonus: 0,
-    questionStartedAt: Date.now(), lastGain: 0 };
+    questionStartedAt: Date.now(), lastGain: 0, remainingAtAnswer: mode === 'pick' ? 14 : 22 };
 }
 
 function newCards(code: Code, lesson: GeneratedLesson): CardSession {
@@ -148,6 +148,7 @@ function initializeDrill(runtime: Runtime, code: LanguageProfile['code'], lesson
   const session = runtime.drill;
   if (!session) return;
   const signal = activeListeners!.signal;
+  const roundIndex = session.index;
 
   const restart = document.querySelector<HTMLButtonElement>('#drill-restart');
   if (restart) {
@@ -164,30 +165,32 @@ function initializeDrill(runtime: Runtime, code: LanguageProfile['code'], lesson
       if (!runtime.drill || runtime.drill.answered) return;
       const mode = button.dataset['drillMode'];
       if (mode !== 'pick' && mode !== 'type') return;
-      runtime.drill = { ...runtime.drill, mode, questionStartedAt: Date.now() };
+      runtime.drill = { ...runtime.drill, mode, questionStartedAt: Date.now(),
+        remainingAtAnswer: mode === 'pick' ? 14 : 22 };
       render(runtime);
       if (mode === 'type') document.querySelector<HTMLInputElement>('#drill-input')?.focus();
     });
   });
 
-  const question = deck[session.index];
+  const question = deck[roundIndex];
   if (!question) throw new Error('Missing current drill question');
   const expectedSentence = question.target;
   const seconds = session.mode === 'pick' ? 14 : 22;
 
   function next(): void {
     const state = runtime.drill;
-    if (!state?.answered || state.index !== session.index) return;
+    if (!state?.answered || state.index !== roundIndex) return;
     // Speed drills are for retrieval; the sentence quest is the mastery gate.
     runtime.drill = { ...state, index: state.index + 1, lastGain: 0,
-      questionStartedAt: Date.now(), answered: false, chosen: null, correct: false };
+      questionStartedAt: Date.now(), remainingAtAnswer: state.mode === 'pick' ? 14 : 22,
+      answered: false, chosen: null, correct: false };
     render(runtime);
     document.querySelector<HTMLElement>(state.mode === 'type' ? '#drill-input' : '[data-drill-option="0"]')?.focus();
   }
 
   function answer(input: string): void {
     const state = runtime.drill;
-    if (!state || state.answered || state.index !== session.index) return;
+    if (!state || state.answered || state.index !== roundIndex) return;
     const remaining = Math.max(0, seconds - (Date.now() - state.questionStartedAt) / 1000);
     const timedOut = remaining <= 0;
     const attempted = timedOut ? '' : input;
@@ -199,7 +202,7 @@ function initializeDrill(runtime: Runtime, code: LanguageProfile['code'], lesson
     if (correct) awardXP(code, gain, true, streak);
     runtime.drill = { ...state, answered: true, chosen: attempted || null, correct,
       score: state.score + Number(correct), streak, best: Math.max(state.best, streak),
-      bonus: state.bonus + speedBonus, lastGain: gain };
+      bonus: state.bonus + speedBonus, lastGain: gain, remainingAtAnswer: remaining };
     render(runtime);
   }
 
@@ -230,7 +233,7 @@ function initializeDrill(runtime: Runtime, code: LanguageProfile['code'], lesson
     const frame = document.querySelector<HTMLElement>('.rush-frame');
     function updateClock(): void {
       const state = runtime.drill;
-      if (document.hidden || signal.aborted || !state || state.answered || state.index !== session.index) return;
+      if (document.hidden || signal.aborted || !state || state.answered || state.index !== roundIndex) return;
       const remaining = Math.max(0, seconds - (Date.now() - state.questionStartedAt) / 1000);
       if (clock) clock.textContent = remaining.toFixed(1);
       if (fill) fill.style.width = remaining / seconds * 100 + '%';
@@ -245,7 +248,7 @@ function initializeDrill(runtime: Runtime, code: LanguageProfile['code'], lesson
       if (document.hidden) hiddenSince = Date.now();
       else if (hiddenSince !== null) {
         const state = runtime.drill;
-        if (state && !state.answered && state.index === session.index)
+        if (state && !state.answered && state.index === roundIndex)
           runtime.drill = { ...state, questionStartedAt: state.questionStartedAt + Date.now() - hiddenSince };
         hiddenSince = null;
         updateClock();

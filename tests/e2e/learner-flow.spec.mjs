@@ -23,12 +23,14 @@ test('the level map leads to editable examples in the builder', async ({ page })
 
 test('a quick drill earns XP but does not unlock the next quest', async ({ page }) => {
   await page.goto('/#de/practice/first-words');
-  for (const question of deck) {
+  for (const [index, question] of deck.entries()) {
     await expect(page.locator('.game-prompt')).toContainText(question.english);
     const option = question.options.indexOf(question.target);
     await page.locator('[data-drill-option="' + option + '"]').click();
     await expect(page.locator('.game-answer-feedback.is-correct')).toBeVisible();
-    await page.locator('#drill-next').click();
+    // The next question now arrives automatically, like a real rapid-fire drill.
+    if (index + 1 < deck.length)
+      await expect(page.locator('.game-prompt')).toContainText(deck[index + 1].english, { timeout: 6000 });
   }
   await expect(page.locator('.game-round-end h1')).toHaveText('Drill conquered!');
   await page.goto('/#de/start');
@@ -55,13 +57,13 @@ test('clicks and keyboard shortcuts grade the selected option and explain mistak
   await expect(page.locator('.game-drill-meter')).toContainText('1 correct');
 });
 
-test('typing mode checks an answer without a countdown', async ({ page }) => {
+test('typing mode gives more time and checks exact model answers', async ({ page }) => {
   await page.goto('/#de/practice/first-words');
   await page.locator('[data-drill-mode="type"]').click();
   await page.locator('#drill-input').fill(deck[0].target);
   await page.locator('#drill-type-form button').click();
   await expect(page.locator('.game-answer-feedback.is-correct')).toBeVisible();
-  await expect(page.locator('.game-drill-shortcut')).toContainText('No countdown');
+  await expect(page.locator('.game-drill-shortcut')).toContainText('22 SECONDS PER QUESTION');
   await page.keyboard.press('Enter');
   await expect(page.locator('.game-prompt')).toContainText(deck[1].english);
 });
@@ -179,4 +181,41 @@ test('the root URL starts an actual sentence puzzle rather than a course menu', 
   await expect(page.locator('.quest-dialogue h1')).toContainText('I have a question.');
   await expect(page.locator('#quest-bank .quest-word-tile')).not.toHaveCount(0);
   await expect(page.locator('#quest-check')).toBeDisabled();
+});
+
+test('sentence stack has real falling shapes and charges the grammar when a shape lands on its lane', async ({ page }) => {
+  await page.goto('/#de/builder');
+  await expect(page.locator('#studio-stack .stack-start')).toBeVisible();
+  const before = await page.locator('#studio-result').textContent();
+  await page.locator('#studio-stack .stack-start').click();
+  await expect(page.locator('#stack-grid')).toHaveAttribute('data-phase', 'running');
+  const targetLabel = await page.locator('#stack-piece-target').textContent();
+  const targetColumns = { WHO: 0, ACTION: 2, THING: 4, WHEN: 6, POWER: 8 };
+  const targetName = Object.keys(targetColumns).find((key) => targetLabel.includes('AIM FOR ' + key));
+  expect(targetName).toBeTruthy();
+  const targetCol = targetColumns[targetName];
+  const geometry = await page.locator('#stack-grid').evaluate((grid) => {
+    const blocks = [...grid.querySelectorAll('.stack-cell.is-falling')];
+    const positions = blocks.map((node) => [...grid.children].indexOf(node) % 10);
+    return { min: Math.min(...positions), width: Math.max(...positions) - Math.min(...positions) + 1 };
+  });
+  const desired = Math.min(targetCol, 10 - geometry.width);
+  const distance = desired - geometry.min;
+  for (let i = 0; i < Math.abs(distance); i++) await page.keyboard.press(distance < 0 ? 'ArrowLeft' : 'ArrowRight');
+  await page.keyboard.press('Space');
+  await expect(page.locator('#stack-locked')).toHaveText('1');
+  await expect(page.locator('#stack-sentence')).not.toBeEmpty();
+  const after = await page.locator('#studio-result').textContent();
+  expect(after).not.toBe(before);
+  await expect(page.locator('#stack-sentence')).toHaveText(after);
+});
+
+test('the stack arcade pauses while playing the manual grammar lab', async ({ page }) => {
+  await page.goto('/#de/builder');
+  await page.locator('#studio-stack .stack-start').click();
+  await page.locator('#stack-pause').click();
+  await expect(page.locator('#stack-overlay')).toBeVisible();
+  await expect(page.locator('#stack-overlay')).toContainText('PAUSED');
+  await page.locator('#stack-overlay .stack-start').click();
+  await expect(page.locator('#stack-grid')).toHaveAttribute('data-phase', 'running');
 });

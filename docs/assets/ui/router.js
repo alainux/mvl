@@ -10,7 +10,7 @@ function isLessonId(value) {
 export function currentRoute() {
     const [first, second, third] = location.hash.replace(/^#\/?/, '').split('/');
     if (!first)
-        return { page: 'start', code: getLanguage() };
+        return { page: 'play', code: getLanguage(), lesson: null };
     if (first === 'home')
         return { page: 'home' };
     if (first === 'framework')

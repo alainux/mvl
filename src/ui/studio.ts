@@ -56,7 +56,7 @@ import {
 import { grammarSteps, ruleFor } from './studio-rules.js';
 import { traceSurfaceOrder } from './surface-order.js';
 import { mountSentenceStack, type StackLane, type StackPiece } from './stack-game.js';
-import { awardXP, gameStats } from './state.js';
+import { awardXP } from './state.js';
 
 export const REMIX_STORAGE_KEY = 'mvl:studio:remix';
 

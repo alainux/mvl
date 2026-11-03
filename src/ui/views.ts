@@ -26,6 +26,7 @@ export interface DrillSession {
   readonly bonus: number;
   readonly questionStartedAt: number;
   readonly lastGain: number;
+  readonly remainingAtAnswer: number;
   readonly mode: 'pick' | 'type';
   readonly answered: boolean;
   readonly chosen: string | null;
@@ -278,9 +279,8 @@ function renderDrill(model: GeneratedGuide, lesson: GeneratedLesson, session: Dr
   }
   const question = questions[session.index];
   if (!question) throw new Error('Missing drill question');
-  const progress = Math.round(session.index / questions.length * 100);
   const seconds = session.mode === 'pick' ? 14 : 22;
-  const remaining = session.answered ? 0 : Math.max(0, seconds - (Date.now() - session.questionStartedAt) / 1000);
+  const remaining = session.answered ? session.remainingAtAnswer : Math.max(0, seconds - (Date.now() - session.questionStartedAt) / 1000);
   const selectedMeaning = session.chosen === null ? null
     : question.optionMeanings[question.options.indexOf(session.chosen)] ?? null;
   const dots = questions.map((_, i) =>

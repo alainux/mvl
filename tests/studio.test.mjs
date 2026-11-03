@@ -241,3 +241,26 @@ test('all offered person arguments are legal for the grammar engine', async () =
     }
   }
 });
+
+test('tense teaching matches irregular past and future polite requests', async () => {
+  const { grammarSteps, ruleFor } = await import('../docs/assets/ui/studio-rules.js');
+  const simplePast = fromExpression(makeTree({
+    ...initialStudio().action, predicate: 'be', agent: 'speaker', argument: 'ready', tense: 'past', time: 'yesterday',
+  }));
+  assert.match(ruleFor(simplePast, 'de', 'tense'), /war/);
+  assert.ok(!grammarSteps(simplePast, 'de').some((part) => part.explanation === 'Past participle'));
+
+  const completed = fromExpression(makeTree({
+    ...initialStudio().action, predicate: 'buy', agent: 'speaker', argument: 'ticket', tense: 'past', time: 'yesterday',
+  }));
+  assert.match(ruleFor(completed, 'de', 'tense'), /participle/);
+  assert.ok(grammarSteps(completed, 'de').some((part) => part.explanation === 'Past participle'));
+
+  const politeFuture = fromExpression(makeTree({
+    ...initialStudio().action, predicate: 'would_like', agent: 'speaker', argument: 'coffee',
+    tense: 'future', time: 'tomorrow',
+  }));
+  assert.match(ruleFor(politeFuture, 'fr', 'tense'), /voudrais/);
+  assert.match(ruleFor(politeFuture, 'es', 'tense'), /quisiera/);
+  assert.ok(!grammarSteps(politeFuture, 'fr').some((part) => part.role === 'FUTURE'));
+});

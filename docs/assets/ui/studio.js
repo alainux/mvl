@@ -13,7 +13,7 @@ import { CONCEPTS, DESCRIPTION_QUALITIES, LOCATABLE_PLACES, OBJECT_QUESTION_PRED
 import { realizeEnglish } from '../languages/en.js';
 import { linearize } from '../languages/index.js';
 import { escapeHtml as escape, required } from './dom.js';
-import { MISSIONS, RECIPES, applyRecipe, availableOperator, clauseFromSelection, editCompositeClause, isCompositeField, initialStudio, isPresent, operatorApplied, matchesMission, missionAnswer, normalizeStudio, startMission, studioExpression, toggleOperator, } from './studio-model.js';
+import { MISSIONS, RECIPES, applyRecipe, allowedArgumentsFor, availableOperator, clauseFromSelection, editCompositeClause, isCompositeField, initialStudio, isPresent, operatorApplied, matchesMission, missionAnswer, normalizeStudio, startMission, studioExpression, toggleOperator, } from './studio-model.js';
 import { ruleFor } from './studio-rules.js';
 import { traceSurfaceOrder } from './surface-order.js';
 export const REMIX_STORAGE_KEY = 'mvl:studio:remix';
@@ -209,8 +209,7 @@ function choices(state, slot) {
     switch (slot) {
         case 'agent': return SUBJECT_CHOICES;
         case 'predicate': return Object.entries(PREDICATES).map(([value, frame]) => ({ value, label: frame.description }));
-        case 'argument': return PREDICATES[action.predicate].allowedArguments
-            .filter((id) => !(PREDICATES[action.predicate].argumentRole === 'person' && id === action.agent))
+        case 'argument': return allowedArgumentsFor(action.predicate, action.agent)
             .map((id) => ({ value: id, label: concept(id) }));
         case 'quantity': return [{ value: '1', label: 'One' }, { value: '2', label: 'Two' }];
         case 'tense': return action.predicate === 'like'
@@ -575,7 +574,6 @@ export function initializeStudio(code) {
         const selection = clauseAt(state, index);
         if (!selection)
             return '<p>This statement is not available.</p>';
-        const frame = PREDICATES[selection.predicate];
         const field = (key, label, choices, value) => `
       <label class="studio-composite-field">${escape(label)}
         <select data-composite-index="${index}" data-composite-field="${key}">
@@ -583,8 +581,7 @@ export function initializeStudio(code) {
         </select>
       </label>`;
         const predicateChoices = Object.entries(PREDICATES).map(([value, predicate]) => ({ value, label: predicate.description }));
-        const argumentChoices = frame.allowedArguments
-            .filter((argument) => !(frame.argumentRole === 'person' && argument === selection.agent))
+        const argumentChoices = allowedArgumentsFor(selection.predicate, selection.agent)
             .map((value) => ({ value, label: concept(value) }));
         const tenseChoices = [
             { value: 'present', label: 'Present' },
@@ -897,9 +894,7 @@ export function initializeStudio(code) {
     required('#studio-swap').addEventListener('click', () => {
         rememberBefore('Swap vocabulary');
         if (state.pattern === 'action') {
-            const frame = PREDICATES[state.action.predicate];
-            const valid = frame.allowedArguments
-                .filter((id) => !(frame.argumentRole === 'person' && id === state.action.agent));
+            const valid = allowedArgumentsFor(state.action.predicate, state.action.agent);
             const nextIndex = (valid.indexOf(state.action.argument) + 1) % valid.length;
             const nextArgument = valid[nextIndex];
             if (nextArgument)
@@ -932,8 +927,7 @@ export function initializeStudio(code) {
             const index = isClauseSlot(activeSlot) ? Number(activeSlot.slice(-1)) : 0;
             const current = clauseAt(state, index);
             if (current) {
-                const frame = PREDICATES[current.predicate];
-                const available = frame.allowedArguments;
+                const available = allowedArgumentsFor(current.predicate, current.agent);
                 const replacement = available[(available.indexOf(current.argument) + 1) % available.length];
                 if (replacement)
                     editCompositeStep(index, 'argument', replacement);

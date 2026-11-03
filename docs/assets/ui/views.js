@@ -4,7 +4,7 @@ import { escapeHtml as escape } from './dom.js';
 import { href } from './router.js';
 import { completedLessons, getLanguage } from './state.js';
 import { renderStudio } from './studio-view.js';
-import { fromExpression } from './studio-model.js';
+import { fromExpression, allowedArgumentsFor } from './studio-model.js';
 const LANGUAGE_NAMES = {
     de: 'German',
     fr: 'French',
@@ -171,8 +171,7 @@ function renderSubstitution(lesson, code) {
     if (!source || source.source.kind !== 'expression' || !source.source.selection)
         return '';
     const selection = source.source.selection;
-    const available = PREDICATES[selection.predicate].allowedArguments
-        .filter((argument) => selection.predicate !== 'help' || selection.agent !== argument);
+    const available = allowedArgumentsFor(selection.predicate, selection.agent);
     if (available.length <= 1)
         return '';
     const options = available.map((argument) => `

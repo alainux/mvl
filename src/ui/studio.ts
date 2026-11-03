@@ -34,6 +34,7 @@ import {
   MISSIONS,
   RECIPES,
   applyRecipe,
+  allowedArgumentsFor,
   availableOperator,
   clauseFromSelection,
   editCompositeClause,
@@ -264,8 +265,7 @@ function choices(state: StudioState, slot: StudioSlot): readonly Choice[] {
   switch (slot) {
     case 'agent': return SUBJECT_CHOICES;
     case 'predicate': return Object.entries(PREDICATES).map(([value, frame]) => ({ value, label: frame.description }));
-    case 'argument': return (PREDICATES[action.predicate].allowedArguments as readonly SemanticArgument[])
-      .filter((id) => !(PREDICATES[action.predicate].argumentRole === 'person' && id === action.agent))
+    case 'argument': return allowedArgumentsFor(action.predicate, action.agent)
       .map((id) => ({ value: id, label: concept(id) }));
     case 'quantity': return [{ value: '1', label: 'One' }, { value: '2', label: 'Two' }];
     case 'tense': return action.predicate === 'like'
@@ -556,7 +556,6 @@ export function initializeStudio(code: Code): void {
     const index = Number(slot.slice(-1));
     const selection = clauseAt(state, index);
     if (!selection) return '<p>This statement is not available.</p>';
-    const frame = PREDICATES[selection.predicate];
     const field = (key: string, label: string, choices: readonly Choice[], value: string): string => `
       <label class="studio-composite-field">${escape(label)}
         <select data-composite-index="${index}" data-composite-field="${key}">
@@ -564,8 +563,7 @@ export function initializeStudio(code: Code): void {
         </select>
       </label>`;
     const predicateChoices = Object.entries(PREDICATES).map(([value, predicate]) => ({ value, label: predicate.description }));
-    const argumentChoices = (frame.allowedArguments as readonly SemanticArgument[])
-      .filter((argument) => !(frame.argumentRole === 'person' && argument === selection.agent))
+    const argumentChoices = allowedArgumentsFor(selection.predicate, selection.agent)
       .map((value) => ({ value, label: concept(value) }));
     const tenseChoices: readonly Choice[] = [
       { value: 'present', label: 'Present' },
@@ -866,9 +864,7 @@ export function initializeStudio(code: Code): void {
   required<HTMLButtonElement>('#studio-swap').addEventListener('click', () => {
     rememberBefore('Swap vocabulary');
     if (state.pattern === 'action') {
-      const frame = PREDICATES[state.action.predicate];
-      const valid = (frame.allowedArguments as readonly SemanticArgument[])
-        .filter((id) => !(frame.argumentRole === 'person' && id === state.action.agent));
+      const valid = allowedArgumentsFor(state.action.predicate, state.action.agent);
       const nextIndex = (valid.indexOf(state.action.argument) + 1) % valid.length;
       const nextArgument = valid[nextIndex];
       if (nextArgument) state = setSlot(state, 'argument', nextArgument);
@@ -893,8 +889,7 @@ export function initializeStudio(code: Code): void {
       const index = isClauseSlot(activeSlot) ? Number(activeSlot.slice(-1)) : 0;
       const current = clauseAt(state, index);
       if (current) {
-        const frame = PREDICATES[current.predicate];
-        const available = frame.allowedArguments as readonly SemanticArgument[];
+        const available = allowedArgumentsFor(current.predicate, current.agent);
         const replacement = available[(available.indexOf(current.argument) + 1) % available.length];
         if (replacement) editCompositeStep(index, 'argument', replacement);
       }

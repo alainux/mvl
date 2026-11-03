@@ -6,19 +6,27 @@ export function renderStudio() {
     return `<section class="page studio-page" id="studio" aria-labelledby="studio-title">
     <div class="studio-heading">
       <a class="game-back" id="studio-back" href="#de/start">← Back to levels</a>
-      <div class="eyebrow"><span class="eyebrow-line"></span> MODE 01 · BLOCK BUILDER</div>
-      <h1 id="studio-title">Make meaning.<br /><em>Watch it turn into language.</em></h1>
-      <p class="lead">Every level gives you a ready-made build. Change WHO, ACTION, OBJECT or an operator and watch the real sentence rearrange itself.</p>
-      <div class="studio-steps" aria-label="How to learn with blocks">
-        <span><b>01</b> Pick a pattern</span>
-        <span><b>02</b> Connect blocks</span>
-        <span><b>03</b> Change one thing</span>
+      <div class="eyebrow"><span class="eyebrow-line"></span> MODE 01 · FALLING-BLOCK BUILDER</div>
+      <h1 id="studio-title">Drop blocks.<br /><em>Build a sentence.</em></h1>
+      <p class="lead">A real falling-block game. Steer shapes over WHO, ACTION, THING, WHEN and POWER. Every successful lock changes the sentence in your target language.</p>
+      <div class="studio-steps" aria-label="How to play">
+        <span><b>01</b> Move & rotate</span>
+        <span><b>02</b> Hit the matching lane</span>
+        <span><b>03</b> Clear lines for combos</span>
       </div>
     </div>
 
-    <section class="studio-recipes" aria-labelledby="studio-recipes-title">
+    <section class="studio-arcade" aria-label="Sentence Stack arcade">
+      <div id="studio-stack" class="stack-machine"></div>
+      <div class="studio-arcade-caption">
+        <span><b>★</b> Every lock runs through the actual grammar engine.</span>
+        <span>Prefer experimenting? The open-ended building blocks lab is below ↓</span>
+      </div>
+    </section>
+
+        <section class="studio-recipes" aria-labelledby="studio-recipes-title">
       <div class="studio-section-head">
-        <div><span class="micro-label">START WITH AN EXAMPLE</span><h2 id="studio-recipes-title">Patterns you can take apart</h2></div>
+        <div><span class="micro-label">REMIX A LEVEL</span><h2 id="studio-recipes-title">Load a prebuilt combo</h2></div>
         <button class="studio-text-button" id="studio-show-recipes" aria-expanded="false">Show all patterns ↓</button>
       </div>
       <div class="studio-recipe-list" id="studio-recipes-list" aria-label="Example compositions"></div>
@@ -28,17 +36,17 @@ export function renderStudio() {
       <div class="studio-canvas-column">
         <section class="studio-board" aria-labelledby="studio-canvas-title">
           <div class="studio-section-head">
-            <div><span class="micro-label">YOUR WORKSPACE</span><h2 id="studio-canvas-title">The building blocks</h2></div>
+            <div><span class="micro-label">FREEPLAY · MANUAL MODE</span><h2 id="studio-canvas-title">The building blocks lab</h2></div>
             <button id="studio-reset" class="studio-text-button">Reset ↺</button>
           </div>
-          <p class="studio-instruction">Choose the meaning ingredients below. Their order is not the spoken word order: each language arranges and inflects them differently.</p>
+          <p class="studio-instruction">Tap any block to customize it. The lab shows meaning order; the grammar engine determines actual word order.</p>
           <div class="studio-block-canvas" id="studio-blocks" aria-label="Editable meaning blocks"></div>
           <p id="studio-adjustment" class="studio-adjustment" role="status" aria-live="polite" hidden></p>
           <div class="studio-order" aria-labelledby="studio-order-title">
             <div class="studio-order-heading">
               <div>
-                <span class="micro-label">THE GRAMMAR ENGINE ARRANGES THEM</span>
-                <h3 id="studio-order-title">Actual word order <span id="studio-order-language"></span></h3>
+                <span class="micro-label">LANGUAGE PHYSICS</span>
+                <h3 id="studio-order-title">Spoken word order <span id="studio-order-language"></span></h3>
               </div>
               <span class="studio-order-arrow" aria-hidden="true">↓</span>
             </div>
@@ -52,7 +60,7 @@ export function renderStudio() {
         </section>
 
         <section class="studio-output-panel" aria-labelledby="studio-result-title">
-          <div class="studio-section-head"><div><span class="micro-label">LIVE RESULT</span><h2 id="studio-result-title">What you've built</h2></div><span class="studio-live-dot">● Changes instantly</span></div>
+          <div class="studio-section-head"><div><span class="micro-label">SENTENCE OUTPUT</span><h2 id="studio-result-title">What you've built</h2></div><span class="studio-live-dot">● Changes instantly</span></div>
           <div class="studio-output-sentence" id="studio-result" aria-live="polite" aria-atomic="true"></div>
           <div class="studio-delta" id="studio-delta" hidden><span class="micro-label">WATCH THE TRANSFORMATION</span><div id="studio-delta-content"></div></div>
           <div class="studio-output-meaning"><span>MEANING</span><p id="studio-english"></p></div>
@@ -70,7 +78,7 @@ export function renderStudio() {
         </section>
 
         <section class="studio-challenges" aria-labelledby="studio-challenges-title">
-          <div class="studio-section-head"><div><span class="micro-label">NOW BUILD IT YOURSELF</span><h2 id="studio-challenges-title">Four small challenges</h2></div></div>
+          <div class="studio-section-head"><div><span class="micro-label">NOW BUILD IT YOURSELF</span><h2 id="studio-challenges-title">Bonus challenges</h2></div></div>
           <p>Pick a challenge to load a starting sentence. Add or change the blocks until your expression matches the goal.</p>
           <div class="studio-challenge-list" id="studio-missions"></div>
           <div class="studio-mission-feedback" id="studio-mission-feedback" role="status" aria-live="polite"></div>

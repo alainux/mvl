@@ -277,7 +277,6 @@ function renderDrill(model: GeneratedGuide, lesson: GeneratedLesson, session: Dr
   const question = questions[session.index];
   if (!question) throw new Error('Missing drill question');
   const cloze = clozeFor(question.target, session.index, code);
-  const progress = Math.round(session.index / questions.length * 100);
   const completed = session.index + (session.answered ? 1 : 0);
   return `<section class="page game-page game-drill-page cloze-page">
     <header class="cloze-heading">

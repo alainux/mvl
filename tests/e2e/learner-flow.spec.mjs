@@ -70,3 +70,19 @@ test('mobile navigation links to the new modes', async ({ page }, testInfo) => {
   await page.locator('nav[aria-label="Study tools"] a[href="#de/cards"]').click();
   await expect(page.locator('#card-flip')).toBeVisible();
 });
+
+test('a locked deep link cannot mismatch drill prompts with answer validation', async ({ page }) => {
+  await page.goto('/#de/practice/independent-life');
+  await expect(page.locator('#drill-lesson')).toHaveValue('first-words');
+  await expect(page.locator('.game-prompt')).toContainText(deck[0].english);
+});
+
+test('game modes fit a narrow phone without horizontal scrolling', async ({ page }, testInfo) => {
+  if (testInfo.project.name !== 'mobile') test.skip();
+  for (const path of ['/', '/#de/lesson/first-words', '/#de/builder', '/#de/practice/first-words', '/#de/cards/first-words']) {
+    await page.goto(path);
+    await page.locator('#main-content').waitFor();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow, 'horizontal overflow at ' + path).toBeLessThanOrEqual(1);
+  }
+});

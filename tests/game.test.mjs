@@ -31,3 +31,13 @@ test('every level has a playable drill with a single unambiguous correct option'
     }
   }
 });
+
+test('a locked drill URL resolves to the same unlocked lesson as its validator', async () => {
+  const { playableLesson } = await import('../docs/assets/ui/game-model.js');
+  const guide = compileGuide('de');
+  const distant = guide.lessons[guide.lessons.length - 1].id;
+  assert.equal(playableLesson(guide, new Set(), distant).id, guide.lessons[0].id);
+  const completed = new Set([guide.lessons[0].id]);
+  assert.equal(playableLesson(guide, completed, distant).id, guide.lessons[1].id);
+  assert.equal(playableLesson(guide, completed, guide.lessons[0].id).id, guide.lessons[0].id);
+});

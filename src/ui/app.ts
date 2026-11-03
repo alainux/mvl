@@ -5,7 +5,7 @@ import { required } from './dom.js';
 import { currentRoute, href, type Code, type Route } from './router.js';
 import { initializeStudio, REMIX_STORAGE_KEY } from './studio.js';
 import { fromExpression } from './studio-model.js';
-import { drillQuestions, levelUnlocked, memoryExamples, nextLevelIndex } from './game-model.js';
+import { drillQuestions, memoryExamples, playableLesson } from './game-model.js';
 import {
   awardXP, cardRecalls, completedLessons, getTheme,
   rememberLanguage, recordCard, setLessonCompleted, setTheme,
@@ -29,13 +29,7 @@ interface Runtime {
 let activeListeners: AbortController | null = null;
 
 function chosenLesson(model: GeneratedGuide, requested: string | null): GeneratedLesson {
-  const completed = completedLessons(model.language.code);
-  const requestedIndex = model.lessons.findIndex((lesson) => lesson.id === requested);
-  const index = requestedIndex >= 0 && levelUnlocked(model, completed, requestedIndex)
-    ? requestedIndex : nextLevelIndex(model, completed);
-  const lesson = model.lessons[index];
-  if (!lesson) throw new Error('Missing level');
-  return lesson;
+  return playableLesson(model, completedLessons(model.language.code), requested);
 }
 
 function newDrill(key: string, mode: 'pick' | 'type' = 'pick'): DrillSession {

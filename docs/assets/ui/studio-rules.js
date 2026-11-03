@@ -95,6 +95,8 @@ export function grammarSteps(state, code) {
         if (action.question)
             stages.push({ role: 'QUESTION', explanation: 'est-ce que' });
         stages.push({ role: 'SUBJECT + VERB', explanation: 'Conjugated together' });
+        if (action.tense === 'past' && action.modal)
+            stages.push({ role: 'PAST MODAL', explanation: 'Auxiliary + modal participle' });
         if (action.tense === 'past' && !IMPERFECT_FR.has(action.predicate) && !action.modal)
             stages.push({ role: 'PAST', explanation: 'Auxiliary + participle' });
         if (action.tense === 'future' && !action.modal && action.predicate !== 'would_like')
@@ -167,8 +169,15 @@ export function ruleFor(state, code, selected) {
     if (selected === 'modal' && a.modal && a.tense !== 'past')
         return source.modal;
     if (selected === 'tense' || a.tense !== 'present') {
-        if (a.tense === 'future')
+        if (a.tense === 'future') {
+            if (a.predicate === 'would_like' && code !== 'de')
+                return code === 'fr'
+                    ? 'A polite request keeps je voudrais with a future time word such as demain; aller vouloir would change the intention.'
+                    : 'A polite request keeps quisiera with a future time word such as mañana; ir a querer would change the intention.';
+            if (a.modal && code !== 'de')
+                return 'The modal keeps its present form alongside a future time word. This construction does not use the normal near-future auxiliary.';
             return source.future;
+        }
         if (a.tense === 'past') {
             if (code === 'de' && a.modal)
                 return 'A past modal (for example konnte or musste) is conjugated; the main verb stays as an infinitive at the end.';

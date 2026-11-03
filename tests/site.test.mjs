@@ -10,6 +10,7 @@ test('Pages root serves a learner app and not a framework whitepaper', () => {
   assert.match(html, /id="app"/);
   assert.match(html, /assets\/main\.js/);
   assert.match(html, /assets\/style\.css/);
+  assert.match(html, /assets\/quest\.css/);
   assert.doesNotMatch(html, /semantic algebra reference|pseudo-minified/);
 });
 
@@ -23,6 +24,10 @@ test('all generated guide artifacts exist as committed static outputs', () => {
   assert.ok(existsSync('docs/assets/ui/studio.js'));
   assert.ok(existsSync('docs/assets/ui/studio-model.js'));
   assert.ok(existsSync('docs/assets/ui/game-model.js'));
+  assert.ok(existsSync('docs/assets/ui/quest-model.js'));
+  assert.ok(existsSync('docs/assets/ui/quest-controller.js'));
+  assert.ok(existsSync('docs/assets/ui/quest-view.js'));
+  assert.ok(existsSync('docs/assets/quest.css'));
   assert.ok(existsSync('docs/assets/ui/studio-view.js'));
   assert.ok(existsSync('docs/assets/learning/practice.js'));
 });

@@ -134,7 +134,7 @@ export function selectedWords(state: QuestSession, round: QuestRound): readonly 
 }
 
 export function addQuestTile(state: QuestSession, round: QuestRound, id: number): QuestSession {
-  if (state.phase !== 'play' || state.selected.includes(id) || !round.tiles.some((tile) => tile.id === id)) return state;
+  if (state.phase !== 'play' || state.selected.length >= round.expected.length || state.selected.includes(id) || !round.tiles.some((tile) => tile.id === id)) return state;
   return { ...state, selected: [...state.selected, id], hintTile: null, feedback: '' };
 }
 

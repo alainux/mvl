@@ -181,3 +181,40 @@
 .quest-word-tile,.quest-placed-tile { max-width:100%; overflow-wrap:anywhere; }
 .quest-word-tile:disabled { opacity:.65; cursor:default; transform:none !important; box-shadow:none; }
 .quest-placed-tile:disabled { cursor:default; }
+
+
+/* The campaign is a map of checkpoints rather than a lesson catalogue. */
+.game-overview .game-world {
+  background:linear-gradient(155deg,var(--surface) 60%,var(--accent-tint));
+  border-radius:26px; padding:27px 30px; box-shadow:var(--shadow);
+}
+.game-overview .game-level-grid { grid-template-columns:repeat(4,minmax(0,1fr)); gap:13px 6px; }
+.game-overview .game-level-node { display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:147px; gap:8px; padding:12px 7px; border:1px solid transparent;
+  background:transparent; text-align:center; border-radius:17px; }
+.game-overview a.game-level-node:hover { border-color:var(--line-strong); background:var(--surface-soft); transform:translateY(-2px); }
+.game-overview .game-level-number {
+  width:66px; height:66px; flex:0 0 66px; border-radius:50%; font-size:18px;
+  background:var(--surface-soft); border:3px solid var(--line-strong); box-shadow:0 6px 0 #151d3510;
+}
+.game-overview .game-level-node.is-current { background:transparent; }
+.game-overview .game-level-node.is-current .game-level-number {
+  background:#7759e7; color:white; border-color:#c6b7fd;
+  box-shadow:0 0 0 6px #7759e727,0 7px 15px #7759e72e; }
+.game-overview .game-level-node.is-done { background:transparent; }
+.game-overview .game-level-node.is-done .game-level-number { background:#19a483;
+  border-color:#b3e9d7; color:#fff; }
+.game-overview .game-level-copy strong { font-size:12px; line-height:1.35; }
+.game-overview .game-level-copy small { margin-top:5px; font-size:10px; }
+.game-overview .game-level-arrow { display:none; }
+.quest-story-beat { color:var(--green) !important; font-weight:850; margin:5px 0 7px !important; }
+@media (max-width:1100px) {
+  .game-overview .game-level-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
+@media (max-width:680px) {
+  .game-overview .game-world { padding:20px 14px; }
+  .game-overview .game-level-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+  .game-overview .game-level-node { min-height:139px; padding:11px 5px; }
+  .game-overview .game-level-number { width:57px; height:57px; flex-basis:57px; font-size:16px; }
+  .game-overview .game-level-copy strong { font-size:11px; }
+}

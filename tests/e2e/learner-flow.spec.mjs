@@ -14,7 +14,7 @@ test('the level map leads to editable examples in the builder', async ({ page })
   await expect(page.locator('.game-level-node.is-current')).toHaveCount(1);
   await expect(page.locator('.game-level-node.is-locked').first()).toBeVisible();
   await page.locator('a.game-level-node').first().click();
-  await expect(page.locator('.game-example-grid')).toBeVisible();
+  await expect(page.locator('.game-level-page > .game-example-grid')).toBeVisible();
   await page.locator('[data-remix-example="first-words-7"]').click();
   await expect(page.locator('#studio-result')).toContainText('Ich habe eine Frage.');
   await expect(page.locator('#studio-structure')).toBeVisible();

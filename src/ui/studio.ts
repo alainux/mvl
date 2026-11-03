@@ -829,7 +829,7 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
     required<HTMLElement>('#snap-mission-grid').innerHTML = missionButtons;
     required<HTMLElement>('#snap-cleared').textContent = clearedBlueprints.size + ' / ' + MISSIONS.length;
     required<HTMLElement>('#snap-objective').innerHTML = activeMission
-      ? `<span>YOUR BLUEPRINT · ${snapSolved() ? '✓ COMPLETE' : 'IN PROGRESS'}</span>
+      ? `<span>YOUR BLUEPRINT · ${escape(activeMission.title)} · ${snapSolved() ? '✓ COMPLETE' : 'IN PROGRESS'}</span>
           <strong>${escape(realizeEnglish(missionAnswer(activeMission)))}</strong>
           <p>${escape(activeMission.description)}</p>`
       : '<span>FREE BUILD</span><strong>Make your own sentence.</strong><p>Choose a blueprint above for a goal, or experiment freely with the sockets below.</p>';

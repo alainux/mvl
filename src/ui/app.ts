@@ -69,7 +69,6 @@ function prepareSessions(runtime: Runtime, route: Route): void {
 }
 
 function initializeHeader(runtime: Runtime, route: Route): void {
-  const code = activeLanguage(route);
   const language = required<HTMLSelectElement>('#language-switch');
   language.addEventListener('change', () => {
     const target = language.value as Code;
@@ -103,7 +102,7 @@ function initializeHeader(runtime: Runtime, route: Route): void {
   // Keep an Escape exit for the mobile navigation.
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') closeMenu();
-  }, { signal: activeListeners?.signal });
+  }, { signal: activeListeners!.signal });
   void runtime;
 }
 
@@ -152,7 +151,7 @@ function initializeDrill(runtime: Runtime, code: LanguageProfile['code'], lesson
   });
 
   const question = deck[session.index];
-  if (!question) return;
+  if (!question) throw new Error('Missing current drill question');
 
   function answer(input: string): void {
     const state = runtime.drill;
@@ -210,10 +209,10 @@ function initializeDrill(runtime: Runtime, code: LanguageProfile['code'], lesson
       const option = question.options[Number(event.key) - 1];
       if (option !== undefined) { event.preventDefault(); answer(option); }
     }
-  }, { signal: activeListeners?.signal });
+  }, { signal: activeListeners!.signal });
 }
 
-function initializeCards(runtime: Runtime, code: Code, lesson: GeneratedLesson): void {
+function initializeCards(runtime: Runtime, code: Code): void {
   const session = runtime.cards;
   if (!session) return;
   document.querySelector<HTMLSelectElement>('#cards-lesson')?.addEventListener('change', (event) => {
@@ -249,7 +248,7 @@ function initializeCards(runtime: Runtime, code: Code, lesson: GeneratedLesson):
     if (event.key === ' ' && active !== flip) { event.preventDefault(); doFlip(); }
     else if (event.key === '1' && runtime.cards?.flipped) { event.preventDefault(); grade(false); }
     else if (event.key === '2' && runtime.cards?.flipped) { event.preventDefault(); grade(true); }
-  }, { signal: activeListeners?.signal });
+  }, { signal: activeListeners!.signal });
 }
 
 function render(runtime: Runtime): void {
@@ -287,7 +286,7 @@ function render(runtime: Runtime): void {
   }
   if (route.page === 'cards') {
     const lesson = chosenLesson(runtime.guides[code], route.lesson);
-    initializeCards(runtime, code, lesson);
+    initializeCards(runtime, code);
   }
 }
 

@@ -1,4 +1,4 @@
-import type { GeneratedExample, GeneratedGuide, GeneratedLesson, LessonId } from '../learning/types.js';
+import type { GeneratedExample, GeneratedGuide, GeneratedLesson } from '../learning/types.js';
 import { escapeHtml as escape } from './dom.js';
 import { href, type Code, type Route } from './router.js';
 import { completedLessons, gameStats, getLanguage } from './state.js';

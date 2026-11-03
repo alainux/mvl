@@ -5,7 +5,8 @@ import { getLanguage } from './state.js';
 
 export type Code = LanguageProfile['code'];
 export type Route =
-  | Readonly<{ page: 'home' | 'framework' }>
+  | Readonly<{ page: 'home' }>
+  | Readonly<{ page: 'framework' }>
   | Readonly<{ page: 'start' | 'builder' | 'reference'; code: Code }>
   | Readonly<{ page: 'practice' | 'cards'; code: Code; lesson: LessonId | null }>
   | Readonly<{ page: 'lesson'; code: Code; lesson: LessonId }>;

@@ -21,7 +21,10 @@ function isLessonId(value: string | undefined): value is LessonId {
 /** Hash URLs work directly on GitHub Pages: no server-side rewrite required. */
 export function currentRoute(): Route {
   const [first, second, third] = location.hash.replace(/^#\/?/, '').split('/');
-  if (!first || first === 'home') return { page: 'home' };
+  // The root URL opens the learning tool immediately. The language chooser
+  // remains available at #home for learners who want to switch manuals.
+  if (!first) return { page: 'builder', code: getLanguage() };
+  if (first === 'home') return { page: 'home' };
   if (first === 'framework') return { page: 'framework' };
 
   if (isLanguageCode(first)) {

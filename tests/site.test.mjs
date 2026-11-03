@@ -52,3 +52,23 @@ test('no custom GitHub Actions workflow is required to publish checked-in /docs'
   assert.equal(existsSync('.github/workflows'), false);
   assert.ok(readdirSync('docs/assets/languages').includes('fr.js'));
 });
+
+
+test('the root URL opens the interactive block studio, not the old homepage', async () => {
+  const { currentRoute } = await import('../docs/assets/ui/router.js');
+  const previousLocation = globalThis.location;
+
+  try {
+    globalThis.location = { hash: '' };
+    assert.deepEqual(currentRoute(), { page: 'builder', code: 'de' });
+
+    globalThis.location.hash = '#fr/builder';
+    assert.deepEqual(currentRoute(), { page: 'builder', code: 'fr' });
+
+    globalThis.location.hash = '#home';
+    assert.deepEqual(currentRoute(), { page: 'home' });
+  } finally {
+    if (previousLocation === undefined) delete globalThis.location;
+    else globalThis.location = previousLocation;
+  }
+});

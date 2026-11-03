@@ -6,6 +6,7 @@ import { generatePractice, matchesModel } from '../learning/practice.js';
 import type { GeneratedGuide, GeneratedLesson, LessonId } from '../learning/types.js';
 import { initializeStudio, REMIX_STORAGE_KEY } from './studio.js';
 import { fromExpression } from './studio-model.js';
+import { ruleFor } from './studio-rules.js';
 import { escapeHtml, required } from './dom.js';
 import { currentRoute, href, type Code, type Route } from './router.js';
 import {
@@ -193,9 +194,33 @@ function initializePractice(runtime: Runtime, code: LanguageProfile['code']): vo
   const check = required<HTMLButtonElement>('#practice-check');
   const reveal = required<HTMLButtonElement>('#practice-reveal');
   const next = required<HTMLButtonElement>('#practice-next');
+    const hintButton = required<HTMLButtonElement>('#practice-hint');
+  const hintContent = required<HTMLElement>('#practice-hint-content');
   const feedback = required<HTMLElement>('#practice-feedback');
   const heading = required<HTMLElement>('#practice-feedback-title');
 
+  const editable = exercise.source.kind === 'expression' ? fromExpression(exercise.source.expression) : null;
+  const expression = exercise.source.kind === 'expression' ? exercise.source.expression : null;
+  const focus = expression?.kind === 'link' ? 'connection'
+    : expression?.kind === 'sequence' ? 'clause0'
+    : expression?.kind === 'clause' && expression.negative ? 'negative'
+    : expression?.kind === 'clause' && expression.tense !== 'present' ? 'tense'
+    : expression?.kind === 'clause' && expression.modality ? 'modal' : 'predicate';
+  const hintText = editable ? ruleFor(editable, code, focus)
+    : 'Recall the construction, then try to produce it without looking at the example.';
+  hintButton.addEventListener('click', () => {
+    const visible = !hintContent.hidden;
+    hintContent.hidden = visible;
+    hintButton.setAttribute('aria-expanded', String(!visible));
+    hintContent.textContent = visible ? '' : hintText;
+  });
+  const remix = document.querySelector<HTMLButtonElement>('#practice-remix');
+  remix?.addEventListener('click', () => {
+    if (!editable) return;
+    try { sessionStorage.setItem(REMIX_STORAGE_KEY, JSON.stringify(editable)); }
+    catch { /* Storage restrictions must not prevent opening the studio. */ }
+    location.hash = href(code, 'builder');
+  });
   function showModel(kind: 'matched' | 'compare'): void {
     runtime.practice = { ...runtime.practice, revealed: true, feedback: kind };
     heading.textContent = kind === 'matched' ? 'Matches the model' : 'Model answer';
@@ -204,7 +229,7 @@ function initializePractice(runtime: Runtime, code: LanguageProfile['code']): vo
     const note = feedback.querySelector('p');
     if (note) note.textContent = kind === 'matched'
       ? 'Your response matches the model form.'
-      : 'Compare your answer with this form. Other valid ways to say it may exist.';
+      : 'Not an exact match to the model. Your answer may still be valid. ' + hintText;
   }
 
   check.addEventListener('click', () => {

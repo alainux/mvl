@@ -62,7 +62,7 @@ function sidebar(route: Route, model: GeneratedGuide): string {
     </a>
     <label class="sidebar-label" for="language-switch">I'M LEARNING</label>
     <select id="language-switch" aria-label="Select language">
-      ${(['de', 'fr', 'es'] as const).map((item) => `<option value="${item}" ${item === code ? 'selected' : ''>${NAMES[item]}</option>`).join('')}
+      ${(['de', 'fr', 'es'] as const).map((item) => `<option value="${item}" ${item === code ? 'selected' : ''}>${NAMES[item]}</option>`).join('')}
     </select>
     <div class="sidebar-label has-top">PLAY</div>
     <nav class="sidebar-group game-nav" aria-label="Study tools">

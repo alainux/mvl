@@ -25,6 +25,9 @@ test('every level has a playable drill with a single unambiguous correct option'
         assert.equal(question.options.length, 4, code + '/' + lesson.id);
         assert.equal(new Set(question.options).size, 4);
         assert.equal(question.options.filter((option) => option === question.target).length, 1);
+        assert.equal(question.optionMeanings.length, question.options.length);
+        assert.equal(question.optionMeanings[question.options.indexOf(question.target)], question.english);
+        assert.equal(new Set(question.optionMeanings.map((meaning) => meaning.toLowerCase())).size, 4);
         assert.ok(question.english.length > 1);
       }
       for (const example of memoryExamples(lesson)) assert.ok(meaningBlocks(example).length >= 1);
@@ -40,4 +43,28 @@ test('a locked drill URL resolves to the same unlocked lesson as its validator',
   const completed = new Set([guide.lessons[0].id]);
   assert.equal(playableLesson(guide, completed, distant).id, guide.lessons[1].id);
   assert.equal(playableLesson(guide, completed, guide.lessons[0].id).id, guide.lessons[0].id);
+});
+
+test('German formal-you prompts are explicit and contrast similar sentences', () => {
+  const guide = compileGuide('de');
+  const identity = guide.lessons.find((lesson) => lesson.id === 'identity');
+  assert.ok(identity);
+  const sick = drillQuestions(guide, identity).find((question) => question.english === 'Are you sick?');
+  assert.ok(sick, 'the generated identity drill must contain this prompt');
+  assert.equal(sick.target, 'Sind Sie krank?');
+  assert.equal(sick.contextHint, 'Formal you · Sie');
+  assert.match(sick.patternHint, /verb comes before the subject/);
+  for (const option of sick.options) assert.match(option, /^Sind Sie /, option);
+  for (const meaning of sick.optionMeanings) assert.match(meaning, /^Are you /, meaning);
+});
+
+test('formal register is marked in all supported target languages', () => {
+  for (const [code, expected] of [['de', 'Sie'], ['fr', 'vous'], ['es', 'usted']]) {
+    const guide = compileGuide(code);
+    const lesson = guide.lessons.find((item) => item.id === 'identity');
+    assert.ok(lesson);
+    const question = drillQuestions(guide, lesson).find((item) => item.english === 'Are you sick?');
+    assert.ok(question);
+    assert.match(question.contextHint, new RegExp(expected));
+  }
 });

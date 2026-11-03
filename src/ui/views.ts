@@ -273,6 +273,8 @@ function renderDrill(model: GeneratedGuide, lesson: GeneratedLesson, session: Dr
   const question = questions[session.index];
   if (!question) throw new Error('Missing drill question');
   const progress = Math.round(session.index / questions.length * 100);
+  const selectedMeaning = session.chosen === null ? null
+    : question.optionMeanings[question.options.indexOf(session.chosen)] ?? null;
   return `<section class="page game-page game-drill-page">
     <div class="game-section-heading"><div><span class="game-kicker">⚡ SPEED DRILL · LEVEL ${padded(model.lessons.indexOf(lesson) + 1)}</span>
       <h1>Think fast.<br><em>Build fluency.</em></h1></div><a class="game-back" href="${href(code, 'lesson/' + lesson.id)}">← Level examples</a></div>
@@ -285,7 +287,8 @@ function renderDrill(model: GeneratedGuide, lesson: GeneratedLesson, session: Dr
         <span>✦ ${session.score} correct <b>·</b> 🔥 ${session.streak} streak</span></div>
       <div class="game-mini-track"><span style="width:${progress}%"></span></div>
       <div class="game-prompt"><span>HOW DO YOU SAY THIS IN ${escape(NAMES[code].toUpperCase())}?</span>
-        <h2>${escape(question.english)}</h2></div>
+        <h2>${escape(question.english)}</h2>
+        ${question.contextHint ? `<span class="game-register-hint">${escape(question.contextHint)}</span>` : ''}</div>
       ${session.mode === 'pick'
         ? `<div class="game-answer-grid" role="group" aria-label="Choose the sentence">
             ${question.options.map((option, i) => `<button class="game-answer ${session.answered && option === question.target ? 'is-correct' : session.answered && session.chosen === option ? 'is-wrong' : ''}"
@@ -294,8 +297,13 @@ function renderDrill(model: GeneratedGuide, lesson: GeneratedLesson, session: Dr
         : `<form id="drill-type-form"><label for="drill-input">Your answer</label><input id="drill-input" autocomplete="off" spellcheck="false"
             placeholder="Type your sentence…" ${session.answered ? 'disabled' : ''} /><button class="game-primary" type="submit" ${session.answered ? 'disabled' : ''}>Check ↵</button></form>`}
       <div id="drill-feedback" class="game-answer-feedback ${session.answered ? (session.correct ? 'is-correct' : 'is-wrong') : ''}" role="status" ${session.answered ? '' : 'hidden'}>
-        ${session.answered ? `<strong>${session.correct ? 'Nice! +10 XP' : 'Not quite — remember this one.'}</strong>
-          <p lang="${code}">${escape(question.target)}</p>
+        ${session.answered ? `<strong>${session.correct ? 'Correct! +10 XP' : 'Not quite — here is the difference.'}</strong>
+          ${!session.correct && session.chosen ? `<p class="game-feedback-choice"><small>Your answer</small>
+            <span lang="${code}">${escape(session.chosen)}</span>
+            ${selectedMeaning ? `<small>Means: ${escape(selectedMeaning)}</small>` : ''}</p>` : ''}
+          <p class="game-feedback-correct"><small>${session.correct ? 'You got it' : 'Correct answer'}</small>
+            <span lang="${code}">${escape(question.target)}</span></p>
+          ${question.patternHint ? `<p class="game-feedback-tip">${escape(question.patternHint)}</p>` : ''}
           <button class="game-primary" id="drill-next">${session.index + 1 === questions.length ? 'See result →' : 'Next question →'}</button>` : ''}
       </div>
       <p class="game-drill-shortcut">${session.mode === 'pick' ? 'Press 1–4 to answer · Enter for next' : 'Press Enter to check your answer · Exact model comparison'} · No countdown.</p>

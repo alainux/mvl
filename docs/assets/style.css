@@ -2540,6 +2540,21 @@ a.game-level-node:hover { text-decoration: none; border-color: var(--accent); tr
 .game-answer-feedback.is-wrong strong { color: #bb6b60; }
 .game-answer-feedback p { margin: 0; font-size: 18px; font-weight: 750; }
 .game-answer-feedback .game-primary { justify-self: start; }
+.game-prompt .game-register-hint {
+  display: inline-block; margin: 13px auto 0; padding: 7px 12px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--surface-soft); color: var(--muted-strong);
+  font-size: 12px; font-weight: 750; letter-spacing: 0;
+}
+.game-answer-feedback .game-feedback-choice, .game-answer-feedback .game-feedback-correct {
+  display: grid; gap: 3px; justify-items: start; font-size: 17px;
+}
+.game-answer-feedback .game-feedback-choice { border-left: 3px solid #db8374; padding-left: 12px; }
+.game-answer-feedback .game-feedback-correct { border-left: 3px solid var(--green); padding-left: 12px; }
+.game-feedback-choice small, .game-feedback-correct small {
+  font-size: 12px; font-weight: 650; color: var(--muted-strong);
+}
+.game-answer-feedback .game-feedback-tip { font-size: 13px; font-weight: 550; color: var(--muted-strong); }
 .game-drill-shortcut { font-size: 11px; text-align: center; color: var(--muted); margin: 21px 0 0; }
 #drill-type-form { display: grid; gap: 10px; max-width: 590px; margin: 0 auto; }
 #drill-type-form label { font-size: 11px; font-weight: 730; color: var(--muted); }

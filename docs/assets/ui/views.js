@@ -1,4 +1,4 @@
-import { PREDICATES, CONCEPTS } from '../core/vocabulary.js';
+import { CONCEPTS } from '../core/vocabulary.js';
 import { generatePractice } from '../learning/practice.js';
 import { escapeHtml as escape } from './dom.js';
 import { href } from './router.js';

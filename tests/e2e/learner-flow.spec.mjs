@@ -36,6 +36,25 @@ test('a quick drill earns XP but does not unlock the next quest', async ({ page 
   await expect(page.locator('.game-top-score')).toContainText('XP');
 });
 
+test('clicks and keyboard shortcuts grade the selected option and explain mistakes', async ({ page }) => {
+  await page.goto('/#de/practice/first-words');
+  const firstQuestion = deck[0];
+  const wrongIndex = (firstQuestion.options.indexOf(firstQuestion.target) + 1) % 4;
+  await page.locator('[data-drill-option="' + wrongIndex + '"]').click();
+  await expect(page.locator('.game-answer-feedback.is-wrong')).toBeVisible();
+  await expect(page.locator('[data-drill-option="' + wrongIndex + '"]')).toHaveClass(/is-wrong/);
+  await expect(page.locator('[data-drill-option="' + firstQuestion.options.indexOf(firstQuestion.target) + '"]')).toHaveClass(/is-correct/);
+  await expect(page.locator('.game-feedback-choice')).toContainText(firstQuestion.optionMeanings[wrongIndex]);
+  await expect(page.locator('.game-drill-meter')).toContainText('0 correct');
+  await page.keyboard.press('Enter');
+  const secondQuestion = deck[1];
+  const correctIndex = secondQuestion.options.indexOf(secondQuestion.target);
+  await page.keyboard.press(String(correctIndex + 1));
+  await expect(page.locator('.game-answer-feedback.is-correct')).toBeVisible();
+  await expect(page.locator('[data-drill-option="' + correctIndex + '"]')).toHaveClass(/is-correct/);
+  await expect(page.locator('.game-drill-meter')).toContainText('1 correct');
+});
+
 test('typing mode checks an answer without a countdown', async ({ page }) => {
   await page.goto('/#de/practice/first-words');
   await page.locator('[data-drill-mode="type"]').click();

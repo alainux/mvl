@@ -169,3 +169,15 @@
   .quest-avatar,.quest-word-tile.is-hinted { animation:none; }
   .quest-word-tile,.quest-placed-tile,.quest-step { transition:none; }
 }
+
+
+/* Stars and optional example vault keep the map game-first. */
+.game-level-node.is-done .game-level-copy small { color:#9a7523; font-weight:820; letter-spacing:.025em; }
+:root[data-theme='dark'] .game-level-node.is-done .game-level-copy small { color:#f3ce7e; }
+.game-more-examples { margin-top:18px; border:1px solid var(--line); border-radius:16px;
+  background:var(--surface-soft); padding:15px 18px; }
+.game-more-examples summary { padding:5px 3px; color:var(--accent-ink); font-weight:780; font-size:12px; cursor:pointer; }
+.game-more-examples[open] summary { margin-bottom:16px; }
+.quest-word-tile,.quest-placed-tile { max-width:100%; overflow-wrap:anywhere; }
+.quest-word-tile:disabled { opacity:.65; cursor:default; transform:none !important; box-shadow:none; }
+.quest-placed-tile:disabled { cursor:default; }

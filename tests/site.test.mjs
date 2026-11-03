@@ -6,7 +6,7 @@ const read = (path) => readFileSync(path, 'utf8');
 
 test('Pages root serves a learner app and not a framework whitepaper', () => {
   const html = read('docs/index.html');
-  assert.match(html, /Practical language manuals/);
+  assert.match(html, /Play with language/);
   assert.match(html, /id="app"/);
   assert.match(html, /assets\/main\.js/);
   assert.match(html, /assets\/style\.css/);

@@ -206,7 +206,12 @@ function renderLevel(model: GeneratedGuide, lesson: GeneratedLesson): string {
       <a class="game-primary" href="${href(code, 'lesson/' + (previous?.id ?? lesson.id))}">Go to your next level →</a>
     </section>`;
   }
-  const examples = lesson.examples.slice(0, 9);
+  // Show productive configurations first; routine greetings are memory cards,
+  // never mistaken for independently composable grammar.
+  const examples = [
+    ...lesson.examples.filter((item) => item.source.kind === 'expression'),
+    ...lesson.examples.filter((item) => item.source.kind === 'convention'),
+  ].slice(0, 9);
   return `<article class="page game-page game-level-page" data-lesson="${lesson.id}">
     <a class="game-back" href="${href(code, 'start')}">← All levels</a>
     <div class="game-level-hero"><div><span class="game-kicker">✦ LEVEL ${padded(index + 1)} / ${model.lessons.length}</span>

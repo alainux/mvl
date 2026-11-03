@@ -218,6 +218,20 @@ export function canCount(predicate: PredicateId, argument: SemanticArgument): bo
     && (COUNTABLE_THINGS as readonly string[]).includes(argument);
 }
 
+/** Return exactly the role-compatible objects that the semantic model accepts. */
+export function allowedArgumentsFor(
+  predicate: PredicateId,
+  agent: BuilderSelection['agent'],
+): readonly SemanticArgument[] {
+  const frame = PREDICATES[predicate];
+  return (frame.allowedArguments as readonly SemanticArgument[]).filter((argument) =>
+    !(frame.argumentRole === 'person' && (
+      argument === agent ||
+      (agent === 'we' && argument === 'speaker') ||
+      (agent === 'speaker' && argument === 'we')
+    )));
+}
+
 /**
  * Normalization removes now-incompatible blocks after an edit. It does not
  * invent translations or change the meaning of a supported combination.
@@ -226,12 +240,7 @@ export function normalizeStudio(state: StudioState): StudioState {
   const next = structuredClone(state);
   const selection = next.action;
   const frame = PREDICATES[selection.predicate];
-  const argumentsForFrame = (frame.allowedArguments as readonly SemanticArgument[])
-    .filter((id) => !(frame.argumentRole === 'person' && (
-      id === selection.agent ||
-      (selection.agent === 'we' && id === 'speaker') ||
-      (selection.agent === 'speaker' && id === 'we')
-    )));
+  const argumentsForFrame = allowedArgumentsFor(selection.predicate, selection.agent);
   if (!argumentsForFrame.includes(selection.argument)) {
     selection.argument = argumentsForFrame[0] ?? selection.argument;
   }
@@ -492,10 +501,13 @@ export function fromExpression(expression: Expression): StudioState | null {
       // Common short reasons are also available as a single WHY operator.
       if (expression.connection === 'because') {
         const second = expression.second;
-        if (second.event.agent === expression.first.event.agent && second.tense === 'present') {
+        if (second.event.agent === expression.first.event.agent &&
+          second.tense === 'present' && second.time === null && second.frequency === null &&
+          second.modality === null && !second.question && !second.polite &&
+          second.event.quantity === 1) {
           const reason = second.event.predicate === 'have' && second.event.argument === 'time' && second.negative
             ? 'no_time'
-            : second.event.predicate === 'be' && ['sick', 'busy'].includes(second.event.argument)
+            : second.event.predicate === 'be' && !second.negative && ['sick', 'busy'].includes(second.event.argument)
               ? second.event.argument as 'sick' | 'busy' : null;
           if (reason !== null) return normalizeStudio({ ...base, pattern: 'action', action: {
             ...fromClause(expression.first), reason,

@@ -1,14 +1,16 @@
 import { test, expect } from '@playwright/test';
 import { compileGuide } from '../../docs/assets/learning/compile.js';
 import { drillQuestions } from '../../docs/assets/ui/game-model.js';
+import { questRounds } from '../../docs/assets/ui/quest-model.js';
 
 const guide = compileGuide('de');
 const first = guide.lessons[0];
 const deck = drillQuestions(guide, first);
+const encounters = questRounds(guide, first);
 
 test('the game opens on the level map and a worked example opens in the builder', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('.game-hero h1')).toContainText('Unlock a language.');
+  await expect(page.locator('.game-hero h1')).toContainText('Open the next gate.');
   await expect(page.locator('.game-level-node.is-current')).toHaveCount(1);
   await expect(page.locator('.game-level-node.is-locked').first()).toBeVisible();
   await page.locator('a.game-level-node').first().click();
@@ -19,7 +21,7 @@ test('the game opens on the level map and a worked example opens in the builder'
   await expect(page.locator('#studio-back')).toHaveAttribute('href', '#de/lesson/first-words');
 });
 
-test('a quick round awards XP and unlocks the next level', async ({ page }) => {
+test('a quick drill earns XP but does not unlock the next quest', async ({ page }) => {
   await page.goto('/#de/practice/first-words');
   for (const question of deck) {
     await expect(page.locator('.game-prompt')).toContainText(question.english);
@@ -28,9 +30,9 @@ test('a quick round awards XP and unlocks the next level', async ({ page }) => {
     await expect(page.locator('.game-answer-feedback.is-correct')).toBeVisible();
     await page.locator('#drill-next').click();
   }
-  await expect(page.locator('.game-round-end h1')).toHaveText('Level cleared!');
+  await expect(page.locator('.game-round-end h1')).toHaveText('Drill conquered!');
   await page.goto('/#de/start');
-  await expect(page.locator('a.game-level-node[href="#de/lesson/identity"]')).toBeVisible();
+  await expect(page.locator('a.game-level-node[href="#de/lesson/identity"]')).toHaveCount(0);
   await expect(page.locator('.game-top-score')).toContainText('XP');
 });
 
@@ -79,10 +81,73 @@ test('a locked deep link cannot mismatch drill prompts with answer validation', 
 
 test('game modes fit a narrow phone without horizontal scrolling', async ({ page }, testInfo) => {
   if (testInfo.project.name !== 'mobile') test.skip();
-  for (const path of ['/', '/#de/lesson/first-words', '/#de/builder', '/#de/practice/first-words', '/#de/cards/first-words']) {
+  for (const path of ['/', '/#de/lesson/first-words', '/#de/play/first-words', '/#de/builder', '/#de/practice/first-words', '/#de/cards/first-words']) {
     await page.goto(path);
     await page.locator('#main-content').waitFor();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow, 'horizontal overflow at ' + path).toBeLessThanOrEqual(1);
   }
+});
+
+test('the sentence quest is a real five-encounter assembly game with a boss and persistent stars', async ({ page }) => {
+  await page.goto('/#de/play/first-words');
+  await expect(page.locator('#quest')).toHaveAttribute('data-quest-round', '0');
+  await expect(page.locator('.quest-hearts')).toContainText('♥♥♥');
+  for (const [roundIndex, encounter] of encounters.entries()) {
+    await expect(page.locator('.quest-dialogue')).toContainText(encounter.goal);
+    const used = new Set();
+    for (const word of encounter.expected) {
+      const tile = encounter.tiles.find(t => t.word === word && !used.has(t.id));
+      expect(tile).toBeTruthy();
+      used.add(tile.id);
+      await page.locator('[data-quest-tile="' + tile.id + '"]').click();
+    }
+    await expect(page.locator('#quest-check')).toBeEnabled();
+    await page.locator('#quest-check').click();
+    await expect(page.locator('#quest')).toHaveAttribute('data-quest-phase', 'won');
+    await page.locator('#quest-next').click();
+    if (roundIndex + 1 < encounters.length)
+      await expect(page.locator('#quest')).toHaveAttribute('data-quest-round', String(roundIndex + 1));
+  }
+  await expect(page.locator('#quest')).toHaveAttribute('data-quest-phase', 'victory');
+  await expect(page.locator('.quest-end-stars')).toContainText('★★★');
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('mvl:quest:records:de') ?? '{}'));
+  expect(stored['first-words'].stars).toBe(3);
+  await page.goto('/#de/start');
+  await expect(page.locator('a.game-level-node[href="#de/lesson/identity"]')).toBeVisible();
+});
+
+test('wrong word order costs hearts and clues reveal one block without auto-solving', async ({ page }) => {
+  await page.goto('/#de/play/first-words');
+  const firstRound = encounters[0];
+  const decoy = firstRound.tiles.find(t => !firstRound.expected.includes(t.word));
+  expect(decoy).toBeTruthy();
+  await page.locator('[data-quest-tile="' + decoy.id + '"]').click();
+  await page.locator('#quest-check').click();
+  await expect(page.locator('.quest-hearts')).toContainText('♥♥');
+  await expect(page.locator('.quest-feedback')).toContainText('correct positions');
+  await page.locator('#quest-undo').click();
+  await page.locator('#quest-hint').click();
+  await expect(page.locator('.quest-word-tile.is-hinted')).toHaveCount(1);
+  await expect(page.locator('#quest-hint')).toBeDisabled();
+  await page.reload();
+  await expect(page.locator('.quest-hearts')).toContainText('♥♥');
+});
+
+test('locked quest links cannot skip levels', async ({ page }) => {
+  await page.goto('/#de/play/independent-life');
+  await expect(page.locator('#quest')).toHaveAttribute('data-quest-round', '0');
+  await expect(page.locator('.quest-world-name')).toContainText('LEVEL 1');
+});
+
+test('three failed checks trigger a real losing state with restart', async ({ page }) => {
+  await page.goto('/#de/play/first-words');
+  const start = encounters[0];
+  const decoy = start.tiles.find(t => !start.expected.includes(t.word));
+  await page.locator('[data-quest-tile="' + decoy.id + '"]').click();
+  for (let i = 0; i < 3; i++) await page.locator('#quest-check').click();
+  await expect(page.locator('#quest')).toHaveAttribute('data-quest-phase', 'lost');
+  await page.locator('#quest-restart').click();
+  await expect(page.locator('#quest')).toHaveAttribute('data-quest-phase', 'play');
+  await expect(page.locator('.quest-hearts')).toContainText('♥♥♥');
 });

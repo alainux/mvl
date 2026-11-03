@@ -1,7 +1,7 @@
 import type { GeneratedExample, GeneratedGuide, GeneratedLesson } from '../learning/types.js';
 import { escapeHtml as escape } from './dom.js';
 import { href, type Code, type Route } from './router.js';
-import { completedLessons, gameStats, getLanguage } from './state.js';
+import { completedLessons, gameStats, getLanguage, questRecords } from './state.js';
 import { drillQuestions, levelUnlocked, memoryExamples, meaningBlocks, nextLevelIndex, playableLesson } from './game-model.js';
 import { renderStudio } from './studio-view.js';
 import { renderQuest } from './quest-view.js';
@@ -10,11 +10,11 @@ import { fromExpression } from './studio-model.js';
 
 const NAMES: Readonly<Record<Code, string>> = { de: 'German', fr: 'French', es: 'Spanish' };
 const STAGES = [
-  { id: 'foundation', name: 'The basics', subtitle: 'Make your first useful sentences', symbol: '✦' },
-  { id: 'time-and-plans', name: 'Time travel', subtitle: 'Yesterday, today and tomorrow', symbol: '◷' },
-  { id: 'connected-speech', name: 'Make connections', subtitle: 'People, questions and reasons', symbol: '↗' },
-  { id: 'everyday-life', name: 'Everyday missions', subtitle: 'Use the language out in the world', symbol: '⌁' },
-  { id: 'independent-speech', name: 'Your own voice', subtitle: 'Combine what you know', symbol: '★' },
+  { id: 'foundation', name: 'Arrival Port', subtitle: 'Find your voice and enter the city', symbol: '⚓' },
+  { id: 'time-and-plans', name: 'Clocktower District', subtitle: 'Untangle yesterday and tomorrow', symbol: '◷' },
+  { id: 'connected-speech', name: 'Bridge Quarter', subtitle: 'Connect people, questions and reasons', symbol: '◇' },
+  { id: 'everyday-life', name: 'Market Maze', subtitle: 'Make your way through everyday situations', symbol: '⌁' },
+  { id: 'independent-speech', name: 'The Lighthouse', subtitle: 'Bring your patterns together', symbol: '✦' },
 ] as const;
 
 export interface DrillSession {
@@ -51,6 +51,7 @@ function sidebar(route: Route, model: GeneratedGuide): string {
   const code = model.language.code;
   const stats = gameStats(code);
   const completed = completedLessons(code).size;
+  const totalStars = Object.values(questRecords(code)).reduce((sum, record) => sum + record.stars, 0);
   const nav = [
     { page: 'start', icon: '◈', label: 'Campaign', caption: 'Play your next quest' },
     { page: 'builder', icon: '▦', label: 'Builder', caption: 'Play with blocks' },
@@ -76,7 +77,7 @@ function sidebar(route: Route, model: GeneratedGuide): string {
       <span class="micro-label">YOUR ADVENTURE</span>
       <strong>${stats.xp} <small>XP</small></strong>
       <div class="game-mini-track"><span style="width:${Math.round(completed / model.lessons.length * 100)}%"></span></div>
-      <p>${completed} of ${model.lessons.length} levels cleared</p>
+      <p>${completed} of ${model.lessons.length} levels cleared · ${totalStars} ★</p>
     </div>
     <div class="sidebar-footer"><a href="#home">Change language</a><a href="#framework">About MVL</a></div>
   </aside>`;
@@ -142,6 +143,7 @@ function modeCards(code: Code, lesson: GeneratedLesson): string {
 function renderOverview(model: GeneratedGuide): string {
   const code = model.language.code;
   const completed = completedLessons(code);
+  const records = questRecords(code);
   const current = currentLesson(model);
   const currentIndex = model.lessons.indexOf(current);
   const progress = Math.round(completed.size / model.lessons.length * 100);
@@ -155,7 +157,9 @@ function renderOverview(model: GeneratedGuide): string {
         ${lessons.map(({ lesson, index }) => {
           const done = completed.has(lesson.id);
           const open = levelUnlocked(model, completed, index);
-          const label = `<span class="game-level-number">${padded(index + 1)}</span><span class="game-level-copy"><strong>${escape(lesson.title)}</strong><small>${done ? '★ Cleared' : open ? '● Ready to play' : '○ Unlock later'}</small></span><span class="game-level-arrow">${done ? '✓' : open ? '↗' : '⌑'}</span>`;
+          const score = records[lesson.id]?.stars ?? 0;
+          const cleared = score ? '★'.repeat(score) + '☆'.repeat(3 - score) + ' · Cleared' : '✓ Cleared';
+          const label = `<span class="game-level-number">${padded(index + 1)}</span><span class="game-level-copy"><strong>${escape(lesson.title)}</strong><small>${done ? cleared : open ? '● Ready to play' : '○ Unlock later'}</small></span><span class="game-level-arrow">${done ? '✓' : open ? '↗' : '⌑'}</span>`;
           return open ? `<a class="game-level-node ${done ? 'is-done' : 'is-current'}" href="${href(code, 'lesson/' + lesson.id)}">${label}</a>`
             : `<div class="game-level-node is-locked" aria-label="Level ${index + 1} locked">${label}</div>`;
         }).join('')}
@@ -212,10 +216,12 @@ function renderLevel(model: GeneratedGuide, lesson: GeneratedLesson): string {
   }
   // Show productive configurations first; routine greetings are memory cards,
   // never mistaken for independently composable grammar.
-  const examples = [
+  const allExamples = [
     ...lesson.examples.filter((item) => item.source.kind === 'expression'),
     ...lesson.examples.filter((item) => item.source.kind === 'convention'),
-  ].slice(0, 9);
+  ];
+  const examples = allExamples.slice(0, 4);
+  const extraExamples = allExamples.slice(4, 12);
   return `<article class="page game-page game-level-page" data-lesson="${lesson.id}">
     <a class="game-back" href="${href(code, 'start')}">← All levels</a>
     <div class="game-level-hero"><div><span class="game-kicker">✦ LEVEL ${padded(index + 1)} / ${model.lessons.length}</span>
@@ -232,6 +238,9 @@ function renderLevel(model: GeneratedGuide, lesson: GeneratedLesson): string {
     <div class="game-section-heading"><div><span class="micro-label">OPTIONAL PREPARATION · LEARN A MOVE</span><h2>Study a move, then play it.</h2></div>
       <p>Every editable example is a pre-built block configuration. Open it and change one thing.</p></div>
     <div class="game-example-grid">${examples.map((example, i) => exampleTile(example, code, i)).join('')}</div>
+    ${extraExamples.length ? `<details class="game-more-examples"><summary>Explore more prebuilt block configurations (+${extraExamples.length})</summary>
+      <div class="game-example-grid">${extraExamples.map((example, i) => exampleTile(example, code, i + 4)).join('')}</div>
+    </details>` : ''}
     <div class="game-level-finish"><div><span class="micro-label">02 · YOUR TURN</span><h2>Ready for a round?</h2>
       <p>Build five sentences to open the gate. Drills and memory cards help you prepare.</p></div>
       <div><a class="game-primary" href="${href(code, 'play/' + lesson.id)}">⚔ Enter the quest →</a>

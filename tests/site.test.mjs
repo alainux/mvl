@@ -6,7 +6,7 @@ const read = (path) => readFileSync(path, 'utf8');
 
 test('Pages root serves a learner app and not a framework whitepaper', () => {
   const html = read('docs/index.html');
-  assert.match(html, /Practical language manuals/);
+  assert.match(html, /Play with language/);
   assert.match(html, /id="app"/);
   assert.match(html, /assets\/main\.js/);
   assert.match(html, /assets\/style\.css/);
@@ -22,6 +22,7 @@ test('all generated guide artifacts exist as committed static outputs', () => {
   assert.ok(existsSync('docs/assets/ui/app.js'));
   assert.ok(existsSync('docs/assets/ui/studio.js'));
   assert.ok(existsSync('docs/assets/ui/studio-model.js'));
+  assert.ok(existsSync('docs/assets/ui/game-model.js'));
   assert.ok(existsSync('docs/assets/ui/studio-view.js'));
   assert.ok(existsSync('docs/assets/learning/practice.js'));
 });
@@ -41,7 +42,7 @@ test('plain-language UI supports mobile reading and accessibility hooks', () => 
   assert.match(css, /:focus-visible/);
   assert.match(css, /@media print/);
   const ui = read('docs/assets/ui/views.js');
-  for (const label of ['Block studio', 'Practice lab', 'Quick reference', 'Worked examples']) {
+  for (const label of ['Level map', 'Speed drill', 'Memory cards', 'Open in builder']) {
     assert.ok(ui.includes(label), label);
   }
   assert.ok(read('docs/assets/ui/studio-view.js').includes('building blocks'));
@@ -55,16 +56,22 @@ test('GitHub Actions verifies the typed builders and generated guides', () => {
 });
 
 
-test('the root URL opens the interactive block studio, not the old homepage', async () => {
+test('the root URL opens the playable level map, with routes for builder, drill and cards', async () => {
   const { currentRoute } = await import('../docs/assets/ui/router.js');
   const previousLocation = globalThis.location;
 
   try {
     globalThis.location = { hash: '' };
-    assert.deepEqual(currentRoute(), { page: 'builder', code: 'de' });
+    assert.deepEqual(currentRoute(), { page: 'start', code: 'de' });
 
     globalThis.location.hash = '#fr/builder';
     assert.deepEqual(currentRoute(), { page: 'builder', code: 'fr' });
+
+    globalThis.location.hash = '#es/cards/needs';
+    assert.deepEqual(currentRoute(), { page: 'cards', code: 'es', lesson: 'needs' });
+
+    globalThis.location.hash = '#fr/practice';
+    assert.deepEqual(currentRoute(), { page: 'practice', code: 'fr', lesson: null });
 
     globalThis.location.hash = '#home';
     assert.deepEqual(currentRoute(), { page: 'home' });

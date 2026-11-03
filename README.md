@@ -4,7 +4,19 @@ A **small, expressive subset of a real language**, taught through reusable rules
 instead of memorized conversations. The same semantic curriculum builds a German,
 French, and Spanish manual.
 
-**Live interactive language studio:** https://alainux.github.io/mvl/
+**Live language game:** https://alainux.github.io/mvl/
+
+## Play the language
+
+MVL now opens a **40-level game map**, rather than a grammar manual. Each level turns
+its generated worked examples into playable, editable block configurations.
+Learn in three connected modes: **Builder** (remix meaning blocks and see correct
+word order), **Speed drill** (rapid four-choice responses or typed recall, with
+keyboard shortcuts and streaks), and **Memory cards** (flip-and-recall with
+locally scheduled review intervals). Clearing a level's drill unlocks the next.
+Progress, XP and card reviews stay on your device; no account or server is needed.
+There is no forced timer and incorrect answers do not remove XP.
+
 
 ## What can you communicate?
 

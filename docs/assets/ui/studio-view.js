@@ -5,9 +5,10 @@
 export function renderStudio() {
     return `<section class="page studio-page" id="studio" aria-labelledby="studio-title">
     <div class="studio-heading">
-      <div class="eyebrow"><span class="eyebrow-line"></span> THE BLOCK STUDIO · BUILD YOUR OWN LANGUAGE</div>
-      <h1 id="studio-title">Build meaning.<br /><em>Make a sentence.</em></h1>
-      <p class="lead">Start with three simple blocks. Add time, ability, negation or a question. Every change creates a real sentence using the grammar of your chosen language.</p>
+      <a class="game-back" id="studio-back" href="#de/start">← Back to levels</a>
+      <div class="eyebrow"><span class="eyebrow-line"></span> MODE 01 · BLOCK BUILDER</div>
+      <h1 id="studio-title">Make meaning.<br /><em>Watch it turn into language.</em></h1>
+      <p class="lead">Every level gives you a ready-made build. Change WHO, ACTION, OBJECT or an operator and watch the real sentence rearrange itself.</p>
       <div class="studio-steps" aria-label="How to learn with blocks">
         <span><b>01</b> Pick a pattern</span>
         <span><b>02</b> Connect blocks</span>

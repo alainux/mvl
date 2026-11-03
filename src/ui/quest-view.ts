@@ -70,7 +70,7 @@ export function renderQuest(guide: GeneratedGuide, lesson: GeneratedLesson, sess
       ${esc(answer[i] ?? '')}<small aria-hidden="true">×</small></button>`;
   }).join('');
   const wordBank = bank.map((tile, i) => `<button type="button" data-quest-tile="${tile.id}"
-    class="quest-word-tile ${session.hintTile === tile.id ? 'is-hinted' : ''}" aria-label="Place ${esc(tile.word)}">
+    class="quest-word-tile ${session.hintTile === tile.id ? 'is-hinted' : ''}" aria-label="Place ${esc(tile.word)}" ${session.phase !== 'play' ? 'disabled' : ''}>
       ${esc(tile.word)}<small aria-hidden="true">${i < 9 ? i + 1 : '＋'}</small></button>`).join('');
 
   return `<section class="page quest-page" id="quest" data-quest-phase="${session.phase}" data-quest-round="${session.round}">
@@ -99,8 +99,8 @@ export function renderQuest(guide: GeneratedGuide, lesson: GeneratedLesson, sess
         <div class="quest-bank-label"><strong>WORD BLOCKS</strong><small>Tap a word to place it; tap your answer to remove it</small></div>
         <div class="quest-bank" role="group" id="quest-bank" aria-label="Available word blocks">${wordBank}</div>
         <div class="quest-controls">
-          <div><button id="quest-undo" class="quest-utility" ${answer.length ? '' : 'disabled'}>↶ Undo</button>
-            <button id="quest-clear" class="quest-utility" ${answer.length ? '' : 'disabled'}>Reset</button>
+          <div><button id="quest-undo" class="quest-utility" ${answer.length && session.phase === 'play' ? '' : 'disabled'}>↶ Undo</button>
+            <button id="quest-clear" class="quest-utility" ${answer.length && session.phase === 'play' ? '' : 'disabled'}>Reset</button>
             <button id="quest-hint" class="quest-utility" ${session.hintUsed || session.phase !== 'play' ? 'disabled' : ''}>✦ ${session.hintUsed ? 'Clue used' : 'Get clue'}</button></div>
           ${session.phase === 'play' ? `<button id="quest-check" class="game-primary quest-check" ${full ? '' : 'disabled'}>Check sentence →</button>` : ''}
         </div>

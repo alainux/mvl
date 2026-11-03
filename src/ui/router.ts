@@ -21,7 +21,7 @@ function isLessonId(value: string | undefined): value is LessonId {
 /** The landing page is the level map. Legacy routes remain shareable. */
 export function currentRoute(): Route {
   const [first, second, third] = location.hash.replace(/^#\/?/, '').split('/');
-  if (!first) return { page: 'start', code: getLanguage() };
+  if (!first) return { page: 'play', code: getLanguage(), lesson: null };
   if (first === 'home') return { page: 'home' };
   if (first === 'framework') return { page: 'framework' };
   if (isLanguageCode(first)) {

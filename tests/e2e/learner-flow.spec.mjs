@@ -8,8 +8,8 @@ const first = guide.lessons[0];
 const deck = drillQuestions(guide, first);
 const encounters = questRounds(guide, first);
 
-test('the game opens on the level map and a worked example opens in the builder', async ({ page }) => {
-  await page.goto('/');
+test('the level map leads to editable examples in the builder', async ({ page }) => {
+  await page.goto('/#de/start');
   await expect(page.locator('.game-hero h1')).toContainText('Open the next gate.');
   await expect(page.locator('.game-level-node.is-current')).toHaveCount(1);
   await expect(page.locator('.game-level-node.is-locked').first()).toBeVisible();
@@ -81,7 +81,7 @@ test('a locked deep link cannot mismatch drill prompts with answer validation', 
 
 test('game modes fit a narrow phone without horizontal scrolling', async ({ page }, testInfo) => {
   if (testInfo.project.name !== 'mobile') test.skip();
-  for (const path of ['/', '/#de/lesson/first-words', '/#de/play/first-words', '/#de/builder', '/#de/practice/first-words', '/#de/cards/first-words']) {
+  for (const path of ['/', '/#de/start', '/#de/lesson/first-words', '/#de/play/first-words', '/#de/builder', '/#de/practice/first-words', '/#de/cards/first-words']) {
     await page.goto(path);
     await page.locator('#main-content').waitFor();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -122,11 +122,12 @@ test('wrong word order costs hearts and clues reveal one block without auto-solv
   const firstRound = encounters[0];
   const decoy = firstRound.tiles.find(t => !firstRound.expected.includes(t.word));
   expect(decoy).toBeTruthy();
-  await page.locator('[data-quest-tile="' + decoy.id + '"]').click();
+  const wrongOrder = [decoy, ...firstRound.tiles.filter(t => t.id !== decoy.id).slice(0, firstRound.expected.length - 1)];
+  for (const tile of wrongOrder) await page.locator('[data-quest-tile="' + tile.id + '"]').click();
   await page.locator('#quest-check').click();
   await expect(page.locator('.quest-hearts')).toContainText('♥♥');
   await expect(page.locator('.quest-feedback')).toContainText('correct positions');
-  await page.locator('#quest-undo').click();
+  await page.locator('#quest-clear').click();
   await page.locator('#quest-hint').click();
   await expect(page.locator('.quest-word-tile.is-hinted')).toHaveCount(1);
   await expect(page.locator('#quest-hint')).toBeDisabled();
@@ -144,10 +145,19 @@ test('three failed checks trigger a real losing state with restart', async ({ pa
   await page.goto('/#de/play/first-words');
   const start = encounters[0];
   const decoy = start.tiles.find(t => !start.expected.includes(t.word));
-  await page.locator('[data-quest-tile="' + decoy.id + '"]').click();
+  const wrongOrder = [decoy, ...start.tiles.filter(t => t.id !== decoy.id).slice(0, start.expected.length - 1)];
+  for (const tile of wrongOrder) await page.locator('[data-quest-tile="' + tile.id + '"]').click();
   for (let i = 0; i < 3; i++) await page.locator('#quest-check').click();
   await expect(page.locator('#quest')).toHaveAttribute('data-quest-phase', 'lost');
   await page.locator('#quest-restart').click();
   await expect(page.locator('#quest')).toHaveAttribute('data-quest-phase', 'play');
   await expect(page.locator('.quest-hearts')).toContainText('♥♥♥');
+});
+
+test('the root URL starts an actual sentence puzzle rather than a course menu', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#quest')).toHaveAttribute('data-quest-phase', 'play');
+  await expect(page.locator('.quest-dialogue h1')).toContainText('I have a question.');
+  await expect(page.locator('#quest-bank .quest-word-tile')).not.toHaveCount(0);
+  await expect(page.locator('#quest-check')).toBeDisabled();
 });

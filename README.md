@@ -8,7 +8,7 @@ French, and Spanish manual.
 
 ## Play the language
 
-MVL is a **sentence-building adventure** with 40 levels across five worlds.
+MVL opens directly into a **sentence-building adventure** with 40 levels across five worlds. The campaign map remains available from the sidebar.
 The campaign is now a playable puzzle instead of a progression screen around a textbook.
 
 - **Enter a quest:** Each level has five generated sentence encounters. Use the

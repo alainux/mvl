@@ -67,7 +67,7 @@ test('the root URL opens the playable level map, with routes for builder, drill 
 
   try {
     globalThis.location = { hash: '' };
-    assert.deepEqual(currentRoute(), { page: 'start', code: 'de' });
+    assert.deepEqual(currentRoute(), { page: 'play', code: 'de', lesson: null });
 
     globalThis.location.hash = '#fr/builder';
     assert.deepEqual(currentRoute(), { page: 'builder', code: 'fr' });

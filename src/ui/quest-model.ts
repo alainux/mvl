@@ -80,10 +80,13 @@ export function questRounds(guide: GeneratedGuide, lesson: GeneratedLesson): rea
   // Encounter 5 is a new generated combination whenever the curriculum
   // offers one; encounters 1-4 are taught by the worked examples.
   const novel = generatePractice(lesson, code, 12).filter((e) => e.source.kind === 'expression');
+  const productive = lesson.examples.filter((e) => e.source.kind === 'expression');
+  const routines = lesson.examples.filter((e) => e.source.kind === 'convention');
   const selected = unique([
-    ...lesson.examples.slice(0, QUEST_ROUNDS - 1),
+    ...productive.slice(0, QUEST_ROUNDS - 1),
+    ...routines.slice(0, 2),
     ...novel,
-    ...lesson.examples.slice(QUEST_ROUNDS - 1),
+    ...lesson.examples,
   ]).slice(0, QUEST_ROUNDS);
   const knownSentences = unique([
     ...lesson.examples,

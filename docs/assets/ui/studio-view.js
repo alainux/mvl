@@ -45,9 +45,11 @@ export function renderStudio() {
         <div class="snap-section-caption"><strong>03 / THE LANGUAGE ENGINE</strong><span class="snap-live-indicator">● LIVE</span></div>
         <strong class="snap-sentence" id="snap-sentence" aria-live="polite" aria-atomic="true"></strong>
         <p id="snap-meaning" class="snap-meaning"></p>
+        <p id="snap-target" class="snap-target" hidden></p>
         <p id="snap-feedback" class="snap-feedback" role="status" aria-live="polite"></p>
         <div class="snap-actions">
           <button type="button" id="snap-next" class="game-primary" hidden>Next blueprint →</button>
+          <button type="button" id="snap-reset-goal" class="snap-secondary" hidden>↻ Restart blueprint</button>
           <button type="button" id="snap-free" class="snap-secondary">Free build</button>
           <button type="button" id="snap-lab" class="snap-secondary">Explore grammar ↗</button>
         </div>

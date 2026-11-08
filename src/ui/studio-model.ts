@@ -441,13 +441,32 @@ export function toggleOperator(state: StudioState, operator: StudioOperator): St
   return normalizeStudio(next);
 }
 
-export function matchesMission(state: StudioState, mission: Mission): boolean {
+export const MISSION_SOCKETS = ['agent', 'predicate', 'argument', 'tense', 'power'] as const;
+export type MissionSocket = (typeof MISSION_SOCKETS)[number];
+
+/** A goal match is different from having a valid/selected piece. */
+export function missionSlotMatches(state: StudioState, mission: Mission, slot: MissionSocket): boolean {
   if (state.pattern !== 'action') return false;
-  const target = { ...initialStudio().action, ...mission.target };
-  // Extra operators change the meaning too; a mission is only complete when
-  // the whole selection agrees, not just its headline slots.
-  return (Object.keys(target) as (keyof BuilderSelection)[])
-    .every((key) => state.action[key] === target[key]);
+  const goal = { ...initialStudio().action, ...mission.target };
+  switch (slot) {
+    case 'agent': return state.action.agent === goal.agent;
+    case 'predicate': return state.action.predicate === goal.predicate;
+    case 'argument': return state.action.argument === goal.argument &&
+      state.action.quantity === goal.quantity;
+    case 'tense': return state.action.tense === goal.tense &&
+      state.action.time === goal.time && state.action.frequency === goal.frequency;
+    case 'power': return state.action.modal === goal.modal &&
+      state.action.negative === goal.negative &&
+      state.action.question === goal.question &&
+      state.action.polite === goal.polite && state.action.reason === goal.reason;
+  }
+}
+export function missionPendingSockets(state: StudioState, mission: Mission): readonly MissionSocket[] {
+  return MISSION_SOCKETS.filter((slot) => !missionSlotMatches(state, mission, slot));
+}
+
+export function matchesMission(state: StudioState, mission: Mission): boolean {
+  return missionPendingSockets(state, mission).length === 0;
 }
 
 export function startMission(state: StudioState, mission: Mission): StudioState {

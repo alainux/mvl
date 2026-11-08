@@ -44,6 +44,8 @@ import {
   operatorApplied,
   matchesMission,
   missionAnswer,
+  missionPendingSockets,
+  missionSlotMatches,
   normalizeStudio,
   startMission,
   studioExpression,
@@ -55,6 +57,7 @@ import {
 } from './studio-model.js';
 import { grammarSteps, ruleFor } from './studio-rules.js';
 import { traceSurfaceOrder } from './surface-order.js';
+import { actionCue } from './quest-recipe.js';
 import { awardXP } from './state.js';
 
 export const REMIX_STORAGE_KEY = 'mvl:studio:remix';
@@ -159,6 +162,11 @@ function concept(id: string): string {
 }
 
 /** Visual stories are editable semantic clauses, not pretranslated sentence text. */
+function actionLabel(predicate: PredicateId): string {
+  const name = actionCue(predicate).toLocaleLowerCase('en');
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 function isClauseSlot(value: StudioSlot): value is 'clause0' | 'clause1' | 'clause2' | 'clause3' {
   return /^clause[0-3]$/u.test(value);
 }
@@ -214,7 +222,7 @@ function visualBlocks(state: StudioState): readonly VisualBlock[] {
   if (state.pattern === 'ask-object') {
     return [
       { slot: 'objectAgent', title: 'WHO', value: SUBJECT_CHOICES.find((item) => item.value === state.objectAgent)?.label ?? 'You', tone: 'person' },
-      { slot: 'objectPredicate', title: 'ASK WHAT', value: PREDICATES[state.objectPredicate].description, tone: 'question' },
+      { slot: 'objectPredicate', title: 'ASK WHAT', value: actionLabel(state.objectPredicate), tone: 'question' },
     ];
   }
   if (state.pattern === 'route') {
@@ -233,7 +241,7 @@ function visualBlocks(state: StudioState): readonly VisualBlock[] {
   const result: VisualBlock[] = [
     ...(state.pattern === 'ask-when' ? [{ slot: 'whenPrompt', title: 'QUESTION', value: 'WHEN?', tone: 'question' } as const] : []),
     { slot: 'agent', title: 'WHO', value: SUBJECT_CHOICES.find((item) => item.value === action.agent)?.label ?? 'I', tone: 'person' },
-    { slot: 'predicate', title: 'ACTION', value: PREDICATES[action.predicate].description, tone: 'action' },
+    { slot: 'predicate', title: 'ACTION', value: actionLabel(action.predicate), tone: 'action' },
     { slot: 'argument', title: 'OBJECT / PLACE', value: concept(action.argument), tone: 'object' },
   ];
   if (state.pattern === 'ask-when') result.push({ slot: 'tense', title: 'TENSE',
@@ -265,7 +273,7 @@ function choices(state: StudioState, slot: StudioSlot): readonly Choice[] {
   const { action } = state;
   switch (slot) {
     case 'agent': return SUBJECT_CHOICES;
-    case 'predicate': return Object.entries(PREDICATES).map(([value, frame]) => ({ value, label: frame.description }));
+    case 'predicate': return Object.keys(PREDICATES).map((value) => ({ value, label: actionLabel(value as PredicateId) }));
     case 'argument': return allowedArgumentsFor(action.predicate, action.agent)
       .map((id) => ({ value: id, label: concept(id) }));
     case 'quantity': return [{ value: '1', label: 'One' }, { value: '2', label: 'Two' }];
@@ -292,7 +300,7 @@ function choices(state: StudioState, slot: StudioSlot): readonly Choice[] {
       { value: 'station', label: 'At the station' }, { value: 'hotel', label: 'At the hotel' },
       { value: 'airport', label: 'At the airport' }, { value: 'city_center', label: 'In the city centre' },
     ];
-    case 'objectPredicate': return OBJECT_QUESTION_PREDICATES.map((value) => ({ value, label: PREDICATES[value].description }));
+    case 'objectPredicate': return OBJECT_QUESTION_PREDICATES.map((value) => ({ value, label: actionLabel(value) }));
     case 'objectAgent': return SUBJECT_CHOICES.filter(({ value }) => value === 'speaker' || value === 'addressee');
     case 'routePlace': case 'wherePlace': return LOCATABLE_PLACES.map((value) => ({ value, label: concept(value) }));
     case 'whenPrompt': case 'clause0': case 'clause1': case 'clause2': case 'clause3': return [];
@@ -579,7 +587,7 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
           ${choices.map((choice) => `<option value="${escape(choice.value)}" ${choice.value === value ? 'selected' : ''}>${escape(choice.label)}</option>`).join('')}
         </select>
       </label>`;
-    const predicateChoices = Object.entries(PREDICATES).map(([value, predicate]) => ({ value, label: predicate.description }));
+    const predicateChoices = Object.keys(PREDICATES).map((value) => ({ value, label: actionLabel(value as PredicateId) }));
     const argumentChoices = allowedArgumentsFor(selection.predicate, selection.agent)
       .map((value) => ({ value, label: concept(value) }));
     const tenseChoices: readonly Choice[] = [
@@ -783,7 +791,7 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
     const blocks = state.pattern === 'action'
       ? [
         { slot: 'agent' as StudioSlot, value: SUBJECT_CHOICES.find((x) => x.value === state.action.agent)?.label ?? 'I' },
-        { slot: 'predicate' as StudioSlot, value: PREDICATES[state.action.predicate].description },
+        { slot: 'predicate' as StudioSlot, value: actionLabel(state.action.predicate) },
         { slot: 'argument' as StudioSlot, value: concept(state.action.argument) },
         { slot: 'tense' as StudioSlot, value: state.action.tense.toUpperCase() +
           (state.action.time ? ' · ' + concept(state.action.time) : '') },
@@ -792,20 +800,13 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
         .map((block) => ({ slot: block.slot, value: block.value }));
     const goalAction = activeMission
       ? { ...initialStudio().action, ...activeMission.target } : null;
+    const pending = activeMission ? missionPendingSockets(state, activeMission) : [];
+    const matched = activeMission ? 5 - pending.length : 0;
     function matchesSlot(slot: string): boolean {
-      if (!goalAction || state.pattern !== 'action') return false;
+      if (!activeMission || state.pattern !== 'action') return false;
       switch (slot) {
-        case 'agent': return state.action.agent === goalAction.agent;
-        case 'predicate': return state.action.predicate === goalAction.predicate;
-        case 'argument': return state.action.argument === goalAction.argument &&
-          state.action.quantity === goalAction.quantity;
-        case 'tense': return state.action.tense === goalAction.tense &&
-          state.action.time === goalAction.time && state.action.frequency === goalAction.frequency;
-        case 'power': return state.action.modal === goalAction.modal &&
-          state.action.negative === goalAction.negative &&
-          state.action.question === goalAction.question &&
-          state.action.polite === goalAction.polite &&
-          state.action.reason === goalAction.reason;
+        case 'agent': case 'predicate': case 'argument': case 'tense': case 'power':
+          return missionSlotMatches(state, activeMission, slot);
         default: return false;
       }
     }
@@ -813,9 +814,9 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
       const slot = block.slot;
       const selected = activeSnapSlot === slot;
       const matches = matchesSlot(slot);
-      return `<button type="button" class="snap-socket is-${laneTones[slot] ?? 'other'} ${selected ? 'is-selected' : ''} ${matches ? 'is-match' : ''}"
+      return `<button type="button" class="snap-socket is-${laneTones[slot] ?? 'other'} ${selected ? 'is-selected' : ''} ${matches ? 'is-match' : activeMission ? 'is-needs-work' : ''}"
         data-snap-slot="${slot}" aria-pressed="${selected}" aria-label="Select ${escape(laneLabels[slot] ?? slot)}: ${escape(block.value)}">
-        <span class="snap-socket-top"><b>${String(i + 1).padStart(2, '0')} · ${escape(laneLabels[slot] ?? slot.toUpperCase())}</b><small>${matches ? '✓ FITS GOAL' : selected ? 'SELECTED' : 'SWAP ↗'}</small></span>
+        <span class="snap-socket-top"><b>${String(i + 1).padStart(2, '0')} · ${escape(laneLabels[slot] ?? slot.toUpperCase())}</b><small>${matches ? '✓ FITS GOAL' : activeMission ? 'CHANGE FOR GOAL' : selected ? 'SELECTED' : 'SWAP ↗'}</small></span>
         <strong>${escape(block.value)}</strong><span class="snap-socket-foot">${selected ? '▼ PICK A PIECE' : 'CLICK TO EDIT'}</span>
       </button>`;
     }).join('');
@@ -829,7 +830,7 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
     required<HTMLElement>('#snap-mission-grid').innerHTML = missionButtons;
     required<HTMLElement>('#snap-cleared').textContent = clearedBlueprints.size + ' / ' + MISSIONS.length;
     required<HTMLElement>('#snap-objective').innerHTML = activeMission
-      ? `<span>YOUR BLUEPRINT · ${escape(activeMission.title)} · ${snapSolved() ? '✓ COMPLETE' : 'IN PROGRESS'}</span>
+      ? `<span>YOUR BLUEPRINT · ${escape(activeMission.title)} · ${snapSolved() ? '✓ COMPLETE' : `${matched} / 5 MATCH`}</span>
           <strong>${escape(realizeEnglish(missionAnswer(activeMission)))}</strong>
           <p>${escape(activeMission.description)}</p>`
       : '<span>FREE BUILD</span><strong>Make your own sentence.</strong><p>Choose a blueprint above for a goal, or experiment freely with the sockets below.</p>';
@@ -857,24 +858,54 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
         active: currentValue(state, activeSnapSlot as StudioSlot) === item.value,
       }));
     }
+    function pieceMatchesGoal(piece: SnapChoice): boolean {
+      if (!piece.active || !goalAction) return false;
+      switch (piece.slot) {
+        case 'tense': return state.action.tense === goalAction.tense;
+        case 'time': return state.action.time === goalAction.time;
+        case 'power':
+          switch (piece.value) {
+            case 'negative': return goalAction.negative;
+            case 'question': return goalAction.question;
+            case 'polite': return goalAction.polite;
+            case 'frequency': return goalAction.frequency !== '';
+            case 'reason': return goalAction.reason !== 'none';
+            case 'quantity': return goalAction.quantity === 2;
+            case 'can': case 'want': case 'must': return goalAction.modal === piece.value;
+            default: return false;
+          }
+        default: return matchesSlot(piece.slot);
+      }
+    }
     const filter = required<HTMLInputElement>('#snap-filter');
     filter.value = '';
     filter.hidden = pieces.length < 14;
     required<HTMLElement>('#snap-tray-title').textContent = (laneLabels[activeSnapSlot] ?? activeSnapSlot.toUpperCase()) + ' · ' + pieces.length + ' compatible pieces';
     required<HTMLElement>('#snap-pieces').innerHTML = pieces.length
-      ? pieces.map((piece) => `<button type="button" class="snap-piece ${piece.active ? 'is-inserted' : ''}"
+      ? pieces.map((piece) => `<button type="button" class="snap-piece ${piece.active ? 'is-inserted' : ''} ${piece.active && activeMission ? pieceMatchesGoal(piece) ? 'is-goal-match' : 'is-goal-mismatch' : ''}"
           data-snap-for="${piece.slot}" data-snap-value="${escape(piece.value)}" draggable="true"
           aria-pressed="${piece.active}" title="Snap ${escape(piece.label)} into ${escape(laneLabels[activeSnapSlot] ?? activeSnapSlot)}">
           ${piece.group ? `<small>${escape(piece.group)}</small>` : ''}
-          <span>${escape(piece.label)}</span><b aria-hidden="true">${piece.active ? '✓' : '+'}</b></button>`).join('')
+          <span>${escape(piece.label)}</span><b aria-hidden="true">${piece.active ? pieceMatchesGoal(piece) ? '✓' : '●' : '+'}</b></button>`).join('')
       : '<p class="snap-no-pieces">This is a complete statement block. Open the grammar workshop below to edit its parts.</p>';
     const line = required<HTMLElement>('#snap-sentence');
     line.textContent = result.textContent ?? '';
     line.lang = code;
     required<HTMLElement>('#snap-meaning').textContent = meaning.textContent ?? '';
-    required<HTMLElement>('#snap-feedback').textContent = snapSolved()
-      ? (snapStatus.startsWith('Blueprint cleared') ? snapStatus : '✓ Target built! All of the meaning blocks fit the blueprint.')
-      : snapStatus || 'Select a socket and snap in a piece. Incompatible pieces cannot be placed.';
+    const goalReminder = required<HTMLElement>('#snap-target');
+    goalReminder.hidden = !activeMission;
+    goalReminder.textContent = activeMission
+      ? 'GOAL · ' + realizeEnglish(missionAnswer(activeMission)) : '';
+    const feedbackLine = required<HTMLElement>('#snap-feedback');
+    feedbackLine.classList.toggle('is-pending', Boolean(activeMission && !snapSolved()));
+    feedbackLine.textContent = snapSolved()
+      ? (snapStatus.startsWith('Blueprint cleared') ? snapStatus : '✓ Target built! All five sockets match the blueprint.')
+      : activeMission
+        ? matched + ' / 5 sockets match. Change: ' +
+          pending.map((slot) => laneLabels[slot] ?? slot).join(', ') + '. ' + snapStatus
+        : snapStatus || 'Select a socket and snap in a piece. Incompatible pieces cannot be placed.';
+    const resetButton = required<HTMLButtonElement>('#snap-reset-goal');
+    resetButton.hidden = !activeMission;
     const nextButton = required<HTMLButtonElement>('#snap-next');
     nextButton.hidden = !snapSolved();
     nextButton.textContent = activeMission === MISSIONS[MISSIONS.length - 1] ? 'Play the first blueprint ↻' : 'Next blueprint →';
@@ -910,7 +941,7 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
       activeSlot = OPERATOR_LABELS[operator].slot;
       activeSnapSlot = 'power';
       recipeId = null;
-      snapStatus = '✓ Grammar power snapped in. Watch how the sentence changes.';
+      snapStatus = 'Power changed. Compare this with the blueprint goal.';
       render();
       return;
     }
@@ -933,15 +964,15 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
         activeSlot = 'tense';
         activeSnapSlot = 'tense';
         recipeId = null;
-        snapStatus = '✓ The timeline snapped in. See the verb and time word change.';
+        snapStatus = 'Timeline changed. Compare the new time with the goal.';
         render();
       } else {
         activeSnapSlot = editSlot;
         applyChoice(editSlot, value);
       }
     }
-    snapStatus = snapSolved() ? '✓ Blueprint complete!' : '✓ Compatible block snapped in. Try another piece.';
-    required<HTMLElement>('#snap-feedback').textContent = snapStatus;
+    if (!snapSolved()) snapStatus = 'Piece changed. Keep matching the blueprint sockets.';
+    renderSnap();
   }
 
   function render(): void {
@@ -1003,6 +1034,10 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
     if (trigger.id === 'snap-next' && activeMission && snapSolved()) {
       const nextIndex = (MISSIONS.indexOf(activeMission) + 1) % MISSIONS.length;
       startBlueprint(MISSIONS[nextIndex]!);
+      return;
+    }
+    if (trigger.id === 'snap-reset-goal' && activeMission) {
+      startBlueprint(activeMission);
       return;
     }
     if (trigger.id === 'snap-free') {

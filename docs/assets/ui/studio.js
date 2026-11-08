@@ -774,6 +774,10 @@ export function initializeStudio(code, signal) {
     function snapLanes() {
         if (state.pattern === 'action')
             return ['agent', 'predicate', 'argument', 'tense', 'power'];
+        if (state.pattern === 'description')
+            return ['descriptionThing', 'quality', 'descriptionTense', 'negative', 'question'];
+        if (state.pattern === 'presence')
+            return ['presenceThing', 'presencePlace', 'negative', 'question'];
         return visualBlocks(state).filter((block) => block.slot !== 'whenPrompt').map((block) => block.slot);
     }
     function snapSolved() {

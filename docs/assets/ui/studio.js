@@ -16,6 +16,7 @@ import { escapeHtml as escape, required } from './dom.js';
 import { MISSIONS, RECIPES, applyRecipe, allowedArgumentsFor, availableOperator, clauseFromSelection, editCompositeClause, isCompositeField, initialStudio, isPresent, operatorApplied, matchesMission, missionAnswer, missionPendingSockets, missionSlotMatches, normalizeStudio, startMission, studioExpression, toggleOperator, } from './studio-model.js';
 import { grammarSteps, ruleFor } from './studio-rules.js';
 import { traceSurfaceOrder } from './surface-order.js';
+import { builderSurfaceWords } from './builder-surface.js';
 import { actionCue } from './quest-recipe.js';
 import { awardXP } from './state.js';
 export const REMIX_STORAGE_KEY = 'mvl:studio:remix';
@@ -807,19 +808,6 @@ export function initializeStudio(code, signal) {
         const laneTones = {
             agent: 'person', predicate: 'action', argument: 'object', tense: 'time', power: 'operator',
         };
-        const actionPowers = OPERATOR_ORDER
-            .filter((op) => op !== 'past' && op !== 'future' && operatorApplied(state, op))
-            .map((op) => OPERATOR_LABELS[op].name);
-        const blocks = state.pattern === 'action'
-            ? [
-                { slot: 'agent', value: SUBJECT_CHOICES.find((x) => x.value === state.action.agent)?.label ?? 'I' },
-                { slot: 'predicate', value: actionLabel(state.action.predicate) },
-                { slot: 'argument', value: concept(state.action.argument) },
-                { slot: 'tense', value: state.action.tense.toUpperCase() +
-                        (state.action.time ? ' · ' + concept(state.action.time) : '') },
-                { slot: 'power', value: actionPowers.join(' + ') || '+ Add a power' },
-            ] : visualBlocks(state).filter((block) => block.slot !== 'whenPrompt')
-            .map((block) => ({ slot: block.slot, value: block.value }));
         const goalAction = activeMission
       ? { ...initialStudio().action, ...activeMission.target } : null;
     const pending = activeMission ? missionPendingSockets(state, activeMission) : [];
@@ -832,17 +820,35 @@ export function initializeStudio(code, signal) {
         default: return false;
       }
     }
-    required('#snap-sockets').innerHTML = blocks.map((block, i) => {
-            const slot = block.slot;
-            const selected = activeSnapSlot === slot;
-            const matches = matchesSlot(slot);
-            return `<button type="button" class="snap-socket is-${laneTones[slot] ?? 'other'} ${selected ? 'is-selected' : ''} ${matches ? 'is-match' : activeMission ? 'is-needs-work' : ''}"
-        data-snap-slot="${slot}" aria-pressed="${selected}" aria-label="Select ${escape(laneLabels[slot] ?? slot)}: ${escape(block.value)}">
-        <span class="snap-socket-top"><b>${String(i + 1).padStart(2, '0')} · ${escape(laneLabels[slot] ?? slot.toUpperCase())}</b><small>${matches ? '✓ FITS GOAL' : activeMission ? 'CHANGE FOR GOAL' : selected ? 'SELECTED' : 'SWAP ↗'}</small></span>
-        <strong>${escape(block.value)}</strong><span class="snap-socket-foot">${selected ? '▼ PICK A PIECE' : 'CLICK TO EDIT'}</span>
+    
+    // The play surface is the *realized sentence* in its spoken order. Semantic
+    // roles only decide which compatible piece tray a word opens.
+    const surface = builderSurfaceWords(result.textContent ?? '', studioExpression(state), code);
+    required('#snap-sockets').innerHTML = surface.map((word, i) => {
+      const slot = word.slot;
+      const editable = slot !== null && lanes.includes(slot);
+      const selected = editable && activeSnapSlot === slot;
+      const matches = editable && matchesSlot(slot);
+      const content = `<small>${String(i + 1).padStart(2, '0')} · ${escape(word.tag)}</small><strong lang="${code}">${escape(word.text)}</strong>`;
+      if (!editable) return `<span class="snap-word is-readonly">${content}</span>`;
+      return `<button type="button" class="snap-word is-${laneTones[slot] ?? 'other'} ${selected ? 'is-selected' : ''} ${matches ? 'is-match' : activeMission ? 'is-needs-work' : ''}"
+        data-snap-slot="${slot}" data-snap-index="${i}" aria-pressed="${selected}"
+        aria-label="Edit ${escape(word.tag.toLowerCase())} at word ${i + 1}: ${escape(word.text)}">
+        ${content}</button>`;
+    }).join('');
+    // Grammar that has no separate surface word (Spanish implicit subjects,
+    // missing tense operators, absent negation) remains editable *outside* the
+    // sentence. These controls are deliberately not styled as word blocks.
+    required('#snap-tools').innerHTML = lanes.map((slot) => {
+      const selected = activeSnapSlot === slot;
+      const matches = matchesSlot(slot);
+      return `<button type="button" class="snap-tool ${selected ? 'is-selected' : ''} ${matches ? 'is-match' : ''}"
+        data-snap-control="${slot}" aria-pressed="${selected}">
+        <strong>${escape(laneLabels[slot] ?? slot.toUpperCase())}</strong>
+        <small>${matches ? '✓ GOAL' : selected ? 'EDITING' : 'EDIT / ADD'}</small>
       </button>`;
-        }).join('');
-        const missionButtons = MISSIONS.map((mission, i) => {
+    }).join('');
+    const missionButtons = MISSIONS.map((mission, i) => {
             const cleared = clearedBlueprints.has(mission.id);
             const active = activeMission?.id === mission.id;
             return `<button type="button" data-snap-mission="${mission.id}" class="snap-mission ${active ? 'is-active' : ''} ${cleared ? 'is-cleared' : ''}"
@@ -1076,7 +1082,7 @@ export function initializeStudio(code, signal) {
             workshop.scrollIntoView({ behavior: 'smooth', block: 'start' });
             return;
         }
-        const snapSlot = trigger.dataset['snapSlot'];
+        const snapSlot = (trigger.dataset['snapSlot'] ?? trigger.dataset['snapControl']);
         if (snapSlot !== undefined) {
             if (!snapLanes().includes(snapSlot))
                 return;
@@ -1211,7 +1217,7 @@ export function initializeStudio(code, signal) {
     }, { signal });
     studio.addEventListener('dragover', (event) => {
         const target = event.target instanceof Element
-            ? event.target.closest('[data-snap-slot]') : null;
+            ? event.target.closest('[data-snap-slot], [data-snap-control]') : null;
         if (!target || !snap.contains(target))
             return;
         event.preventDefault();
@@ -1220,7 +1226,7 @@ export function initializeStudio(code, signal) {
     }, { signal });
     studio.addEventListener('drop', (event) => {
         const target = event.target instanceof Element
-            ? event.target.closest('[data-snap-slot]') : null;
+            ? event.target.closest('[data-snap-slot], [data-snap-control]') : null;
         if (!target || !snap.contains(target))
             return;
         event.preventDefault();
@@ -1231,7 +1237,7 @@ export function initializeStudio(code, signal) {
             const piece = data;
             if (typeof piece['slot'] !== 'string' || typeof piece['value'] !== 'string')
                 return;
-            const slot = target.dataset['snapSlot'];
+            const slot = target.dataset['snapSlot'] ?? target.dataset['snapControl'];
             if (slot)
                 fitSnapPiece(piece['slot'], piece['value'], slot);
         }

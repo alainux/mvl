@@ -108,7 +108,7 @@ export const PREDICATES = {
     },
     eat: {
         description: 'Eat something', argumentRole: 'thing',
-        allowedArguments: ['food'],
+        allowedArguments: ['food', 'bread'],
         allowedModalities: ['can', 'want', 'must'],
     },
     take: {

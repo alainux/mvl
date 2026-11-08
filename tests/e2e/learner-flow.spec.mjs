@@ -279,6 +279,46 @@ test('builder shows wrong-but-selected pieces as mismatches and can restart a bl
   await expect(page.locator('#snap-next')).toBeVisible();
 });
 
+test('free builder can add a visible object, avoid a dead end and start again', async ({ page }) => {
+  await page.goto('/#de/builder');
+  await page.locator('#snap-free').click();
+  await page.locator('[data-snap-control="agent"]').click();
+  await page.locator('[data-snap-for="agent"][data-snap-value="addressee"]').click();
+  await page.locator('[data-snap-control="predicate"]').click();
+  await page.locator('[data-snap-for="predicate"][data-snap-value="eat"]').click();
+  await expect(page.locator('#snap-sentence')).toHaveText('Sie essen.');
+
+  await page.locator('[data-snap-control="argument"]').click();
+  await expect(page.locator('[data-snap-for="argument"][data-snap-value="food"]'))
+    .toContainText('No object (just eat)');
+  await expect(page.locator('[data-snap-for="argument"][data-snap-value="bread"]'))
+    .toContainText('Sie essen Brot.');
+  await page.locator('[data-snap-for="argument"][data-snap-value="bread"]').click();
+  await expect(page.locator('#snap-sentence')).toHaveText('Sie essen Brot.');
+  await expect(page.locator('#snap-feedback')).not.toContainText('blueprint sockets');
+  await expect(page.locator('#snap-sockets .snap-word > strong')).toHaveText(['Sie', 'essen', 'Brot.']);
+
+  await page.locator('[data-snap-for="argument"][data-snap-value="food"]').click();
+  await expect(page.locator('#snap-sentence')).toHaveText('Sie essen.');
+  await expect(page.locator('#snap-free')).toContainText('Start a new sentence');
+  await page.locator('#snap-free').click();
+  await expect(page.locator('#snap-sentence')).toHaveText('Ich brauche Hilfe.');
+  await expect(page.locator('#snap-tray-title')).toContainText('ACTION');
+});
+
+test('an action with no interchangeable object offers a way out', async ({ page }) => {
+  await page.goto('/#de/builder');
+  await page.locator('#snap-free').click();
+  await page.locator('[data-snap-control="predicate"]').click();
+  await page.locator('[data-snap-for="predicate"][data-snap-value="come"]').click();
+  await page.locator('[data-snap-control="argument"]').click();
+  await expect(page.locator('.snap-escape')).toContainText('This object cannot be changed');
+  await expect(page.locator('#snap-pieces [data-snap-for="argument"]')).toHaveCount(0);
+  await page.locator('.snap-escape [data-snap-control="predicate"]').click();
+  await expect(page.locator('#snap-tray-title')).toContainText('ACTION');
+  await expect(page.locator('#snap-pieces [data-snap-for="predicate"]')).not.toHaveCount(0);
+});
+
 test('incompatible pieces cannot be dropped into unrelated sentence slots', async ({ page }) => {
   await page.goto('/#de/builder');
   await page.locator('#snap-free').click();

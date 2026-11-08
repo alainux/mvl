@@ -88,7 +88,7 @@ const CONJ = {
  * Show only the verb; argument slots belong to the underlying grammar model.
  * For example, "Drink something" is simply "DRINK" in the word-aligned game.
  */
-function actionCue(predicate) {
+export function actionCue(predicate) {
   return PREDICATES[predicate].description
     .replace(/ (?:something|someone|somewhere|a language|a form|in a place|at a place|in a state|in a way)$/u, '')
     .toUpperCase();

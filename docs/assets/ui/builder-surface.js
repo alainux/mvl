@@ -47,8 +47,9 @@ function label(slot, cue) {
   })[slot] ?? 'WORD';
 }
 
-function clauseSlot(cue, expression, subjectFound) {
+function clauseSlot(cue, expression, subjectFound, surface) {
   if (cue === 'QUESTION MARK') return null;
+  if (/^est-ce(?:[?!.,])?$/iu.test(surface)) return 'power';
   const action = actionCue(expression.event.predicate);
   if (cue === action || cue.endsWith(' + ' + action)) return 'predicate';
   // A semantic noun such as "QUESTION" is an object, not a question operator.
@@ -104,7 +105,7 @@ export function builderSurfaceWords(sentence, expression, code) {
     let slot = null;
     if (composite) slot = composite[i] ?? null;
     else if (clause) {
-      slot = clauseSlot(cue, clause, subjectFound);
+      slot = clauseSlot(cue, clause, subjectFound, word);
       if (slot === 'agent') subjectFound = true;
     } else {
       switch (expression.kind) {

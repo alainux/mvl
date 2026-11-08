@@ -58,9 +58,11 @@ function label(slot: SurfaceSlot, cue: string): string {
   } as Partial<Record<StudioSlot, string>>)[slot] ?? 'WORD';
 }
 
-function clauseSlot(cue: string, expression: Extract<Expression, {kind: 'clause'}>, subjectFound: boolean, surface: string): SurfaceSlot {
+function clauseSlot(cue: string, expression: Extract<Expression, {kind: 'clause'}>, subjectFound: boolean, surface: string, previous: string, code: Code): SurfaceSlot {
   if (cue === 'QUESTION MARK') return null;
   if (/^est-ce(?:[?!.,])?$/iu.test(surface)) return 'power';
+  if (code === 'fr' && expression.question && /^est-ce$/iu.test(previous) &&
+      /^que$/iu.test(surface)) return 'power';
   const action = actionCue(expression.event.predicate);
   if (cue === action || cue.endsWith(' + ' + action)) return 'predicate';
   // A semantic noun such as "QUESTION" is an object, not a question operator.
@@ -116,23 +118,30 @@ export function builderSurfaceWords(sentence: string, expression: Expression, co
     let slot: SurfaceSlot = null;
     if (composite) slot = composite[i] ?? null;
     else if (clause) {
-      slot = clauseSlot(cue, clause, subjectFound, word);
+      slot = clauseSlot(cue, clause, subjectFound, word, words[i - 1] ?? '', code);
       if (slot === 'agent') subjectFound = true;
     } else {
       switch (expression.kind) {
-        case 'where': slot = 'wherePlace'; break;
-        case 'route': slot = 'routePlace'; break;
-        case 'price': slot = 'priceThing'; break;
+        case 'where':
+          slot = ['WHERE?', 'IS', 'ARE', 'WAS'].includes(cue) ? null : 'wherePlace';
+          break;
+        case 'route':
+          slot = ['HOW', 'GET', 'QUESTION', 'THAT', 'I', 'YOU', 'GOING TO'].includes(cue)
+            ? null : 'routePlace';
+          break;
+        case 'price':
+          slot = ['HOW', 'HOW MUCH', 'MUCH', 'COSTS'].includes(cue) ? null : 'priceThing';
+          break;
         case 'ask_object': slot = cue === 'YOU' || cue === 'I' ? 'objectAgent' : 'objectPredicate'; break;
         case 'describe':
-          slot = POWER_CUES.has(cue) ? 'power' :
-            cue === expression.quality.toUpperCase() ? 'quality' :
-            TIME_CUES.has(cue) ? 'descriptionTense' : 'descriptionThing';
+          slot = cue === 'NOT' ? 'negative' : cue === 'QUESTION' ? 'question' :
+            ['IS', 'AM', 'ARE', 'WAS', 'WERE', 'PAST'].includes(cue) ? 'descriptionTense' :
+            cue === expression.quality.toUpperCase() ? 'quality' : 'descriptionThing';
           break;
         case 'presence':
-          slot = POWER_CUES.has(cue) ? 'power' :
+          slot = cue === 'NOT' ? 'negative' : cue === 'QUESTION' ? 'question' :
             cue === String(CONCEPTS[expression.place ?? 'here']).toUpperCase() ? 'presencePlace' :
-            'presenceThing';
+            ['IS THERE', 'THERE', 'IS'].includes(cue) ? null : 'presenceThing';
           break;
         default: slot = 'predicate';
       }

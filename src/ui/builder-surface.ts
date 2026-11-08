@@ -58,8 +58,9 @@ function label(slot: SurfaceSlot, cue: string): string {
   } as Partial<Record<StudioSlot, string>>)[slot] ?? 'WORD';
 }
 
-function clauseSlot(cue: string, expression: Extract<Expression, {kind: 'clause'}>, subjectFound: boolean): SurfaceSlot {
+function clauseSlot(cue: string, expression: Extract<Expression, {kind: 'clause'}>, subjectFound: boolean, surface: string): SurfaceSlot {
   if (cue === 'QUESTION MARK') return null;
+  if (/^est-ce(?:[?!.,])?$/iu.test(surface)) return 'power';
   const action = actionCue(expression.event.predicate);
   if (cue === action || cue.endsWith(' + ' + action)) return 'predicate';
   // A semantic noun such as "QUESTION" is an object, not a question operator.
@@ -115,7 +116,7 @@ export function builderSurfaceWords(sentence: string, expression: Expression, co
     let slot: SurfaceSlot = null;
     if (composite) slot = composite[i] ?? null;
     else if (clause) {
-      slot = clauseSlot(cue, clause, subjectFound);
+      slot = clauseSlot(cue, clause, subjectFound, word);
       if (slot === 'agent') subjectFound = true;
     } else {
       switch (expression.kind) {

@@ -262,7 +262,7 @@ test('builder shows wrong-but-selected pieces as mismatches and can restart a bl
   await page.locator('[data-snap-slot="predicate"]').click();
   await page.locator('[data-snap-for="predicate"][data-snap-value="would_like"]').click();
   await expect(page.locator('#snap-feedback')).toContainText('Change: ACTION, WHEN');
-  await expect(page.locator('[data-snap-slot="predicate"]')).toContainText('CHANGE FOR GOAL');
+  await expect(page.locator('#snap-sockets [data-snap-slot="predicate"]')).toHaveClass(/is-needs-work/);
   await expect(page.locator('[data-snap-for="predicate"][data-snap-value="would_like"]'))
     .toHaveClass(/is-goal-mismatch/);
   await page.locator('[data-snap-control="power"]').click();

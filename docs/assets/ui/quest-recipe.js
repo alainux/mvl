@@ -84,6 +84,16 @@ const CONJ = {
   fr: { and:'et', but:'mais', because:'parce que' },
   es: { and:'y', but:'pero', because:'porque' },
 };
+/**
+ * Show only the verb; argument slots belong to the underlying grammar model.
+ * For example, "Drink something" is simply "DRINK" in the word-aligned game.
+ */
+function actionCue(predicate) {
+  return PREDICATES[predicate].description
+    .replace(/ (?:something|someone|somewhere|a language|a form|in a place|at a place|in a state|in a way)$/u, '')
+    .toUpperCase();
+}
+
 function tokenize(text) { return text.trim().split(/\s+/u).filter(Boolean); }
 function normalize(word, code) {
   return word.replace(/^[¿¡]/u, '').replace(/[.!?,;:]+$/u, '').toLocaleLowerCase(code);
@@ -154,11 +164,11 @@ function build(expr, sentence, code) {
     }
     case 'ask_object': {
       const i = first();
-      if (i >= 0) set(i, PREDICATES[expr.predicate].description.toUpperCase());
+      if (i >= 0) set(i, actionCue(expr.predicate));
       break;
     }
     case 'clause': {
-      const action = PREDICATES[expr.event.predicate].description.toUpperCase();
+      const action = actionCue(expr.event.predicate);
       if (code === 'de') {
         const when = normalize(words[0] ?? '', code) === 'wann';
         const vi = when ? 1 : expr.question ? 0 : 1;

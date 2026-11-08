@@ -30,7 +30,7 @@ test('every level has a playable drill with a single unambiguous correct option'
         assert.equal(new Set(question.optionMeanings.map((meaning) => meaning.toLowerCase())).size, 4);
         assert.ok(question.english.length > 1);
       }
-      for (const example of memoryExamples(lesson)) assert.ok(meaningBlocks(example).length >= 1);
+      for (const example of memoryExamples(lesson)) assert.ok(meaningBlocks(example, code).length >= 1);
     }
   }
 });
@@ -56,6 +56,24 @@ test('German formal-you prompts are explicit and contrast similar sentences', ()
   assert.match(sick.patternHint, /verb comes before the subject/);
   for (const option of sick.options) assert.match(option, /^Sind Sie /, option);
   for (const meaning of sick.optionMeanings) assert.match(meaning, /^Are you /, meaning);
+});
+
+test('German yes/no question blocks put YOU after the verb', () => {
+  const german = compileGuide('de');
+  const lesson = german.lessons.find((item) => item.id === 'identity');
+  assert.ok(lesson);
+  const question = drillQuestions(german, lesson).find((item) => item.english === 'Are you sick?');
+  assert.ok(question);
+  assert.equal(question.target, 'Sind Sie krank?');
+  assert.equal(meaningBlocks(question.example, 'de')[1], 'YOU');
+  assert.notEqual(meaningBlocks(question.example, 'de')[0], 'YOU');
+
+  const french = compileGuide('fr');
+  const frenchIdentity = french.lessons.find((item) => item.id === 'identity');
+  assert.ok(frenchIdentity);
+  const frenchQuestion = drillQuestions(french, frenchIdentity).find((item) => item.english === 'Are you sick?');
+  assert.ok(frenchQuestion);
+  assert.equal(meaningBlocks(frenchQuestion.example, 'fr')[0], 'YOU');
 });
 
 test('formal register is marked in all supported target languages', () => {

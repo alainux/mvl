@@ -92,13 +92,13 @@ test('German meaning blocks follow question, negation, time and modal word order
   assert.deepEqual(blocks('Ich verstehe eine Frage nicht.'),
     ['I', 'UNDERSTAND SOMETHING', 'QUESTION', 'NOT']);
   assert.deepEqual(blocks('Ich bin nicht bereit.'),
-    ['I', 'BE', 'NOT', 'READY']);
+    ['I', 'BE IN A STATE', 'NOT', 'READY']);
   assert.deepEqual(blocks('Ich kann nicht kommen.'),
     ['I', 'CAN', 'NOT', 'COME']);
   assert.deepEqual(blocks('Ich habe gestern kein Ticket gekauft.'),
     ['I', 'PAST', 'YESTERDAY', 'NOT', 'TICKET', 'BUY SOMETHING']);
   assert.deepEqual(blocks('Ich gehe morgen ins Büro.'),
-    ['I', 'GO', 'FUTURE', 'TOMORROW', 'OFFICE']);
+    ['I', 'GO SOMEWHERE', 'FUTURE', 'TOMORROW', 'OFFICE']);
 
   // Never put a noun-phrase negation after its noun again.
   for (const example of examples) {
@@ -107,7 +107,7 @@ test('German meaning blocks follow question, negation, time and modal word order
         !example.source.expression.negative) continue;
     const recipe = meaningBlocks(example, 'de');
     assert.ok(recipe.includes('NOT'), example.target);
-    if (/\\bkein(?:e|en|em|es)?\\b/iu.test(example.target)) {
+    if (/\bkein(?:e|en|em|es)?\b/iu.test(example.target)) {
       const noun = example.source.expression.event.argument.replaceAll('_', ' ').toUpperCase();
       assert.ok(recipe.indexOf('NOT') < recipe.indexOf(noun), example.target);
     }

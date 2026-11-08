@@ -201,12 +201,13 @@ test('the root URL starts an actual sentence puzzle rather than a course menu', 
 
 test('snap builder uses compatible grammar sockets and can clear a semantic blueprint', async ({ page }) => {
   await page.goto('/#de/builder');
-  await expect(page.locator('#snap-sockets .snap-socket')).toHaveCount(5);
+  await expect(page.locator('#snap-sockets .snap-word')).not.toHaveCount(0);
+  await expect(page.locator('#snap-tools [data-snap-control]')).toHaveCount(5);
   await expect(page.locator('#snap-sentence')).not.toBeEmpty();
   await page.locator('[data-snap-mission="yesterday"]').click();
   await expect(page.locator('#snap-objective')).toContainText('Change the timeline');
   await expect(page.locator('#snap-cleared')).toHaveText('0 / 4');
-  await page.locator('[data-snap-slot="tense"]').click();
+  await page.locator('[data-snap-control="tense"]').click();
   await page.locator('[data-snap-for="tense"][data-snap-value="past"]').click();
   await expect(page.locator('#snap-cleared')).toHaveText('1 / 4');
   await expect(page.locator('#snap-feedback')).toContainText('Blueprint');
@@ -216,6 +217,40 @@ test('snap builder uses compatible grammar sockets and can clear a semantic blue
   await expect(page.locator('#snap-next')).toBeVisible();
   await page.locator('#snap-next').click();
   await expect(page.locator('#snap-objective')).toContainText('Make a future plan');
+});
+
+test('builder word blocks always match the generated sentence and preserve real German word order', async ({ page }) => {
+  await page.goto('/#de/builder');
+  await page.locator('[data-snap-mission="yesterday"]').click();
+  const checkWordOrder = async () => {
+    const actual = (await page.locator('#snap-sentence').textContent()).trim().split(/\s+/u);
+    const blocks = await page.locator('#snap-sockets .snap-word > strong').allTextContents();
+    expect(blocks).toEqual(actual);
+  };
+  await checkWordOrder();
+  await expect(page.locator('#snap-sockets .snap-word')).toHaveCount(4);
+  // Tense has no visible word in the present tense: it remains in the separate control bar.
+  await expect(page.locator('#snap-sockets [data-snap-slot="tense"]')).toHaveCount(0);
+  await page.locator('#snap-tools [data-snap-control="tense"]').click();
+  await page.locator('[data-snap-for="tense"][data-snap-value="past"]').click();
+  await checkWordOrder();
+  await expect(page.locator('#snap-sockets .snap-word')).toHaveCount(6);
+  await expect(page.locator('#snap-sockets .snap-word').nth(0)).toContainText('Ich');
+  await expect(page.locator('#snap-sockets .snap-word').nth(1)).toContainText('habe');
+  await expect(page.locator('#snap-sockets .snap-word').nth(2)).toContainText('gestern');
+  await expect(page.locator('#snap-sockets .snap-word').nth(3)).toContainText('ein');
+  await expect(page.locator('#snap-sockets .snap-word').nth(4)).toContainText('Ticket');
+  await expect(page.locator('#snap-sockets .snap-word').nth(5)).toContainText('gekauft');
+  await expect(page.locator('#snap-sockets [data-snap-slot="tense"]')).toHaveCount(2);
+  await page.locator('#snap-sockets .snap-word').nth(5).click();
+  await expect(page.locator('#snap-tray-title')).toContainText('ACTION');
+  await page.locator('#snap-sockets .snap-word').nth(4).click();
+  await expect(page.locator('#snap-tray-title')).toContainText('OBJECT');
+  await page.locator('#snap-sockets .snap-word').nth(1).click();
+  await expect(page.locator('#snap-tray-title')).toContainText('WHEN');
+  await page.locator('[data-snap-for="tense"][data-snap-value="present"]').click();
+  await checkWordOrder();
+  await expect(page.locator('#snap-sockets .snap-word')).toHaveCount(4);
 });
 
 test('builder shows wrong-but-selected pieces as mismatches and can restart a blueprint', async ({ page }) => {
@@ -230,15 +265,15 @@ test('builder shows wrong-but-selected pieces as mismatches and can restart a bl
   await expect(page.locator('[data-snap-slot="predicate"]')).toContainText('CHANGE FOR GOAL');
   await expect(page.locator('[data-snap-for="predicate"][data-snap-value="would_like"]'))
     .toHaveClass(/is-goal-mismatch/);
-  await page.locator('[data-snap-slot="power"]').click();
+  await page.locator('[data-snap-control="power"]').click();
   await page.locator('[data-snap-for="power"][data-snap-value="negative"]').click();
   await expect(page.locator('[data-snap-for="power"][data-snap-value="negative"]'))
     .toHaveClass(/is-goal-mismatch/);
   await expect(page.locator('#snap-feedback')).toContainText('POWER');
   await page.locator('#snap-reset-goal').click();
   await expect(page.locator('#snap-sentence')).toHaveText('Ich kaufe ein Ticket.');
-  await expect(page.locator('[data-snap-slot="predicate"]')).toContainText('Buy');
-  await page.locator('[data-snap-slot="tense"]').click();
+  await expect(page.locator('[data-snap-slot="predicate"]')).toContainText('kaufe');
+  await page.locator('[data-snap-control="tense"]').click();
   await page.locator('[data-snap-for="tense"][data-snap-value="past"]').click();
   await expect(page.locator('#snap-objective')).toContainText('✓ COMPLETE');
   await expect(page.locator('#snap-next')).toBeVisible();
@@ -268,7 +303,7 @@ test('snap builder preserves the advanced grammar lab for more complex patterns'
   await expect(page.locator('#studio-workshop')).toHaveAttribute('open', '');
   await page.locator('#studio-show-recipes').click();
   await page.locator('[data-recipe="connect"]').click();
-  await expect(page.locator('#snap-sockets .snap-socket')).toHaveCount(3);
+  await expect(page.locator('#snap-sockets .snap-word')).not.toHaveCount(0);
   await expect(page.locator('#snap-sentence')).toContainText('aber');
   await expect(page.locator('#studio-structure')).toBeVisible();
 });

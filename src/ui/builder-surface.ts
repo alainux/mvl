@@ -62,6 +62,9 @@ function clauseSlot(cue: string, expression: Extract<Expression, {kind: 'clause'
   if (cue === 'QUESTION MARK') return null;
   const action = actionCue(expression.event.predicate);
   if (cue === action || cue.endsWith(' + ' + action)) return 'predicate';
+  // A semantic noun such as "QUESTION" is an object, not a question operator.
+  if (expression.event.argument !== 'none' &&
+      cue === String(CONCEPTS[expression.event.argument]).toUpperCase()) return 'argument';
   if (cue === 'I + PAST' || cue === 'PAST' || cue === 'FUTURE' ||
       cue === 'GOING TO' || cue === 'I + FUTURE' || TIME_CUES.has(cue)) return 'tense';
   if (POWER_CUES.has(cue) || cue === 'NOT HAVE') return 'power';

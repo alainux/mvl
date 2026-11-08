@@ -11,7 +11,20 @@ import {
   missionAnswer, fromExpression,
 } from '../docs/assets/ui/studio-model.js';
 
+import { actionCue } from '../docs/assets/ui/quest-recipe.js';
+import { PREDICATES } from '../docs/assets/core/vocabulary.js';
+
 const codes = ['de', 'fr', 'es'];
+
+test('builder verb labels never expose internal argument-slot descriptions', () => {
+  assert.equal(actionCue('would_like'), 'WOULD LIKE');
+  assert.equal(actionCue('drink'), 'DRINK');
+  for (const predicate of Object.keys(PREDICATES)) {
+    const label = actionCue(predicate);
+    assert.ok(label.trim(), predicate);
+    assert.doesNotMatch(label, /\\b(?:SOMETHING|SOMEONE|SOMEWHERE)\\b/u, predicate);
+  }
+});
 
 test('all fifteen semantic patterns produce sentences in German, French, and Spanish', () => {
   assert.equal(RECIPES.length, 15);

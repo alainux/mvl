@@ -30,9 +30,13 @@ export function renderStudio() {
       </div>
       <div class="snap-objective" id="snap-objective" role="status" aria-live="polite"></div>
       <div class="snap-play-surface">
-        <div class="snap-section-caption"><strong>01 / SENTENCE SOCKETS</strong><span>Tap to select · or drop a compatible piece</span></div>
-        <div class="snap-sockets" id="snap-sockets" aria-label="Typed sentence building sockets"></div>
-        <p class="snap-explanation">These sockets represent <strong>meaning</strong>, not spoken word order. The engine below handles conjugation and rearranging words.</p>
+        <div class="snap-section-caption"><strong>01 / WORD BLOCKS · SPOKEN ORDER</strong><span>Tap a word to edit its grammar</span></div>
+        <div class="snap-sockets" id="snap-sockets" role="group" aria-label="Sentence words in spoken order"></div>
+        <div class="snap-control-panel">
+          <div class="snap-control-heading"><strong>EDIT OR ADD GRAMMAR</strong><span>Use these controls when a part has no separate word</span></div>
+          <div class="snap-tools" id="snap-tools" role="group" aria-label="Meaning and grammar controls"></div>
+        </div>
+        <p class="snap-explanation">The word blocks above follow <strong>the exact sentence order</strong>. A single grammar choice may change several words, add a word, or move a verb.</p>
         <div class="snap-tray">
           <div class="snap-section-caption"><strong>02 / PIECE TRAY</strong><span id="snap-tray-title">Choose a block to edit</span></div>
           <label for="snap-filter" class="visually-hidden">Find a compatible piece</label>

@@ -81,7 +81,7 @@ export function questRounds(guide, lesson) {
             target: example.target,
             expected,
             tiles,
-            recipe: meaningBlocks(example),
+            recipe: meaningBlocks(example, code),
             example,
             boss: roundIndex === selected.length - 1,
         };

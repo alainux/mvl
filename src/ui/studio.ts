@@ -936,7 +936,9 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
       : activeMission
         ? matched + ' / 5 sockets match. Change: ' +
           pending.map((slot) => laneLabels[slot] ?? slot).join(', ') + '. ' + snapStatus
-        : snapStatus || 'Select a socket and snap in a piece. Incompatible pieces cannot be placed.';
+        : snapStatus || 'Tap a word or grammar control, then choose a piece to change the sentence.';
+    const freeButton = required<HTMLButtonElement>('#snap-free');
+    freeButton.textContent = activeMission ? 'Free build' : '↻ Start a new sentence';
     const resetButton = required<HTMLButtonElement>('#snap-reset-goal');
     resetButton.hidden = !activeMission;
     const nextButton = required<HTMLButtonElement>('#snap-next');
@@ -974,8 +976,14 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
       activeSlot = OPERATOR_LABELS[operator].slot;
       activeSnapSlot = 'power';
       recipeId = null;
-      snapStatus = 'Power changed. Compare this with the blueprint goal.';
+      snapStatus = activeMission ? 'Power changed. Compare it with your goal.' : 'Grammar changed. Keep experimenting with the sentence.';
       render();
+      return;
+    }
+    if ((slot === 'predicate' || slot === 'argument' || slot === 'agent') &&
+        currentValue(state, slot) === value) {
+      snapStatus = 'That piece is already selected. Choose another option or switch controls.';
+      renderSnap();
       return;
     }
     if (slot === 'time') {
@@ -997,14 +1005,16 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
         activeSlot = 'tense';
         activeSnapSlot = 'tense';
         recipeId = null;
-        snapStatus = 'Timeline changed. Compare the new time with the goal.';
+        snapStatus = activeMission ? 'Timeline changed. Compare the new time with your goal.' : 'Time changed. Try adding another word or grammar power.';
         render();
       } else {
         activeSnapSlot = editSlot;
         applyChoice(editSlot, value);
       }
     }
-    if (!snapSolved()) snapStatus = 'Piece changed. Keep matching the blueprint sockets.';
+    if (!snapSolved()) snapStatus = activeMission
+      ? 'Piece changed. Keep matching the blueprint.'
+      : 'Sentence updated. Choose another word or grammar control to continue.';
     renderSnap();
   }
 
@@ -1074,8 +1084,17 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
       return;
     }
     if (trigger.id === 'snap-free') {
-      activeMission = null;
-      snapStatus = '';
+      if (activeMission) {
+        activeMission = null;
+        snapStatus = 'Free build is active. Edit any word or choose an action.';
+      } else {
+        rememberBefore('Start a new sentence');
+        state = initialStudio();
+        activeSlot = 'predicate';
+        activeSnapSlot = 'predicate';
+        recipeId = null;
+        snapStatus = 'New sentence ready. Choose an action to build your own sentence.';
+      }
       render();
       return;
     }

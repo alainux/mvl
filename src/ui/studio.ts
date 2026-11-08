@@ -886,17 +886,41 @@ export function initializeStudio(code: Code, signal: AbortSignal): void {
         default: return matchesSlot(piece.slot);
       }
     }
+    
     const filter = required<HTMLInputElement>('#snap-filter');
     filter.value = '';
     filter.hidden = pieces.length < 14;
-    required<HTMLElement>('#snap-tray-title').textContent = (laneLabels[activeSnapSlot] ?? activeSnapSlot.toUpperCase()) + ' · ' + pieces.length + ' compatible pieces';
-    required<HTMLElement>('#snap-pieces').innerHTML = pieces.length
-      ? pieces.map((piece) => `<button type="button" class="snap-piece ${piece.active ? 'is-inserted' : ''} ${piece.active && activeMission ? pieceMatchesGoal(piece) ? 'is-goal-match' : 'is-goal-mismatch' : ''}"
+    const alternatives = pieces.filter((piece) => !piece.active).length;
+    const stalled = state.pattern === 'action' && activeSnapSlot === 'argument' &&
+      alternatives === 0;
+    required<HTMLElement>('#snap-tray-title').textContent =
+      (laneLabels[activeSnapSlot] ?? activeSnapSlot.toUpperCase()) +
+      (stalled ? ' · no editable alternatives' : ' · ' + pieces.length + ' compatible pieces');
+    function objectPreview(piece: SnapChoice): string {
+      if (state.pattern !== 'action' || piece.slot !== 'argument' || pieces.length > 8) return '';
+      try { return linearize(studioExpression(setSlot(state, 'argument', piece.value)), code); }
+      catch { return ''; }
+    }
+    const implicitFood = state.pattern === 'action' && state.action.predicate === 'eat' &&
+      state.action.argument === 'food' && activeSnapSlot === 'argument';
+    const explanation = implicitFood
+      ? '<p class="snap-choice-hint">“Eat” works without an object. Choose <strong>bread</strong> to add a visible word to the sentence.</p>'
+      : '';
+    const escapeChoice = '<div class="snap-escape"><strong>This object cannot be changed for this action.</strong>' +
+      '<p>Try another action to unlock new objects and sentences.</p>' +
+      '<button type="button" data-snap-control="predicate">Choose another action →</button></div>';
+    required<HTMLElement>('#snap-pieces').innerHTML = stalled
+      ? escapeChoice
+      : explanation + (pieces.length
+        ? pieces.map((piece) => `<button type="button" class="snap-piece ${piece.active ? 'is-inserted' : ''} ${piece.active && activeMission ? pieceMatchesGoal(piece) ? 'is-goal-match' : 'is-goal-mismatch' : ''}"
           data-snap-for="${piece.slot}" data-snap-value="${escape(piece.value)}" draggable="true"
           aria-pressed="${piece.active}" title="Snap ${escape(piece.label)} into ${escape(laneLabels[activeSnapSlot] ?? activeSnapSlot)}">
           ${piece.group ? `<small>${escape(piece.group)}</small>` : ''}
-          <span>${escape(piece.label)}</span><b aria-hidden="true">${piece.active ? pieceMatchesGoal(piece) ? '✓' : '●' : '+'}</b></button>`).join('')
-      : '<p class="snap-no-pieces">This is a complete statement block. Open the grammar workshop below to edit its parts.</p>';
+          <span>${escape(piece.label)}</span><b aria-hidden="true">${piece.active ? pieceMatchesGoal(piece) ? '✓' : '●' : '+'}</b>
+          ${objectPreview(piece) ? `<small class="snap-piece-preview" lang="${code}">${escape(objectPreview(piece))}</small>` : ''}
+          </button>`).join('')
+        : '<div class="snap-escape"><strong>No compatible pieces here.</strong>' +
+          '<p>Choose a different grammar control to continue.</p></div>');
     const line = required<HTMLElement>('#snap-sentence');
     line.textContent = result.textContent ?? '';
     line.lang = code;

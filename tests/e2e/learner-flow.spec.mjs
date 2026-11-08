@@ -129,6 +129,8 @@ test('the sentence quest is a real five-encounter assembly game with a boss and 
   await expect(page.locator('.quest-hearts')).toContainText('♥♥♥');
   for (const [roundIndex, encounter] of encounters.entries()) {
     await expect(page.locator('.quest-dialogue')).toContainText(encounter.goal);
+    await expect(page.locator('.quest-recipe > span')).toHaveCount(encounter.expected.length);
+    await expect(page.locator('.quest-empty-tile')).toHaveCount(encounter.expected.length);
     const used = new Set();
     for (const word of encounter.expected) {
       const tile = encounter.tiles.find(t => t.word === word && !used.has(t.id));

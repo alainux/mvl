@@ -90,7 +90,7 @@ const CONJ: Readonly<Record<LanguageProfile['code'], Readonly<Record<'and' | 'bu
  * Show only the verb; argument slots belong to the underlying grammar model.
  * For example, "Drink something" is simply "DRINK" in the word-aligned game.
  */
-function actionCue(predicate: keyof typeof PREDICATES): string {
+export function actionCue(predicate: keyof typeof PREDICATES): string {
   return PREDICATES[predicate].description
     .replace(/ (?:something|someone|somewhere|a language|a form|in a place|at a place|in a state|in a way)$/u, '')
     .toUpperCase();

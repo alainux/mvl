@@ -7,6 +7,7 @@ import { realizeEnglish } from '../docs/assets/languages/en.js';
 import {
   RECIPES, MISSIONS, initialStudio, applyRecipe, studioExpression, normalizeStudio,
   availableOperator, toggleOperator, operatorApplied, startMission, matchesMission,
+  missionSlotMatches, missionPendingSockets,
   missionAnswer, fromExpression,
 } from '../docs/assets/ui/studio-model.js';
 
@@ -68,6 +69,33 @@ test('four guided missions have attainable, validated semantic targets', () => {
     const answer = missionAnswer(mission);
     for (const code of codes) assert.ok(linearize(answer, code).length > 5);
   }
+});
+
+
+test('a blueprint resets unrelated edits and distinguishes selected pieces from goal matches', () => {
+  const goal = MISSIONS.find((mission) => mission.id === 'yesterday');
+  assert.ok(goal);
+  const polluted = normalizeStudio({
+    ...initialStudio(),
+    action: { ...initialStudio().action, predicate: 'would_like', argument: 'food',
+      tense: 'future', time: 'tomorrow', negative: true },
+  });
+  assert.deepEqual(missionPendingSockets(polluted, goal), ['predicate', 'argument', 'tense', 'power']);
+  assert.equal(missionSlotMatches(polluted, goal, 'agent'), true);
+  assert.equal(missionSlotMatches(polluted, goal, 'predicate'), false);
+  assert.equal(matchesMission(polluted, goal), false);
+  const restored = startMission(polluted, goal);
+  assert.equal(restored.action.predicate, 'buy');
+  assert.equal(restored.action.argument, 'ticket');
+  assert.equal(restored.action.tense, 'present');
+  assert.equal(restored.action.time, '');
+  assert.equal(restored.action.negative, false);
+  assert.deepEqual(missionPendingSockets(restored, goal), ['tense']);
+  assert.equal(missionSlotMatches(restored, goal, 'power'), true);
+  const completed = normalizeStudio({ ...restored,
+    action: { ...restored.action, tense: 'past', time: 'yesterday' } });
+  assert.deepEqual(missionPendingSockets(completed, goal), []);
+  assert.equal(matchesMission(completed, goal), true);
 });
 
 test('prebuilt lesson expression roundtrips into editable blocks without phrase lookup', () => {

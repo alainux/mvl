@@ -218,6 +218,27 @@ test('snap builder uses compatible grammar sockets and can clear a semantic blue
   await expect(page.locator('#snap-objective')).toContainText('Make a future plan');
 });
 
+test('builder shows wrong-but-selected pieces as mismatches and can restart a blueprint', async ({ page }) => {
+  await page.goto('/#de/builder');
+  await page.locator('[data-snap-mission="yesterday"]').click();
+  await expect(page.locator('#snap-objective')).toContainText('4 / 5 MATCH');
+  await expect(page.locator('#snap-target')).toContainText('I bought a ticket yesterday');
+  await expect(page.locator('#snap-sentence')).toHaveText('Ich kaufe ein Ticket.');
+  await page.locator('[data-snap-slot="predicate"]').click();
+  await page.locator('[data-snap-for="predicate"][data-snap-value="would_like"]').click();
+  await expect(page.locator('#snap-feedback')).toContainText('Change: ACTION, WHEN');
+  await expect(page.locator('[data-snap-slot="predicate"]')).toContainText('CHANGE FOR GOAL');
+  await expect(page.locator('[data-snap-for="predicate"][data-snap-value="would_like"]'))
+    .toHaveClass(/is-goal-mismatch/);
+  await page.locator('#snap-reset-goal').click();
+  await expect(page.locator('#snap-sentence')).toHaveText('Ich kaufe ein Ticket.');
+  await expect(page.locator('[data-snap-slot="predicate"]')).toContainText('Buy');
+  await page.locator('[data-snap-slot="tense"]').click();
+  await page.locator('[data-snap-for="tense"][data-snap-value="past"]').click();
+  await expect(page.locator('#snap-objective')).toContainText('✓ COMPLETE');
+  await expect(page.locator('#snap-next')).toBeVisible();
+});
+
 test('incompatible pieces cannot be dropped into unrelated sentence slots', async ({ page }) => {
   await page.goto('/#de/builder');
   await page.locator('#snap-free').click();

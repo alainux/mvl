@@ -26,6 +26,8 @@ const LEX: Readonly<Record<LanguageProfile['code'], Readonly<Record<string, stri
     jede:'EVERY', tag:'DAY', abend:'EVENING', kann:'CAN', können:'CAN',
     muss:'MUST', müssen:'MUST', will:'WANT', wollen:'WANT', zurück:'BACK',
     weg:'AWAY', an:'VERB PARTICLE', ab:'VERB PARTICLE', aus:'VERB PARTICLE',
+    spät:'LATE', dran:'RUNNING LATE', bahnhof:'STATION', hotel:'HOTEL',
+    flughafen:'AIRPORT', stadtzentrum:'CITY CENTER',
   },
   fr: {
     je:'I', vous:'YOU', nous:'WE', il:'HE', 'j’ai':'I HAVE',
@@ -46,7 +48,12 @@ const LEX: Readonly<Record<LanguageProfile['code'], Readonly<Record<string, stri
     semaine:'WEEK', mois:'MONTH', soir:'EVENING', deux:'TWO',
     vais:'GOING TO', allons:'GOING TO', va:'GOING TO',
     peux:'CAN', pouvez:'CAN', dois:'MUST', voulez:'WANT',
-    voudrais:'WOULD LIKE', besoin:'NEED',
+    voudrais:'WOULD LIKE', besoin:'NEED', chez:'AT', par:'BY', souvent:'OFTEN',
+    maintenant:'NOW', chaque:'EACH', parfois:'SOMETIMES', tous:'EVERY',
+    jours:'DAYS', 'l’allemand':'GERMAN', 'l’espagnol':'SPANISH',
+    bon:'GOOD', marché:'VALUE', gare:'STATION', hôtel:'HOTEL',
+    café:'COFFEE', magasin:'SHOP', restaurant:'RESTAURANT',
+    'l’arrêt':'STOP', 'd’arrêt':'A STOP', bus:'BUS', 'n’y':'NOT',
   },
   es: {
     yo:'I', usted:'YOU', nosotros:'WE', él:'HE', me:'ME', le:'TO THEM',
@@ -64,7 +71,12 @@ const LEX: Readonly<Record<LanguageProfile['code'], Readonly<Record<string, stri
     mes:'MONTH', noche:'NIGHT', puedo:'CAN', puede:'CAN',
     podemos:'CAN', quiero:'WANT', quiere:'WANT', debo:'MUST',
     tengo:'HAVE', tenemos:'HAVE', voy:'GOING TO', vamos:'GOING TO',
-    va:'GOING TO',
+    va:'GOING TO', ahora:'NOW', menudo:'OFTEN', veces:'TIMES',
+    todos:'EVERY', días:'DAYS', cada:'EACH', libro:'BOOK', correo:'EMAIL',
+    alemán:'GERMAN', español:'SPANISH', habitación:'ROOM',
+    estación:'STATION', hotel:'HOTEL', cafetería:'CAFÉ',
+    tienda:'SHOP', restaurante:'RESTAURANT', parada:'STOP',
+    autobús:'BUS', oficina:'OFFICE', correos:'MAIL',
   },
 };
 const CONJ: Readonly<Record<LanguageProfile['code'], Readonly<Record<'and' | 'but' | 'because', string>>>> = {
@@ -116,10 +128,24 @@ function build(expr: Expression, sentence: string, code: LanguageProfile['code']
       else set(4, 'GET');
       break;
     case 'price': putLast(String(CONCEPTS[expr.thing]).toUpperCase()); break;
-    case 'presence':
+    case 'presence': {
+      // Name the location before the object: "a café at the station"
+      // and "a room in the hotel" must not swap their meaning cues.
+      if (expr.place && expr.place !== 'here') {
+        const preps = code === 'de' ? ['am','im','in','bei'] :
+          code === 'fr' ? ['à','au','dans'] : ['en'];
+        const start = words.findIndex((word) => preps.includes(normalize(word, code)));
+        if (start >= 0) {
+          const i = cues.findIndex((value, j) => j > start && !value &&
+            normalize(words[j] ?? '', code) !== '');
+          if (i >= 0) set(i, String(CONCEPTS[expr.place]).toUpperCase());
+        }
+      }
       putLast(String(CONCEPTS[expr.thing]).toUpperCase());
       if (code === 'de' && normalize(words[1] ?? '', code) === 'es') set(1, 'THERE');
+      if (code === 'fr' && normalize(words[0] ?? '', code) === 'il') set(0, 'THERE');
       break;
+    }
     case 'describe': {
       putLast(expr.quality.toUpperCase());
       const i = first();
@@ -160,7 +186,8 @@ function build(expr: Expression, sentence: string, code: LanguageProfile['code']
       } else {
         const head = normalize(words[0] ?? '', code);
         const vi = ['cuándo','usted','nosotros','no'].includes(head) ? 1 : 0;
-        if (expr.event.predicate === 'like' && !expr.modality) {
+        if (head === 'me' && expr.event.predicate === 'stay' && !expr.modality) set(1, action);
+        else if (expr.event.predicate === 'like' && !expr.modality) {
           const i = words.findIndex((w) => normalize(w, code) === 'gusta');
           if (i >= 0) set(i, action);
         } else if (expr.tense === 'future') set(vi, 'FUTURE');

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { compileGuide } from '../docs/assets/learning/compile.js';
 import { nextLevelIndex, levelUnlocked, drillQuestions, memoryExamples, meaningBlocks } from '../docs/assets/ui/game-model.js';
+import { questRecipe } from '../docs/assets/ui/quest-recipe.js';
 
 test('levels unlock sequentially without hiding previously cleared levels', () => {
   const guide = compileGuide('de');
@@ -112,6 +113,30 @@ test('German meaning blocks follow question, negation, time and modal word order
       assert.ok(recipe.indexOf('NOT') < recipe.indexOf(noun), example.target);
     }
   }
+});
+
+test('the forge gives one ordered cue per real word in every supported language', () => {
+  for (const code of ['de', 'fr', 'es']) {
+    const guide = compileGuide(code);
+    for (const lesson of guide.lessons) {
+      for (const example of lesson.examples) {
+        const recipe = questRecipe(example, code);
+        assert.equal(recipe.length, example.target.trim().split(/\s+/u).length,
+          code + '/' + lesson.id + ': ' + example.target);
+        assert.ok(recipe.every(label => label && label.trim()), example.target);
+      }
+    }
+  }
+  const german = compileGuide('de');
+  const examples = german.lessons.flatMap(lesson => lesson.examples);
+  const recipe = (target) => {
+    const example = examples.find(item => item.target === target);
+    assert.ok(example, target);
+    return questRecipe(example, 'de');
+  };
+  assert.deepEqual(recipe('Wo ist das Hotel?'), ['WHERE?', 'IS', 'THE', 'HOTEL']);
+  assert.deepEqual(recipe('Ich habe keinen Termin.'), ['I', 'HAVE SOMETHING', 'NOT', 'APPOINTMENT']);
+  assert.deepEqual(recipe('Haben Sie eine Frage?'), ['HAVE SOMETHING', 'YOU', 'A', 'QUESTION']);
 });
 
 test('formal register is marked in all supported target languages', () => {

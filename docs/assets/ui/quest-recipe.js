@@ -51,7 +51,7 @@ const LEX = {
     jours:'DAYS', 'l’allemand':'GERMAN', 'l’espagnol':'SPANISH',
     bon:'GOOD', marché:'VALUE', gare:'STATION', hôtel:'HOTEL',
     café:'COFFEE', magasin:'SHOP', restaurant:'RESTAURANT',
-    'l’arrêt':'STOP', 'd’arrêt':'A STOP', bus:'BUS', 'n’y':'NOT',
+    'l’arrêt':'STOP', 'd’arrêt':'A STOP', bus:'BUS', 'n’y':'NOT', était:'WAS',
   },
   es: {
     yo:'I', usted:'YOU', nosotros:'WE', él:'HE', me:'ME', le:'TO THEM',
@@ -75,6 +75,8 @@ const LEX = {
     estación:'STATION', hotel:'HOTEL', cafetería:'CAFÉ',
     tienda:'SHOP', restaurante:'RESTAURANT', parada:'STOP',
     autobús:'BUS', oficina:'OFFICE', correos:'MAIL',
+    documento:'DOCUMENT', favor:'PLEASE', pasado:'LAST',
+    amigo:'FRIEND', médico:'DOCTOR', reunión:'MEETING', viene:'COMING',
   },
 };
 const CONJ = {

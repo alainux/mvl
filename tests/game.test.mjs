@@ -135,8 +135,23 @@ test('the forge gives one ordered cue per real word in every supported language'
     return questRecipe(example, 'de');
   };
   assert.deepEqual(recipe('Wo ist das Hotel?'), ['WHERE?', 'IS', 'THE', 'HOTEL']);
-  assert.deepEqual(recipe('Ich habe keinen Termin.'), ['I', 'HAVE SOMETHING', 'NOT', 'APPOINTMENT']);
-  assert.deepEqual(recipe('Haben Sie eine Frage?'), ['HAVE SOMETHING', 'YOU', 'A', 'QUESTION']);
+  assert.deepEqual(recipe('Ich habe keinen Termin.'), ['I', 'HAVE', 'NOT', 'APPOINTMENT']);
+  assert.deepEqual(recipe('Haben Sie eine Frage?'), ['HAVE', 'YOU', 'A', 'QUESTION']);
+  assert.deepEqual(recipe('Ich trinke Wasser.'), ['I', 'DRINK', 'WATER']);
+  assert.deepEqual(recipe('Ich habe eine Frage.'), ['I', 'HAVE', 'A', 'QUESTION']);
+  assert.deepEqual(recipe('Ich bin bereit.'), ['I', 'BE', 'READY']);
+  assert.deepEqual(recipe('Ich gehe morgen ins Büro.'), ['I', 'GO', 'TOMORROW', 'INTO THE', 'OFFICE']);
+  for (const [code, target] of [
+    ['fr', 'Je bois de l’eau.'],
+    ['es', 'Bebo agua.'],
+  ]) {
+    const guide = compileGuide(code);
+    const example = guide.lessons.flatMap(lesson => lesson.examples)
+      .find(item => item.target === target);
+    assert.ok(example, target);
+    assert.ok(questRecipe(example, code).includes('DRINK'), code + ': ' + target);
+    assert.ok(!questRecipe(example, code).includes('DRINK SOMETHING'), code + ': ' + target);
+  }
 });
 
 test('formal register is marked in all supported target languages', () => {

@@ -76,6 +76,44 @@ test('German yes/no question blocks put YOU after the verb', () => {
   assert.equal(meaningBlocks(frenchQuestion.example, 'fr')[0], 'YOU');
 });
 
+test('German meaning blocks follow question, negation, time and modal word order', () => {
+  const guide = compileGuide('de');
+  const examples = guide.lessons.flatMap((lesson) => lesson.examples);
+  const blocks = (target) => {
+    const example = examples.find((item) => item.target === target);
+    assert.ok(example, target);
+    return meaningBlocks(example, 'de');
+  };
+
+  assert.deepEqual(blocks('Haben Sie eine Frage?'),
+    ['HAVE SOMETHING', 'YOU', 'QUESTION', 'QUESTION']);
+  assert.deepEqual(blocks('Ich habe keinen Termin.'),
+    ['I', 'HAVE SOMETHING', 'NOT', 'APPOINTMENT']);
+  assert.deepEqual(blocks('Ich verstehe eine Frage nicht.'),
+    ['I', 'UNDERSTAND SOMETHING', 'QUESTION', 'NOT']);
+  assert.deepEqual(blocks('Ich bin nicht bereit.'),
+    ['I', 'BE', 'NOT', 'READY']);
+  assert.deepEqual(blocks('Ich kann nicht kommen.'),
+    ['I', 'CAN', 'NOT', 'COME']);
+  assert.deepEqual(blocks('Ich habe gestern kein Ticket gekauft.'),
+    ['I', 'PAST', 'YESTERDAY', 'NOT', 'TICKET', 'BUY SOMETHING']);
+  assert.deepEqual(blocks('Ich gehe morgen ins Büro.'),
+    ['I', 'GO', 'FUTURE', 'TOMORROW', 'OFFICE']);
+
+  // Never put a noun-phrase negation after its noun again.
+  for (const example of examples) {
+    if (example.source.kind !== 'expression' ||
+        example.source.expression.kind !== 'clause' ||
+        !example.source.expression.negative) continue;
+    const recipe = meaningBlocks(example, 'de');
+    assert.ok(recipe.includes('NOT'), example.target);
+    if (/\\bkein(?:e|en|em|es)?\\b/iu.test(example.target)) {
+      const noun = example.source.expression.event.argument.replaceAll('_', ' ').toUpperCase();
+      assert.ok(recipe.indexOf('NOT') < recipe.indexOf(noun), example.target);
+    }
+  }
+});
+
 test('formal register is marked in all supported target languages', () => {
   for (const [code, expected] of [['de', 'Sie'], ['fr', 'vous'], ['es', 'usted']]) {
     const guide = compileGuide(code);

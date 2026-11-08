@@ -25,7 +25,7 @@ export function playableLesson(guide, completed, requested) {
 export function levelUnlocked(guide, completed, index) {
     return index >= 0 && index < guide.lessons.length && index <= nextLevelIndex(guide, completed);
 }
-export function meaningBlocks(example) {
+export function meaningBlocks(example, code) {
     if (example.source.kind === 'convention')
         return ['EVERYDAY EXPRESSION'];
     const expression = example.source.expression;
@@ -47,7 +47,10 @@ export function meaningBlocks(example) {
         return ['ASK WHAT?', PREDICATES[expression.predicate].description.toUpperCase()];
     const clause = expression.kind === 'ask_when' ? expression.value : expression;
     const agent = { speaker: 'I', addressee: 'YOU', we: 'WE', other: 'HE' }[clause.event.agent];
-    const words = [agent, PREDICATES[clause.event.predicate].description.toUpperCase()];
+    const predicate = PREDICATES[clause.event.predicate].description.toUpperCase();
+    // German yes/no questions place the finite verb before the subject.
+    const words = code === 'de' && expression.kind === 'clause' && clause.question
+        ? [predicate, agent] : [agent, predicate];
     if (clause.event.argument !== 'none')
         words.push(String(CONCEPTS[clause.event.argument]).toUpperCase());
     if (clause.tense !== 'present')

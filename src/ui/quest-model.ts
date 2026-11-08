@@ -6,7 +6,7 @@
  */
 import { generatePractice } from '../learning/practice.js';
 import type { GeneratedExample, GeneratedGuide, GeneratedLesson } from '../learning/types.js';
-import { meaningBlocks } from './game-model.js';
+import { questRecipe } from './quest-recipe.js';
 
 export const QUEST_HEARTS = 3;
 export const QUEST_ROUNDS = 5;
@@ -119,7 +119,7 @@ export function questRounds(guide: GeneratedGuide, lesson: GeneratedLesson): rea
       target: example.target,
       expected,
       tiles,
-      recipe: meaningBlocks(example, code),
+      recipe: questRecipe(example, code),
       example,
       boss: roundIndex === selected.length - 1,
     };

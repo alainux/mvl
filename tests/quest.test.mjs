@@ -18,6 +18,8 @@ for (const code of ['de','fr','es']) {
       assert.equal(rounds.at(-1).boss, true);
       for (const round of rounds) {
         assert.ok(round.target && round.goal && round.recipe.length);
+        assert.equal(round.recipe.length, round.expected.length, code + '/' + lesson.id + ': ' + round.target);
+        assert.ok(round.recipe.every(label => typeof label === 'string' && label.trim()), round.target);
         assert.equal(round.expected.join(' '), round.target.trim());
         assert.equal(new Set(round.tiles.map(t => t.id)).size, round.tiles.length);
         const bank = round.tiles.map(t => t.word);

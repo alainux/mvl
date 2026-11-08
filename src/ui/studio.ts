@@ -276,7 +276,8 @@ function choices(state: StudioState, slot: StudioSlot): readonly Choice[] {
     case 'agent': return SUBJECT_CHOICES;
     case 'predicate': return Object.keys(PREDICATES).map((value) => ({ value, label: actionLabel(value as PredicateId) }));
     case 'argument': return allowedArgumentsFor(action.predicate, action.agent)
-      .map((id) => ({ value: id, label: concept(id) }));
+      .map((id) => ({ value: id, label: action.predicate === 'eat' && id === 'food'
+        ? 'No object (just eat)' : concept(id) }));
     case 'quantity': return [{ value: '1', label: 'One' }, { value: '2', label: 'Two' }];
     case 'tense': return action.predicate === 'like'
       ? [{ value: 'present', label: 'Present' }]

@@ -12,6 +12,8 @@ import {
 } from '../docs/assets/ui/studio-model.js';
 
 import { actionCue } from '../docs/assets/ui/quest-recipe.js';
+import { builderSurfaceWords } from '../docs/assets/ui/builder-surface.js';
+import { compileGuide } from '../docs/assets/learning/compile.js';
 import { PREDICATES } from '../docs/assets/core/vocabulary.js';
 
 const codes = ['de', 'fr', 'es'];
@@ -24,6 +26,40 @@ test('builder verb labels never expose internal argument-slot descriptions', () 
     assert.ok(label.trim(), predicate);
     assert.doesNotMatch(label, /\\b(?:SOMETHING|SOMEONE|SOMEWHERE)\\b/u, predicate);
   }
+});
+
+test('main builder word blocks reproduce actual surface order across all generated examples', () => {
+  for (const code of codes) {
+    const guide = compileGuide(code);
+    for (const lesson of guide.lessons) {
+      for (const example of lesson.examples) {
+        if (example.source.kind !== 'expression') continue;
+        const surface = builderSurfaceWords(example.target, example.source.expression, code);
+        assert.deepEqual(surface.map(word => word.text), example.target.trim().split(/\s+/u),
+          code + '/' + lesson.id + ': ' + example.target);
+        assert.ok(surface.every(word => word.tag && word.slot !== undefined), example.target);
+      }
+    }
+  }
+});
+
+test('German participle and auxiliary occupy their real sentence positions', () => {
+  const guide = compileGuide('de');
+  const examples = guide.lessons.flatMap(lesson => lesson.examples);
+  const wordsFor = (target) => {
+    const example = examples.find(item => item.target === target);
+    assert.ok(example && example.source.kind === 'expression', target);
+    return builderSurfaceWords(target, example.source.expression, 'de');
+  };
+  const bought = wordsFor('Ich habe gestern ein Ticket gekauft.');
+  assert.deepEqual(bought.map(word => word.text),
+    ['Ich', 'habe', 'gestern', 'ein', 'Ticket', 'gekauft.']);
+  assert.deepEqual(bought.map(word => word.slot),
+    ['agent', 'tense', 'tense', 'argument', 'argument', 'predicate']);
+  assert.deepEqual(wordsFor('Haben Sie eine Frage?').map(word => word.slot),
+    ['predicate', 'agent', 'argument', 'argument']);
+  assert.deepEqual(wordsFor('Ich habe keinen Termin.').map(word => word.slot),
+    ['agent', 'predicate', 'power', 'argument']);
 });
 
 test('all fifteen semantic patterns produce sentences in German, French, and Spanish', () => {

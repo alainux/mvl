@@ -263,31 +263,43 @@
 .snap-section-caption {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .snap-section-caption strong {color:#f0efff}
 .snap-section-caption span {font-size:10px;letter-spacing:0;font-weight:650}
-.snap-sockets {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-.snap-socket {--socket:#d1c7ff;position:relative;display:flex;flex-direction:column;text-align:left;align-items:stretch;gap:10px;min-height:154px;min-width:0;padding:15px 12px 13px;border-radius:11px;
-  color:#fff;background:linear-gradient(145deg,#ffffff1a,#ffffff08);
-  border:2px solid color-mix(in srgb,var(--socket) 48%,#171c32);
-  box-shadow:inset 0 2px #ffffff24,0 5px 0 #060c1b60;
-  transition:transform .16s,border-color .16s,box-shadow .16s;
-}
-.snap-socket::before {content:"";position:absolute;top:-9px;left:calc(50% - 12px);width:24px;height:9px;background:var(--socket);border-radius:7px 7px 2px 2px}
-.snap-socket:hover {transform:translateY(-2px);border-color:var(--socket)}
-.snap-socket.is-selected {border-color:var(--snap-violet);background:linear-gradient(145deg,#baa3ff20,#ffffff0a);box-shadow:0 0 0 2px #bea3ff66,0 6px 0 #060c1b6b}
-.snap-socket.is-match {border-color:#6bdbb8a3}
-.snap-socket.is-needs-work .snap-socket-top small {color:#ffd08d}
-.snap-socket.is-match.is-selected {box-shadow:0 0 0 2px #bea3ff99,0 6px 0 #060c1b6b}
-.snap-socket.is-person {--socket:var(--snap-cyan)}
-.snap-socket.is-action {--socket:var(--snap-violet)}
-.snap-socket.is-object {--socket:var(--snap-amber)}
-.snap-socket.is-time {--socket:var(--snap-pink)}
-.snap-socket.is-operator {--socket:var(--snap-lime)}
-.snap-socket-top {display:flex;flex-direction:column;gap:5px;min-height:32px}
-.snap-socket-top b {font:900 10px/1.2 ui-monospace,monospace;letter-spacing:.04em;color:var(--socket)}
-.snap-socket-top small {color:#aebed8;font:800 8px/1 ui-monospace,monospace;letter-spacing:.07em}
-.snap-socket.is-match .snap-socket-top small {color:#9af2cb}
-.snap-socket > strong {color:#fff;font-size:clamp(12px,1.45vw,18px);font-weight:850;line-height:1.3;overflow-wrap:anywhere;flex:1}
-.snap-socket-foot {font:820 9px/1 ui-monospace,monospace;color:#abb6d6;letter-spacing:.07em}
-.snap-socket.is-selected .snap-socket-foot {color:var(--snap-violet)}
+.snap-sockets {display:flex;flex-wrap:wrap;align-items:stretch;gap:10px;min-height:99px;
+  padding:18px;border-radius:16px;border:1px dashed #ffffff46;background:#090f2180}
+.snap-word {--word-tone:#d1c7ff;display:flex;flex-direction:column;justify-content:space-between;
+  gap:12px;min-height:95px;min-width:73px;max-width:100%;padding:13px 16px;
+  border:2px solid color-mix(in srgb,var(--word-tone) 64%,#171c32);
+  border-radius:12px;background:linear-gradient(145deg,#ffffff1b,#ffffff08);
+  box-shadow:0 4px 0 #060c1b72;color:#fff;text-align:left;
+  transition:border-color .15s,transform .15s,box-shadow .15s}
+button.snap-word {cursor:pointer}
+button.snap-word:hover {transform:translateY(-2px);border-color:var(--word-tone)}
+.snap-word.is-person {--word-tone:var(--snap-cyan)}
+.snap-word.is-action {--word-tone:var(--snap-violet)}
+.snap-word.is-object {--word-tone:var(--snap-amber)}
+.snap-word.is-time {--word-tone:var(--snap-pink)}
+.snap-word.is-operator {--word-tone:var(--snap-lime)}
+.snap-word > small {font:850 9px/1.3 ui-monospace,monospace;letter-spacing:.05em;color:var(--word-tone)}
+.snap-word > strong {color:#fff;font-size:clamp(17px,2.2vw,24px);font-weight:850;line-height:1.2;
+  overflow-wrap:anywhere;white-space:normal}
+.snap-word.is-selected {box-shadow:0 0 0 2px #bea3ff9c,0 4px 0 #060c1b72}
+.snap-word.is-match {border-color:#6bdbb8bd}
+.snap-word.is-needs-work {border-color:#d3a66b90}
+.snap-word.is-readonly {opacity:.72;cursor:default}
+.snap-control-panel {margin-top:16px;padding:14px 16px;background:#ffffff08;
+  border:1px solid #ffffff27;border-radius:13px}
+.snap-control-heading {display:flex;align-items:center;justify-content:space-between;gap:10px;
+  flex-wrap:wrap;margin-bottom:11px}
+.snap-control-heading strong {color:#e7eeff;font:850 10px/1.5 ui-monospace,monospace;letter-spacing:.1em}
+.snap-control-heading span {color:#aab6d2;font-size:11px}
+.snap-tools {display:flex;flex-wrap:wrap;gap:8px}
+.snap-tool {display:inline-flex;align-items:center;gap:9px;padding:9px 13px;
+  border:1px solid #8f9dbb66;border-radius:9px;background:#202a43;color:#fff;
+  cursor:pointer;transition:border-color .15s,background .15s}
+.snap-tool strong {font-size:11px;font-weight:830}
+.snap-tool small {color:#aebcda;font:750 9px/1.3 ui-monospace,monospace}
+.snap-tool.is-selected {border-color:var(--snap-violet);background:#39365b}
+.snap-tool.is-match small {color:#89edca}
+.snap-tool:hover {border-color:var(--snap-violet)}
 .snap-explanation {margin:15px 0 21px;color:#bdc9e2;font-size:11px;line-height:1.65}
 .snap-explanation strong {color:#fff}
 .snap-tray {padding:19px;background:#0f1428;border:1px solid #ffffff25;border-radius:15px}
@@ -390,15 +402,14 @@
 @media (max-width:1100px) {
   .snap-header,.snap-missions,.snap-play-surface {padding-left:20px;padding-right:20px}
   .snap-objective,.snap-result {margin-left:20px;margin-right:20px}
-  .snap-sockets {gap:7px}
-  .snap-socket {padding:13px 8px;min-height:135px}
-  .snap-socket > strong {font-size:13px}
+  .snap-sockets {gap:8px;padding:14px}
+  .snap-word {min-height:85px;padding:11px 13px}
+  .snap-word > strong {font-size:19px}
 }
 @media (max-width:800px) {
   .snap-mission-grid {grid-template-columns:repeat(2,minmax(0,1fr))}
-  .snap-sockets {grid-template-columns:repeat(3,minmax(0,1fr));row-gap:17px}
-  .snap-socket {min-height:123px}
-  .snap-socket > strong {font-size:16px}
+  .snap-sockets {row-gap:10px}
+  .snap-tools {gap:7px}
 }
 @media (max-width:680px) {
   .snap-game {border-radius:18px}
@@ -410,9 +421,12 @@
   .snap-missions,.snap-play-surface {padding:17px 14px 0}
   .snap-mission {min-height:95px;padding:12px}
   .snap-objective {margin:16px 14px 0;padding:14px}
-  .snap-sockets {grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 9px}
-  .snap-socket {min-height:119px}
-  .snap-socket > strong {font-size:15px}
+  .snap-sockets {gap:7px;padding:10px}
+  .snap-word {min-height:69px;min-width:53px;padding:9px 11px;gap:8px}
+  .snap-word > strong {font-size:17px}
+  .snap-word > small {font-size:8px}
+  .snap-control-panel {padding:11px}
+  .snap-tool {padding:8px 10px;gap:5px}
   .snap-tray {padding:12px}
   .snap-pieces {max-height:245px;gap:7px}
   .snap-piece {min-height:46px;padding:7px 9px}

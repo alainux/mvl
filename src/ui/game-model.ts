@@ -55,12 +55,45 @@ export function meaningBlocks(example: GeneratedExample, code: LanguageProfile['
   const clause = expression.kind === 'ask_when' ? expression.value : expression;
   const agent = { speaker: 'I', addressee: 'YOU', we: 'WE', other: 'HE' }[clause.event.agent];
   const predicate = PREDICATES[clause.event.predicate].description.toUpperCase();
-  // German yes/no questions place the finite verb before the subject.
-  const words = code === 'de' && expression.kind === 'clause' && clause.question
-    ? [predicate, agent] : [agent, predicate];
-  if (clause.event.argument !== 'none') words.push(String(CONCEPTS[clause.event.argument]).toUpperCase());
+  const argument = clause.event.argument === 'none'
+    ? [] : [String(CONCEPTS[clause.event.argument]).toUpperCase()];
+  const temporal = clause.time ? [clause.time.replaceAll('_', ' ').toUpperCase()] : [];
+
+  if (code === 'de') {
+    // German meaning blocks must follow the realized clause, not AST field order.
+    // The finite verb comes before the subject in questions; with a modal or
+    // Perfekt auxiliary, the main verb is last. Time precedes ordinary objects.
+    const whenQuestion = expression.kind === 'ask_when';
+    const inverted = clause.question || whenQuestion;
+    const surfaceWords = example.target.trim().split(/\s+/u);
+    const finite = surfaceWords[whenQuestion ? 1 : inverted ? 0 : 1]?.toLocaleLowerCase('de-DE') ?? '';
+    const perfect = clause.tense === 'past' && !clause.modality &&
+      /^(?:habe|haben|hat|bin|sind|ist)$/u.test(finite);
+    const head = clause.modality ? [clause.modality.toUpperCase()] : perfect ? ['PAST'] : [predicate];
+    const trailingVerb = clause.modality || perfect ? [predicate] : [];
+    const tense = clause.tense === 'past' && !perfect ? ['PAST'] : [];
+    const time = [...(clause.tense === 'future' ? ['FUTURE'] : []), ...temporal];
+
+    // German places "kein" in the object phrase, whereas "nicht" can appear
+    // after an object pronoun ("das nicht", "Ihnen nicht"). Both positions come
+    // from the same word-order rules as the German sentence realizer.
+    const objectFirst = ['help', 'call', 'understand'].includes(clause.event.predicate);
+    const negateAfterObject = clause.negative && (objectFirst ||
+      (clause.event.predicate === 'use' && clause.event.argument === 'internet'));
+    const negation = clause.negative ? ['NOT'] : [];
+    const middle = objectFirst
+      ? [...argument, ...time, ...negation]
+      : [...time, ...(negateAfterObject ? [] : negation), ...argument,
+        ...(negateAfterObject ? negation : [])];
+    const start = inverted ? [...head, agent] : [agent, ...head];
+    return [...(whenQuestion ? ['QUESTION'] : []), ...start, ...tense,
+      ...middle, ...trailingVerb, ...(clause.question && !whenQuestion ? ['QUESTION'] : [])];
+  }
+
+  // Preserve the existing presentation in French and Spanish.
+  const words = [agent, predicate, ...argument];
   if (clause.tense !== 'present') words.push(clause.tense.toUpperCase());
-  if (clause.time) words.push(clause.time.replaceAll('_', ' ').toUpperCase());
+  words.push(...temporal);
   if (clause.modality) words.push(clause.modality.toUpperCase());
   if (clause.negative) words.push('NOT');
   if (clause.question || expression.kind === 'ask_when') words.push('QUESTION');

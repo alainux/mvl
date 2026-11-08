@@ -163,7 +163,7 @@ function exampleTile(example, code, index) {
     const editable = example.source.kind === 'expression' && fromExpression(example.source.expression) !== null;
     return `<div class="game-example-card">
     <div class="game-example-top"><span>EXAMPLE ${padded(index + 1)}</span><span>${editable ? 'EDITABLE BLOCKS' : 'EVERYDAY EXPRESSION'}</span></div>
-    <div class="game-example-blocks">${meaningBlocks(example).map((block) => `<span>${escape(block)}</span>`).join('')}</div>
+    <div class="game-example-blocks">${meaningBlocks(example, code).map((block) => `<span>${escape(block)}</span>`).join('')}</div>
     <strong lang="${code}">${escape(example.target)}</strong>
     <p>${escape(example.english)}</p>
     ${editable

@@ -76,6 +76,30 @@ test('all fifteen semantic patterns produce sentences in German, French, and Spa
   }
 });
 
+test('eating has a genuine object choice instead of a dead-end food placeholder', () => {
+  const base = initialStudio();
+  const withoutObject = normalizeStudio({
+    ...base,
+    action: { ...base.action, predicate: 'eat', agent: 'addressee', argument: 'food' },
+  });
+  const withBread = normalizeStudio({
+    ...withoutObject,
+    action: { ...withoutObject.action, argument: 'bread' },
+  });
+  assert.ok(PREDICATES.eat.allowedArguments.includes('bread'));
+  assert.deepEqual(
+    [...PREDICATES.eat.allowedArguments], ['food', 'bread']);
+  assert.equal(linearize(studioExpression(withoutObject), 'de'), 'Sie essen.');
+  assert.equal(linearize(studioExpression(withBread), 'de'), 'Sie essen Brot.');
+  assert.equal(linearize(studioExpression(withBread), 'fr'), 'Vous mangez du pain.');
+  assert.equal(linearize(studioExpression(withBread), 'es'), 'Usted come pan.');
+  assert.equal(realizeEnglish(studioExpression(withBread)), 'You eat bread.');
+  for (const code of codes) {
+    assert.notEqual(linearize(studioExpression(withoutObject), code),
+      linearize(studioExpression(withBread), code));
+  }
+});
+
 test('the Past block changes grammar, not a stored translation', () => {
   const source = applyRecipe(initialStudio(), RECIPES[0]);
   const past = toggleOperator(source, 'past');
